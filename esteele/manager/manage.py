@@ -175,7 +175,7 @@ def checkPackageForUpdates(package_name):
                         print "WARNING: No auto-checkout exists for %s" % package_name
                     print "Changes in %s:" % package_name
                     for commit in commits_since_release:
-                        print "    %s: %s" % (commit.author, commit.summary)
+                        print "    %s: %s" % (commit.author.name.encode('ascii', 'replace'), commit.summary.encode('ascii', 'replace'))
                     if package_name in THIRD_PARTY_PACKAGES:
                         print "NOTE: %s is a third-party package." % package_name
                 rmtree(tmpdir)
