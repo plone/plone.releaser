@@ -6,6 +6,7 @@ import git
 from shutil import rmtree
 from tempfile import mkdtemp
 from collections import OrderedDict
+from progress.bar import Bar
 
 
 THIRD_PARTY_PACKAGES = ['Zope2',
@@ -174,7 +175,7 @@ def checkPackageForUpdates(package_name):
                     if package_name not in checkouts:
                         print "WARNING: No auto-checkout exists for %s" % package_name
                     print "Changes in %s:" % package_name
-                    for commit in commits_since_release:
+                    for commit in commits_since_release: 
                         print "    %s: %s" % (commit.author.name.encode('ascii', 'replace'), commit.summary.encode('ascii', 'replace'))
                     if package_name in THIRD_PARTY_PACKAGES:
                         print "NOTE: %s is a third-party package." % package_name
@@ -187,7 +188,7 @@ def checkPackageForUpdates(package_name):
 @named('report')
 def checkAllPackagesForUpdates():
     sources = getSources()
-    for package_name in sources:
+    for package_name in Bar('Scanning').iter(sources):
         checkPackageForUpdates(package_name)
         # print "\n"
 

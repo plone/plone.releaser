@@ -27,7 +27,8 @@ setup(name='esteele.manager',
           'argh',
           'gitpython',
           'configparser',
-          'argcomplete'
+          'argcomplete',
+          'progress'
       ],
       entry_points="""
       # -*- Entry points: -*-
