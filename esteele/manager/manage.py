@@ -1,4 +1,5 @@
 from argh import ArghParser, command
+from argh.decorators import named
 from configparser import ConfigParser, ExtendedInterpolation, NoOptionError
 import xmlrpclib
 import git
@@ -181,7 +182,7 @@ def checkPackageForUpdates(package_name):
             pass
 
 
-@command
+@named('report')
 def checkAllPackagesForUpdates():
     sources = getSources()
     for package_name in sources:
