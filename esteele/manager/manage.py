@@ -174,6 +174,8 @@ def checkPackageForUpdates(package_name):
                 print "Changes in %s:" % package_name
                 for commit in commits_since_release:
                     print "    %s: %s" % (commit.author, commit.summary)
+                if package_name in THIRD_PARTY_PACKAGES:
+                    print "NOTE: %s is a third-party package." % package_name
             rmtree(tmpdir)
         else:
             # print "Skipped check of %s as it's not a git repo." % package_name
