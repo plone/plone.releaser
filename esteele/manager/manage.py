@@ -24,8 +24,6 @@ THIRD_PARTY_PACKAGES = ['Zope2',
                         'Products.PluginRegistry',
                         'Products.ZCatalog']
 
-IGNORED_PACKAGES = ['mr.steele']
-
 
 def getVersion(package_name):
     config = ConfigParser(interpolation=ExtendedInterpolation())
