@@ -24,6 +24,7 @@ THIRD_PARTY_PACKAGES = ['Zope2',
                         'Products.PluginRegistry',
                         'Products.ZCatalog']
 
+IGNORED_PACKAGES = ['esteele.manager']
 
 def getVersion(package_name):
     config = ConfigParser(interpolation=ExtendedInterpolation())
@@ -136,50 +137,51 @@ def checkPypi(user):
 
 @command
 def checkPackageForUpdates(package_name):
-    source = getSource(package_name)
-    checkouts = getAutoCheckouts()
-    try:
-        version = getVersion(package_name)
-    except NoOptionError:
-        # print "No version available for %s" % package_name
-        pass
-    else:
-        if source.protocol == 'git':
-            tmpdir = mkdtemp()
-            # print "Reading %s branch of %s for changes since %s..." % (source.branch, package_name, version)
-            repo = git.Repo.clone_from(source.url, tmpdir, branch=source.branch)
-
-            g = git.Git(tmpdir)
-            try:
-                latest_tag_in_branch = g.describe('--abbrev=0', '--tags')
-            except git.exc.GitCommandError:
-                # print "Unable to check tags for %s" % package_name
-                pass
-            else:
-                if latest_tag_in_branch > version:
-                    print "Newer version %s is available for %s." % (latest_tag_in_branch, package_name)
-                    return
-
-            commits_since_release = list(repo.iter_commits('%s..%s' % (version, source.branch)))
-            if not commits_since_release\
-                    or "Back to development" in commits_since_release[0].message\
-                    or commits_since_release[0].message.startswith('vb'):
-                # print "No changes."
-                pass
-            else:
-                print "\n"
-                # Check for checkout
-                if package_name not in checkouts:
-                    print "WARNING: No auto-checkout exists for %s" % package_name
-                print "Changes in %s:" % package_name
-                for commit in commits_since_release:
-                    print "    %s: %s" % (commit.author, commit.summary)
-                if package_name in THIRD_PARTY_PACKAGES:
-                    print "NOTE: %s is a third-party package." % package_name
-            rmtree(tmpdir)
-        else:
-            # print "Skipped check of %s as it's not a git repo." % package_name
+    if package_name not in IGNORED_PACKAGES:
+        source = getSource(package_name)
+        checkouts = getAutoCheckouts()
+        try:
+            version = getVersion(package_name)
+        except NoOptionError:
+            # print "No version available for %s" % package_name
             pass
+        else:
+            if source.protocol == 'git':
+                tmpdir = mkdtemp()
+                # print "Reading %s branch of %s for changes since %s..." % (source.branch, package_name, version)
+                repo = git.Repo.clone_from(source.url, tmpdir, branch=source.branch)
+
+                g = git.Git(tmpdir)
+                try:
+                    latest_tag_in_branch = g.describe('--abbrev=0', '--tags')
+                except git.exc.GitCommandError:
+                    # print "Unable to check tags for %s" % package_name
+                    pass
+                else:
+                    if latest_tag_in_branch > version:
+                        print "Newer version %s is available for %s." % (latest_tag_in_branch, package_name)
+                        return
+
+                commits_since_release = list(repo.iter_commits('%s..%s' % (version, source.branch)))
+                if not commits_since_release\
+                        or "Back to development" in commits_since_release[0].message\
+                        or commits_since_release[0].message.startswith('vb'):
+                    # print "No changes."
+                    pass
+                else:
+                    print "\n"
+                    # Check for checkout
+                    if package_name not in checkouts:
+                        print "WARNING: No auto-checkout exists for %s" % package_name
+                    print "Changes in %s:" % package_name
+                    for commit in commits_since_release:
+                        print "    %s: %s" % (commit.author, commit.summary)
+                    if package_name in THIRD_PARTY_PACKAGES:
+                        print "NOTE: %s is a third-party package." % package_name
+                rmtree(tmpdir)
+            else:
+                # print "Skipped check of %s as it's not a git repo." % package_name
+                pass
 
 
 @named('report')
