@@ -1,2 +1,0 @@
-esteele.manager
-===============
