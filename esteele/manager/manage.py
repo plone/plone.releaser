@@ -170,7 +170,7 @@ def checkPackageForUpdates(package_name):
                 print "\n"
                 # Check for checkout
                 if package_name not in checkouts:
-                    print "No auto-checkout exists for %s" % package_name
+                    print "WARNING: No auto-checkout exists for %s" % package_name
                 print "Changes in %s:" % package_name
                 for commit in commits_since_release:
                     print "    %s: %s" % (commit.author, commit.summary)
