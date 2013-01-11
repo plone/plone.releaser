@@ -168,7 +168,8 @@ def checkPackageForUpdates(package_name):
                         or "Back to development" in commits_since_release[0].message\
                         or commits_since_release[0].message.startswith('vb'):
                     # print "No changes."
-                    pass
+                    if package_name in checkouts:
+                        print"\nNo new changes in %s, but it is listed for auto-checkout."
                 else:
                     print "\n"
                     # Check for checkout
