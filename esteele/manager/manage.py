@@ -160,7 +160,7 @@ def checkPackageForUpdates(package_name):
                     pass
                 else:
                     if latest_tag_in_branch > version:
-                        print "Newer version %s is available for %s." % (latest_tag_in_branch, package_name)
+                        print "\nNewer version %s is available for %s." % (latest_tag_in_branch, package_name)
                         return
 
                 commits_since_release = list(repo.iter_commits('%s..%s' % (version, source.branch)))
