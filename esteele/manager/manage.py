@@ -77,6 +77,14 @@ class Source():
             self.branch = branch.split('=')[-1]
         return self
 
+    @property
+    def path(self):
+        if self.url:
+            match = re.match('(\w+://)(.+@)*([\w\d\.]+)(:[\d]+){0,1}/(?P<path>.+(?=\.git))(\.git)', self.url)
+            if match:
+                return match.groupdict()['path']
+        return None
+
 
 def getSources():
     config = getSourcesConfig()
