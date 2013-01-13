@@ -135,16 +135,25 @@ def release(package, new_version):
     print package, new_version
 
 
+def getUsersWithReleaseRights(package_name):
+    client = xmlrpclib.ServerProxy('http://pypi.python.org/pypi')
+    existing_admins = [user for role, user in client.package_roles(package_name)]
+    return existing_admins
+
+
+def canUserReleasePackageToPypi(user, package_name):
+    return user in getUsersWithReleaseRights(package_name)
+
 
 @command
 def checkPypi(user):
     config = getSourcesConfig()
-    client = xmlrpclib.ServerProxy('http://pypi.python.org/pypi')
-    my_pacakges = [package for role, package in client.user_packages(user)]
     for package in config.options('sources'):
-        if package not in my_pacakges and package not in THIRD_PARTY_PACKAGES:
-            existing_admins = [user for role, user in client.package_roles(package)]
-            print package, existing_admins
+        if package in THIRD_PARTY_PACKAGES:
+            pass
+        else:
+            if not canUserReleasePackageToPypi(user, package):
+                print "%s: %s" % (package, getUsersWithReleaseRights(package))
 
 
 @command
