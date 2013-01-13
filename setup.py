@@ -28,7 +28,9 @@ setup(name='esteele.manager',
           'gitpython',
           'configparser',
           'argcomplete',
-          'progress'
+          'progress',
+          'PyGithub',
+          'keyring'
       ],
       entry_points="""
       # -*- Entry points: -*-

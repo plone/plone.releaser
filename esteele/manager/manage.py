@@ -7,6 +7,9 @@ from shutil import rmtree
 from tempfile import mkdtemp
 from collections import OrderedDict
 from progress.bar import Bar
+from github import Github
+import re
+import keyring
 
 
 THIRD_PARTY_PACKAGES = ['Zope2',
@@ -202,10 +205,28 @@ def checkAllPackagesForUpdates():
         # print "\n"
 
 
+def pulls():
+    sources = getSources()
+
+    client_id = 'b9f6639835b8c9cf462a'
+    client_secret = keyring.get_password('esteele.manager', client_id)
+
+    g = Github(client_id=client_id, client_secret=client_secret)
+
+    for package_name, source in sources.iteritems():
+        if source.path:
+            repo = g.get_repo(source.path)
+            pulls = [a for a in repo.get_pulls('open') if a.head.ref == source.branch]
+            if pulls:
+                print package_name
+                for pull in pulls:
+                    print "    %s: %s (%s)" % (pull.user.login, pull.title, pull.url)
+
+
 class Manage(object):
     def __call__(self, **kwargs):
         parser = ArghParser()
-        parser.add_commands([release, checkPypi, checkPackageForUpdates, checkAllPackagesForUpdates])
+        parser.add_commands([release, checkPypi, checkPackageForUpdates, checkAllPackagesForUpdates, pulls])
         parser.dispatch()
 
 
