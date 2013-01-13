@@ -34,7 +34,11 @@ setup(name='esteele.manager',
         'zest.releaser'
     ],
     entry_points={
+        'console_scripts': [
+           'manage = esteele.manager.manage:manage'],
         'zest.releaser.prereleaser.before': [
-          'check_pypi=esteele.manager.release:check_pypi_access',
-      ]},
+          'check_pypi=esteele.manager.release:check_pypi_access'],
+        'zest.releaser.releaser.after': [
+          'update_core=esteele.manager.release:update_core']
+        },
     )
