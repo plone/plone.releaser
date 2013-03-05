@@ -1,5 +1,7 @@
-from argh import ArghParser, command
+import os
+from argh import ArghParser, command, arg
 from argh.decorators import named
+from argh.interaction import confirm
 from configparser import ConfigParser, ExtendedInterpolation, NoOptionError
 import xmlrpclib
 import git
@@ -10,6 +12,8 @@ from progress.bar import Bar
 from github import Github
 import re
 import keyring
+from db import IgnoresDB
+from gitdb.db.git import GitDB
 
 
 THIRD_PARTY_PACKAGES = ['Zope2',
@@ -30,16 +34,24 @@ THIRD_PARTY_PACKAGES = ['Zope2',
 
 IGNORED_PACKAGES = ['esteele.manager']
 
+ALWAYS_CHECKED_OUT = ['Plone',
+                      'Products.CMFPlone',
+                      'plone.app.upgrade',
+                      'plone.app.locales']
+
+
 def getVersion(package_name):
     config = ConfigParser(interpolation=ExtendedInterpolation())
-    config.readfp(open('versions.cfg'))
+    with open('versions.cfg') as f:
+        config.readfp(f)
     version = config.get('versions', package_name)
     return version
 
 
 def getAutoCheckouts():
     config = ConfigParser(interpolation=ExtendedInterpolation())
-    config.readfp(open('checkouts.cfg'))
+    with open('checkouts.cfg') as f:
+        config.readfp(f)
     checkouts = config.get('buildout', 'auto-checkout')
     checkout_list = checkouts.split('\n')
     return checkout_list
@@ -47,16 +59,19 @@ def getAutoCheckouts():
 
 def setAutoCheckouts(checkouts_list):
     config = ConfigParser(interpolation=ExtendedInterpolation())
-    config.readfp(open('checkouts.cfg'))
+    with open('checkouts.cfg') as f:
+        config.readfp(f)
     checkouts = '\n'.join(checkouts_list)
     config.set('buildout', 'auto-checkout', checkouts)
-    config.write(open('checkouts.cfg', 'w'))
+    with open('checkouts.cfg', 'w') as f:
+        config.write(f)
 
 
 def getSourcesConfig():
     config = ConfigParser(interpolation=ExtendedInterpolation())
     config.optionxform = str
-    config.readfp(open('sources.cfg'))
+    with open('sources.cfg') as f:
+        config.readfp(f)
     return config
 
 
@@ -105,34 +120,35 @@ def getSource(package_name):
 
 
 def addToCheckouts(package_name):
-    checkouts = getAutoCheckouts()
-    checkouts.append(package_name)
-    setAutoCheckouts(checkouts)
+    path = os.path.join(os.getcwd(), 'checkouts.cfg')
+    with open(path, 'r') as f:
+        checkoutstxt = f.read()
+    with open(path, 'w') as f:
+        fixes_text = "# Test fixes only"
+        reg = re.compile("^[\s]*%s\n" % fixes_text, re.MULTILINE)
+        newCheckoutsTxt = reg.sub('    %s\n%s\n' % (package_name, fixes_text), checkoutstxt)
+        f.write(newCheckoutsTxt)
 
 
 def removeFromCheckouts(package_name):
-    checkouts = getAutoCheckouts()
-    checkouts.remove(package_name)
-    setAutoCheckouts(checkouts)
+    # Remove from checkouts.cfg
+    path = os.path.join(os.getcwd(), 'checkouts.cfg')
+    with open(path, 'r') as f:
+        checkoutstxt = f.read()
+    with open(path, 'w') as f:
+        reg = re.compile("^[\s]*%s\n" % package_name, re.MULTILINE)
+        newCheckoutsTxt = reg.sub('', checkoutstxt)
+        f.write(newCheckoutsTxt)
 
 
 def setVersion(package_name, new_version):
-    import configparser
-    versions = ConfigParser(interpolation=ExtendedInterpolation())
-    versions.optionxform = str
-    versions_file = open('versions.cfg')
-    versions.readfp(versions_file)
-    # versions.set('versions', package_name, new_version)
-    # versions.write(open('versions.cfg', 'w'))
-
-
-@command
-def release(package, new_version):
-    # Remove from checkouts
-    # removeFromCheckouts(package)
-    # Update version number
-    setVersion(package, new_version)
-    print package, new_version
+    path = os.path.join(os.getcwd(), 'versions.cfg')
+    with open(path, 'r') as f:
+        versionstxt = f.read()
+    with open(path, 'w') as f:
+        reg = re.compile("(^%s[\s\=]*)[0-9\.abrc]*" % package_name, re.MULTILINE)
+        newVersionsTxt = reg.sub(r"\g<1>%s" % new_version, versionstxt)
+        f.write(newVersionsTxt)
 
 
 def getUsersWithReleaseRights(package_name):
@@ -157,7 +173,7 @@ def checkPypi(user):
 
 
 @command
-def checkPackageForUpdates(package_name):
+def checkPackageForUpdates(package_name, interactive=False):
     if package_name not in IGNORED_PACKAGES:
         source = getSource(package_name)
         checkouts = getAutoCheckouts()
@@ -170,7 +186,7 @@ def checkPackageForUpdates(package_name):
             if source.protocol == 'git':
                 tmpdir = mkdtemp()
                 # print "Reading %s branch of %s for changes since %s..." % (source.branch, package_name, version)
-                repo = git.Repo.clone_from(source.url, tmpdir, branch=source.branch, depth=20)
+                repo = git.Repo.clone_from(source.url, tmpdir, branch=source.branch, depth=100, odbt=GitDB)
 
                 try:
                     latest_tag_in_branch = repo.git.describe('--abbrev=0', '--tags')
@@ -180,25 +196,61 @@ def checkPackageForUpdates(package_name):
                 else:
                     if latest_tag_in_branch > version:
                         print "\nNewer version %s is available for %s." % (latest_tag_in_branch, package_name)
-                        return
+                        if confirm("Update versions.cfg", default=True, skip=not interactive):
+                            setVersion(package_name, latest_tag_in_branch)
+                            core_repo = git.Repo(os.getcwd())
+                            core_repo.git.add(os.path.join(os.getcwd(), 'versions.cfg'))
+                            core_repo.git.commit(message='%s=%s' % (package_name, latest_tag_in_branch))
+                            del(core_repo)
 
                 commits_since_release = list(repo.iter_commits('%s..%s' % (version, source.branch)))
+
+                commit_ignores = IgnoresDB()
+                sha = commit_ignores.get(package_name)
+                commits_since_ignore = None
+                if sha is not None:
+                    commits_since_ignore = list(repo.iter_commits('%s..%s' % (sha, source.branch)))
                 if not commits_since_release\
                         or "Back to development" in commits_since_release[0].message\
                         or commits_since_release[0].message.startswith('vb'):
                     # print "No changes."
-                    if package_name in checkouts:
+                    if package_name in checkouts and package_name not in ALWAYS_CHECKED_OUT:
                         print"\nNo new changes in %s, but it is listed for auto-checkout." % package_name
+                        if confirm("Remove %s from checkouts.cfg" % package_name, default=True, skip=not interactive):
+                            removeFromCheckouts(package_name)
+                            core_repo = git.Repo(os.getcwd())
+                            core_repo.git.add(os.path.join(os.getcwd(), 'checkouts.cfg'))
+                            core_repo.git.commit(message='No new changes in %s' % package_name)
+                            del(core_repo)
                 else:
-                    print "\n"
-                    # Check for checkout
-                    if package_name not in checkouts:
-                        print "WARNING: No auto-checkout exists for %s" % package_name
-                    print "Changes in %s:" % package_name
-                    for commit in commits_since_release: 
-                        print "    %s: %s" % (commit.author.name.encode('ascii', 'replace'), commit.summary.encode('ascii', 'replace'))
-                    if package_name in THIRD_PARTY_PACKAGES:
-                        print "NOTE: %s is a third-party package." % package_name
+                    if commits_since_ignore is None:
+                        # Check for checkout
+                        if package_name not in checkouts:
+                            print "\n"
+                            print "WARNING: No auto-checkout exists for %s" % package_name
+                            print "Changes in %s:" % package_name
+                            for commit in commits_since_release:
+                                print "    %s: %s" % (commit.author.name.encode('ascii', 'replace'), commit.summary.encode('ascii', 'replace'))
+                            if package_name in THIRD_PARTY_PACKAGES:
+                                print "NOTE: %s is a third-party package." % package_name
+
+                            if confirm("Add %s to checkouts.cfg" % package_name, default=True, skip=not interactive):
+                                addToCheckouts(package_name)
+                                core_repo = git.Repo(os.getcwd())
+                                core_repo.git.add(os.path.join(os.getcwd(), 'checkouts.cfg'))
+                                core_repo.git.commit(message='%s has changes.' % package_name)
+                                del(core_repo)
+                            elif confirm("Ignore changes in  %s" % package_name, default=False, skip=not interactive):
+                                commit_ignores.set(package_name, commits_since_release[0].hexsha)
+                        else:
+                            if not interactive:
+                                print "\n"
+                                print "Changes in %s:" % package_name
+                                for commit in commits_since_release:
+                                    print "    %s: %s" % (commit.author.name.encode('ascii', 'replace'), commit.summary.encode('ascii', 'replace'))
+                                if package_name in THIRD_PARTY_PACKAGES:
+                                    print "NOTE: %s is a third-party package." % package_name
+                del(repo)
                 rmtree(tmpdir)
             else:
                 # print "Skipped check of %s as it's not a git repo." % package_name
@@ -206,10 +258,11 @@ def checkPackageForUpdates(package_name):
 
 
 @named('report')
-def checkAllPackagesForUpdates():
+@arg('--interactive', default=False)
+def checkAllPackagesForUpdates(args):
     sources = getSources()
     for package_name in Bar('Scanning').iter(sources):
-        checkPackageForUpdates(package_name)
+        checkPackageForUpdates(package_name, args.interactive)
         # print "\n"
 
 
@@ -234,7 +287,7 @@ def pulls():
 class Manage(object):
     def __call__(self, **kwargs):
         parser = ArghParser()
-        parser.add_commands([release, checkPypi, checkPackageForUpdates, checkAllPackagesForUpdates, pulls])
+        parser.add_commands([checkPypi, checkPackageForUpdates, checkAllPackagesForUpdates, pulls])
         parser.dispatch()
 
 
