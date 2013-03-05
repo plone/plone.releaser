@@ -170,7 +170,7 @@ def checkPackageForUpdates(package_name):
             if source.protocol == 'git':
                 tmpdir = mkdtemp()
                 # print "Reading %s branch of %s for changes since %s..." % (source.branch, package_name, version)
-                repo = git.Repo.clone_from(source.url, tmpdir, branch=source.branch, depth=20)
+                repo = git.Repo.clone_from(source.url, tmpdir, branch=source.branch, depth=100)
 
                 g = git.Git(tmpdir)
                 try:
