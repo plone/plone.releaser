@@ -172,9 +172,8 @@ def checkPackageForUpdates(package_name):
                 # print "Reading %s branch of %s for changes since %s..." % (source.branch, package_name, version)
                 repo = git.Repo.clone_from(source.url, tmpdir, branch=source.branch, depth=20)
 
-                g = git.Git(tmpdir)
                 try:
-                    latest_tag_in_branch = g.describe('--abbrev=0', '--tags')
+                    latest_tag_in_branch = repo.git.describe('--abbrev=0', '--tags')
                 except git.exc.GitCommandError:
                     # print "Unable to check tags for %s" % package_name
                     pass
