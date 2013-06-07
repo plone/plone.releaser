@@ -1,19 +1,20 @@
+from collections import OrderedDict
 import os
+import re
+from shutil import rmtree
+from tempfile import mkdtemp
+import xmlrpclib
+
 from argh import ArghParser, command, arg
 from argh.decorators import named
 from argh.interaction import confirm
 from configparser import ConfigParser, ExtendedInterpolation, NoOptionError
-import xmlrpclib
-import git
-from shutil import rmtree
-from tempfile import mkdtemp
-from collections import OrderedDict
-from progress.bar import Bar
-from github import Github
-import re
-import keyring
 from db import IgnoresDB
+import git
 from gitdb.db.git import GitDB
+from github import Github
+import keyring
+from progress.bar import Bar
 
 
 THIRD_PARTY_PACKAGES = ['Zope2',
