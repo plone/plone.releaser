@@ -37,7 +37,7 @@ setup(name='esteele.manager',
       entry_points={
           'console_scripts': [
               'manage = esteele.manager.manage:manage'],
-          'zest.releaser.prereleaser.before': [
+          'zest.releaser.prereleaser.middle': [
               'show_changelog=esteele.manager.release:show_changelog_entries',
               'check_pypi=esteele.manager.release:check_pypi_access'],
           'zest.releaser.releaser.after': [
