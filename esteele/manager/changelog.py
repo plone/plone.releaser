@@ -3,11 +3,12 @@ from distutils.version import StrictVersion
 from docutils.core import publish_doctree
 import sys
 from itertools import product
-from ConfigParser import RawConfigParser
-import re
+from esteele.manager.buildout import Buildout
 
 
 DIST_URL = "http://dist.plone.org/release/%s/versions.cfg"
+
+buildout = Buildout()
 
 
 def pullVersions(versionNumber):
@@ -33,33 +34,14 @@ def pullVersions(versionNumber):
     return packageVersions
 
 
-def getSourceLocation(packageName):
-    config = RawConfigParser()
-    config.read('sources.cfg')
+def getSourceLocation(package_name):
 
-    if config.has_option('sources', packageName):
-        sourceLine = config.get('sources', packageName)
-        branch = "master"
-        _template_split = re.compile('([$]{[^}]*})').split
-        # _simple = re.compile('[-a-zA-Z0-9 ._]+$').match
-
-        value = _template_split(sourceLine)
-        if len(value) == 1:
-            url = value[0].split()[1]
-        else:
-            variable = value[1][2:-1].split()[0].split(':')
-
-            section, option = variable
-            value[1] = config.get(section, option)
-            url = ''.join(value[1:])
-            url = url.split(' pushurl')[0]
-
-            branch_check = sourceLine.split('branch=')
-            if len(branch_check) == 2:
-                branch = branch_check[-1]
+    source = buildout.sources.get(package_name)
+    if source is not None:
+        url = source.url
         url = url.replace('git:', 'https:')
         url = url.replace('.git', '')
-        return url, branch
+        return url, source.branch
     return "", ""
 
 
@@ -79,11 +61,9 @@ def main(argv):
                 packageChange = u"%s: %s %s %s" % (package, priorVersion, u"\u2192", version)
                 outputStr += u"\n" + packageChange + u"\n" + u"-" * len(packageChange) + "\n"
                 source, branch = getSourceLocation(package)
-                if package == 'plone.app.referenceablebehavior':
-                    import pdb; pdb.set_trace( )
                 if source:
                     file_names = ['CHANGES', 'HISTORY']
-                    file_extensions = ['.txt', '.rst']
+                    file_extensions = ['.txt', '.rst', '.md']
                     if 'github' in source:
                         paths = ['raw/%s/docs/' % branch, 'raw/%s/' % branch]
                     else:
