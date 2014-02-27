@@ -14,6 +14,13 @@ def check_pypi_access(data):
             sys.exit()
 
 
+def show_changelog_entries(data):
+    pass
+    # Find changelog
+    # Get top release's entry
+    # list(changelog.iteritems())[0]
+
+
 def update_core(data):
     if ask("Ok to update coredev versions.cfg/checkouts.cfg?", default=True):
         package_name = data['name']
