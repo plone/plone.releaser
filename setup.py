@@ -31,7 +31,8 @@ setup(name='esteele.manager',
           'progress',
           'PyGithub',
           'keyring',
-          'zest.releaser'
+          'zest.releaser',
+          'docutils'
       ],
       entry_points={
           'console_scripts': [
