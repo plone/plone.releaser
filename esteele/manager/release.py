@@ -45,4 +45,4 @@ def update_checkouts(package_name):
     print "Removing package from checkouts.cfg"
     path = os.path.join(os.getcwd(), '../../checkouts.cfg')
     checkouts = CheckoutsFile(path)
-    checkouts.add(package_name)
+    checkouts.remove(package_name)
