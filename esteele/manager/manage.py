@@ -11,7 +11,6 @@ from argh.interaction import confirm
 from configparser import ConfigParser, ExtendedInterpolation, NoOptionError
 from db import IgnoresDB
 import git
-from gitdb.db.git import GitDB
 from github import Github
 import keyring
 from progress.bar import Bar
@@ -187,7 +186,7 @@ def checkPackageForUpdates(package_name, interactive=False):
             if source.protocol == 'git':
                 tmpdir = mkdtemp()
                 # print "Reading %s branch of %s for changes since %s..." % (source.branch, package_name, version)
-                repo = git.Repo.clone_from(source.url, tmpdir, branch=source.branch, depth=100, odbt=GitDB)
+                repo = git.Repo.clone_from(source.url, tmpdir, branch=source.branch, depth=100)
 
                 try:
                     latest_tag_in_branch = repo.git.describe('--abbrev=0', '--tags')
