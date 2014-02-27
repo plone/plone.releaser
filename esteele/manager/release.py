@@ -2,7 +2,7 @@ from zest.releaser.utils import ask
 from zest.releaser import pypi
 import sys
 import os
-from esteele.manager.manage import canUserReleasePackageToPypi
+from esteele.manager.pypi import canUserReleasePackageToPypi
 from esteele.manager.buildout import VersionsFile, CheckoutsFile
 import git
 
