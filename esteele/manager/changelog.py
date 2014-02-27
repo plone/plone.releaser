@@ -3,6 +3,9 @@ from distutils.version import StrictVersion
 from docutils.core import publish_doctree
 import sys
 from itertools import product
+from ConfigParser import RawConfigParser
+import re
+
 
 DIST_URL = "http://dist.plone.org/release/%s/versions.cfg"
 
@@ -31,8 +34,6 @@ def pullVersions(versionNumber):
 
 
 def getSourceLocation(packageName):
-    from ConfigParser import RawConfigParser
-    import re
     config = RawConfigParser()
     config.read('sources.cfg')
 
