@@ -153,7 +153,7 @@ def setVersion(package_name, new_version):
     with open(path, 'r') as f:
         versionstxt = f.read()
     with open(path, 'w') as f:
-        reg = re.compile("(^%s[\s\=])[0-9\.abrc]+" %
+        reg = re.compile("(^%s[\s\=]+)[0-9\.abrc]+" %
                          package_name, re.MULTILINE)
         newVersionsTxt = reg.sub(r"\g<1>%s" % new_version, versionstxt)
         f.write(newVersionsTxt)
