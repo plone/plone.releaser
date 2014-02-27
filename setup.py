@@ -25,7 +25,7 @@ setup(name='esteele.manager',
     install_requires=[
         'setuptools',
         'argh',
-        'gitpython',
+        'gitpython>=0.3',
         'configparser',
         'argcomplete',
         'progress',
