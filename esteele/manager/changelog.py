@@ -69,6 +69,9 @@ class Changelog():
     def __iter__(self):
         return self.data.__iter__()
 
+    def iteritems(self):
+        return self.data.iteritems()
+
     def get(self, version):
         return self.data.get(version)
 
