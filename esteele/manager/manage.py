@@ -58,7 +58,6 @@ def checkPypi(user):
 def checkPackageForUpdates(package_name, interactive=False):
     if package_name not in IGNORED_PACKAGES:
         source = buildout.sources.get(package_name)
-        checkouts = buildout.getAutoCheckouts()
         try:
             version = buildout.getVersion(package_name)
         except NoOptionError:
@@ -107,7 +106,7 @@ def checkPackageForUpdates(package_name, interactive=False):
                         or "Back to development" in commits_since_release[0].message\
                         or commits_since_release[0].message.startswith('vb'):
                     # print "No changes."
-                    if package_name in checkouts and package_name not in ALWAYS_CHECKED_OUT:
+                    if package_name in buildout.checkouts and package_name not in ALWAYS_CHECKED_OUT:
                         print"\nNo new changes in %s, but it is listed for auto-checkout." % package_name
                         if confirm("Remove %s from checkouts.cfg" % package_name,
                                    default=True,
@@ -122,7 +121,7 @@ def checkPackageForUpdates(package_name, interactive=False):
                 else:
                     if commits_since_ignore is None:
                         # Check for checkout
-                        if package_name not in checkouts:
+                        if package_name not in buildout.checkouts:
                             print "\n"
                             print "WARNING: No auto-checkout exists for %s" % package_name
                             print "Changes in %s:" % package_name

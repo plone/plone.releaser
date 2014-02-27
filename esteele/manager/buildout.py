@@ -2,6 +2,7 @@ from collections import OrderedDict
 from configparser import ConfigParser, ExtendedInterpolation
 import os
 import re
+from UserDict import UserDict
 
 
 class Source():
@@ -39,67 +40,26 @@ class Source():
         return None
 
 
-class Buildout():
+class VersionsFile():
 
-    def __init__(self,
-                 sources_file='sources.cfg',
-                 checkouts_file='checkouts.cfg',
-                 versions_file='versions.cfg'):
-        self.sources_file = sources_file
-        self.checkouts_file = checkouts_file
-        self.versions_file = versions_file
-
-    def _getSourcesConfig(self):
-        config = ConfigParser(interpolation=ExtendedInterpolation())
-        config.optionxform = str
-        with open(self.sources_file) as f:
-            config.readfp(f)
-        return config
+    def __init__(self, file_location):
+        self.file_location = file_location
 
     @property
-    def sources(self):
-        config = self._getSourcesConfig()
-        sources_dict = OrderedDict()
-        for name, value in config['sources'].items():
-            source = Source().create_from_string(value)
-            sources_dict[name] = source
-        return sources_dict
-
-    # def getSource(self, package_name):
-    #     config = self.getSourcesConfig()
-    #     source = Source().create_from_string(config.get('sources', package_name))
-    #     return source
-
-    def addToCheckouts(self, package_name):
-        path = os.path.join(os.getcwd(), self.checkouts_file)
-        with open(path, 'r') as f:
-            checkoutstxt = f.read()
-        with open(path, 'w') as f:
-            fixes_text = "# Test fixes only"
-            reg = re.compile("^[\s]*%s\n" % fixes_text, re.MULTILINE)
-            newCheckoutsTxt = reg.sub('    %s\n%s\n' %
-                                      (package_name, fixes_text), checkoutstxt)
-            f.write(newCheckoutsTxt)
-
-    def removeFromCheckouts(self, package_name):
-        # Remove from checkouts.cfg
-        path = os.path.join(os.getcwd(), self.checkouts_file)
-        with open(path, 'r') as f:
-            checkoutstxt = f.read()
-        with open(path, 'w') as f:
-            reg = re.compile("^[\s]*%s\n" % package_name, re.MULTILINE)
-            newCheckoutsTxt = reg.sub('', checkoutstxt)
-            f.write(newCheckoutsTxt)
-
-    def getVersion(self, package_name):
+    def versions(self):
         config = ConfigParser(interpolation=ExtendedInterpolation())
-        with open(self.versions_file) as f:
+        with open(self.file_location) as f:
             config.readfp(f)
-        version = config.get('versions', package_name)
-        return version
+        return config['versions']
 
-    def setVersion(self, package_name, new_version):
-        path = os.path.join(os.getcwd(), self.versions_file)
+    def __contains__(self, package_name):
+        return package_name in self.versions
+
+    def __getitem__(self, package_name):
+        return self.versions.get(package_name)
+
+    def __setitem__(self, package_name, new_version):
+        path = os.path.join(os.getcwd(), self.file_location)
         with open(path, 'r') as f:
             versionstxt = f.read()
         with open(path, 'w') as f:
@@ -108,19 +68,99 @@ class Buildout():
             newVersionsTxt = reg.sub(r"\g<1>%s" % new_version, versionstxt)
             f.write(newVersionsTxt)
 
-    def getAutoCheckouts(self):
+
+class SourcesFile(UserDict):
+
+    def __init__(self, file_location):
+        self.file_location = file_location
+
+    @property
+    def data(self):
         config = ConfigParser(interpolation=ExtendedInterpolation())
-        with open(self.checkouts_file) as f:
+        config.optionxform = str
+        with open(self.file_location) as f:
+            config.readfp(f)
+        sources_dict = OrderedDict()
+        for name, value in config['sources'].items():
+            source = Source().create_from_string(value)
+            sources_dict[name] = source
+        return sources_dict
+
+    def __setitem__(self, package_name, value):
+        raise NotImplementedError
+
+
+class CheckoutsFile(UserDict):
+
+    def __init__(self, file_location):
+        self.file_location = file_location
+
+    @property
+    def data(self):
+        config = ConfigParser(interpolation=ExtendedInterpolation())
+        with open(self.file_location) as f:
             config.readfp(f)
         checkouts = config.get('buildout', 'auto-checkout')
         checkout_list = checkouts.split('\n')
         return checkout_list
 
-    def setAutoCheckouts(self, checkouts_list):
-        config = ConfigParser(interpolation=ExtendedInterpolation())
-        with open(self.checkouts_file) as f:
-            config.readfp(f)
-        checkouts = '\n'.join(checkouts_list)
-        config.set('buildout', 'auto-checkout', checkouts)
-        with open(self.checkouts_file, 'w') as f:
-            config.write(f)
+    def __setitem__(self, package_name, enabled=True):
+        if self.__contains__(package_name):
+            path = os.path.join(os.getcwd(), self.file_location)
+            with open(path, 'r') as f:
+                checkoutstxt = f.read()
+            with open(path, 'w') as f:
+                if enabled:
+                    fixes_text = "# Test fixes only"
+                    reg = re.compile("^[\s]*%s\n" % fixes_text, re.MULTILINE)
+                    newCheckoutsTxt = reg.sub('    %s\n%s\n' %
+                                              (package_name, fixes_text), checkoutstxt)
+                else:
+                    reg = re.compile("^[\s]*%s\n" % package_name, re.MULTILINE)
+                    newCheckoutsTxt = reg.sub('', checkoutstxt)
+                f.write(newCheckoutsTxt)
+        else:
+            raise KeyError
+
+    def __delitem__(self, package_name):
+        return self.__setitem__(package_name, False)
+
+    # def setAutoCheckouts(self, checkouts_list):
+    #     config = ConfigParser(interpolation=ExtendedInterpolation())
+    #     with open(self.file_location) as f:
+    #         config.readfp(f)
+    #     checkouts = '\n'.join(checkouts_list)
+    #     config.set('buildout', 'auto-checkout', checkouts)
+    #     with open(self.file_location, 'w') as f:
+    #         config.write(f)
+
+    def add(self, package_name):
+        # TODO: Handle test-fix-only as well
+        return self.__setitem__(package_name, True)
+
+    def remove(self, package_name):
+        # Remove from checkouts.cfg
+        return self.__delitem__(package_name)
+
+
+class Buildout():
+
+    def __init__(self,
+                 sources_file='sources.cfg',
+                 checkouts_file='checkouts.cfg',
+                 versions_file='versions.cfg'):
+        self.sources = SourcesFile(sources_file)
+        self.versions = VersionsFile(versions_file)
+        self.checkouts = CheckoutsFile(checkouts_file)
+
+    def addToCheckouts(self, package_name):
+        self.checkouts.add(package_name)
+
+    def removeFromCheckouts(self, package_name):
+        self.checkouts.remove(package_name)
+
+    def getVersion(self, package_name):
+        self.versions.get(package_name)
+
+    def setVersion(self, package_name, new_version):
+        self.versions.set(package_name, new_version)

@@ -1,9 +1,9 @@
 from zest.releaser.utils import ask
 from zest.releaser import pypi
 import sys
-import re
 import os
 from esteele.manager.manage import canUserReleasePackageToPypi
+from esteele.manager.buildout import VersionsFile, CheckoutsFile
 import git
 
 
@@ -35,30 +35,14 @@ def update_core(data):
 def update_versions(package_name, new_version):
     # Update version
     print "Updating versions.cfg"
-    versionsfile = os.path.join(os.getcwd(), '../../versions.cfg')
-    f = open(versionsfile, 'r')
-    versionstxt = f.read()
-    f.close()
-
-    reg = re.compile("(^%s[\s\=]*)[0-9\.abrc]*" % package_name, re.MULTILINE)
-    newVersionsTxt = reg.sub(r"\g<1>%s" % new_version, versionstxt)
-
-    f = open(versionsfile, 'w')
-    f.write(newVersionsTxt)
-    f.close()
+    path = os.path.join(os.getcwd(), '../../versions.cfg')
+    versions = VersionsFile(path)
+    versions.set(package_name, new_version)
 
 
 def update_checkouts(package_name):
     # Remove from checkouts.cfg
     print "Removing package from checkouts.cfg"
-    checkoutsfile = os.path.join(os.getcwd(), '../../checkouts.cfg')
-    f = open(checkoutsfile, 'r')
-    checkoutstxt = f.read()
-    f.close()
-
-    reg = re.compile("^[\s]*%s\n" % package_name, re.MULTILINE)
-    newCheckoutsTxt = reg.sub('', checkoutstxt)
-
-    f = open(checkoutsfile, 'w')
-    f.write(newCheckoutsTxt)
-    f.close()
+    path = os.path.join(os.getcwd(), '../../checkouts.cfg')
+    checkouts = CheckoutsFile(path)
+    checkouts.add(package_name)
