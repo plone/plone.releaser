@@ -84,7 +84,8 @@ class Source():
         self.branch = branch
 
     def create_from_string(self, source_string):
-        protocol, url, extra_1, extra_2, extra_3 = (lambda a, b, c=None, d=None, e=None: (a, b, c, d, e))(*source_string.split())
+        protocol, url, extra_1, extra_2, extra_3 = (
+            lambda a, b, c=None, d=None, e=None: (a, b, c, d, e))(*source_string.split())
         for param in [extra_1, extra_2, extra_3]:
             if param is not None:
                 key, value = param.split('=')
@@ -102,7 +103,8 @@ class Source():
     @property
     def path(self):
         if self.url:
-            match = re.match('(\w+://)(.+@)*([\w\d\.]+)(:[\d]+){0,1}/(?P<path>.+(?=\.git))(\.git)', self.url)
+            match = re.match(
+                '(\w+://)(.+@)*([\w\d\.]+)(:[\d]+){0,1}/(?P<path>.+(?=\.git))(\.git)', self.url)
             if match:
                 return match.groupdict()['path']
         return None
@@ -130,7 +132,8 @@ def addToCheckouts(package_name):
     with open(path, 'w') as f:
         fixes_text = "# Test fixes only"
         reg = re.compile("^[\s]*%s\n" % fixes_text, re.MULTILINE)
-        newCheckoutsTxt = reg.sub('    %s\n%s\n' % (package_name, fixes_text), checkoutstxt)
+        newCheckoutsTxt = reg.sub('    %s\n%s\n' %
+                                  (package_name, fixes_text), checkoutstxt)
         f.write(newCheckoutsTxt)
 
 
@@ -150,14 +153,16 @@ def setVersion(package_name, new_version):
     with open(path, 'r') as f:
         versionstxt = f.read()
     with open(path, 'w') as f:
-        reg = re.compile("(^%s[\s\=]*)[0-9\.abrc]+" % package_name, re.MULTILINE)
+        reg = re.compile("(^%s[\s\=])[0-9\.abrc]+" %
+                         package_name, re.MULTILINE)
         newVersionsTxt = reg.sub(r"\g<1>%s" % new_version, versionstxt)
         f.write(newVersionsTxt)
 
 
 def getUsersWithReleaseRights(package_name):
     client = xmlrpclib.ServerProxy('http://pypi.python.org/pypi')
-    existing_admins = [user for role, user in client.package_roles(package_name)]
+    existing_admins = [user for role,
+                       user in client.package_roles(package_name)]
     return existing_admins
 
 
@@ -189,11 +194,14 @@ def checkPackageForUpdates(package_name, interactive=False):
         else:
             if source.protocol == 'git':
                 tmpdir = mkdtemp()
-                # print "Reading %s branch of %s for changes since %s..." % (source.branch, package_name, version)
-                repo = git.Repo.clone_from(source.url, tmpdir, branch=source.branch, depth=100)
+                # print "Reading %s branch of %s for changes since %s..." %
+                # (source.branch, package_name, version)
+                repo = git.Repo.clone_from(
+                    source.url, tmpdir, branch=source.branch, depth=100)
 
                 try:
-                    latest_tag_in_branch = repo.git.describe('--abbrev=0', '--tags')
+                    latest_tag_in_branch = repo.git.describe(
+                        '--abbrev=0', '--tags')
                 except git.exc.GitCommandError:
                     # print "Unable to check tags for %s" % package_name
                     pass
@@ -203,17 +211,21 @@ def checkPackageForUpdates(package_name, interactive=False):
                         if confirm("Update versions.cfg", default=True, skip=not interactive):
                             setVersion(package_name, latest_tag_in_branch)
                             core_repo = git.Repo(os.getcwd())
-                            core_repo.git.add(os.path.join(os.getcwd(), 'versions.cfg'))
-                            core_repo.git.commit(message='%s=%s' % (package_name, latest_tag_in_branch))
+                            core_repo.git.add(
+                                os.path.join(os.getcwd(), 'versions.cfg'))
+                            core_repo.git.commit(message='%s=%s' %
+                                                 (package_name, latest_tag_in_branch))
                             del(core_repo)
 
-                commits_since_release = list(repo.iter_commits('%s..%s' % (version, source.branch)))
+                commits_since_release = list(
+                    repo.iter_commits('%s..%s' % (version, source.branch)))
 
                 commit_ignores = IgnoresDB()
                 sha = commit_ignores.get(package_name)
                 commits_since_ignore = None
                 if sha is not None:
-                    commits_since_ignore = list(repo.iter_commits('%s..%s' % (sha, source.branch)))
+                    commits_since_ignore = list(
+                        repo.iter_commits('%s..%s' % (sha, source.branch)))
                 if not commits_since_release\
                         or "Back to development" in commits_since_release[0].message\
                         or commits_since_release[0].message.startswith('vb'):
@@ -223,8 +235,10 @@ def checkPackageForUpdates(package_name, interactive=False):
                         if confirm("Remove %s from checkouts.cfg" % package_name, default=True, skip=not interactive):
                             removeFromCheckouts(package_name)
                             core_repo = git.Repo(os.getcwd())
-                            core_repo.git.add(os.path.join(os.getcwd(), 'checkouts.cfg'))
-                            core_repo.git.commit(message='No new changes in %s' % package_name)
+                            core_repo.git.add(
+                                os.path.join(os.getcwd(), 'checkouts.cfg'))
+                            core_repo.git.commit(
+                                message='No new changes in %s' % package_name)
                             del(core_repo)
                 else:
                     if commits_since_ignore is None:
@@ -241,11 +255,14 @@ def checkPackageForUpdates(package_name, interactive=False):
                             if confirm("Add %s to checkouts.cfg" % package_name, default=True, skip=not interactive):
                                 addToCheckouts(package_name)
                                 core_repo = git.Repo(os.getcwd())
-                                core_repo.git.add(os.path.join(os.getcwd(), 'checkouts.cfg'))
-                                core_repo.git.commit(message='%s has changes.' % package_name)
+                                core_repo.git.add(
+                                    os.path.join(os.getcwd(), 'checkouts.cfg'))
+                                core_repo.git.commit(
+                                    message='%s has changes.' % package_name)
                                 del(core_repo)
                             elif confirm("Ignore changes in  %s" % package_name, default=False, skip=not interactive):
-                                commit_ignores.set(package_name, commits_since_release[0].hexsha)
+                                commit_ignores.set(
+                                    package_name, commits_since_release[0].hexsha)
                         else:
                             if not interactive:
                                 print "\n"
@@ -257,7 +274,8 @@ def checkPackageForUpdates(package_name, interactive=False):
                 del(repo)
                 rmtree(tmpdir)
             else:
-                # print "Skipped check of %s as it's not a git repo." % package_name
+                # print "Skipped check of %s as it's not a git repo." %
+                # package_name
                 pass
 
 
@@ -281,7 +299,8 @@ def pulls():
     for package_name, source in sources.iteritems():
         if source.path:
             repo = g.get_repo(source.path)
-            pulls = [a for a in repo.get_pulls('open') if a.head.ref == source.branch]
+            pulls = [a for a in repo.get_pulls(
+                'open') if a.head.ref == source.branch]
             if pulls:
                 print package_name
                 for pull in pulls:
@@ -289,9 +308,11 @@ def pulls():
 
 
 class Manage(object):
+
     def __call__(self, **kwargs):
         parser = ArghParser()
-        parser.add_commands([checkPypi, checkPackageForUpdates, checkAllPackagesForUpdates, pulls])
+        parser.add_commands(
+            [checkPypi, checkPackageForUpdates, checkAllPackagesForUpdates, pulls])
         parser.dispatch()
 
 
