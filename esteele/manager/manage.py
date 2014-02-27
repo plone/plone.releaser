@@ -84,15 +84,19 @@ class Source():
         self.branch = branch
 
     def create_from_string(self, source_string):
-        protocol, url, push_url, branch = (lambda a, b, c=None, d=None: (a, b, c, d))(*source_string.split())
+        protocol, url, extra_1, extra_2, extra_3 = (lambda a, b, c=None, d=None, e=None: (a, b, c, d, e))(*source_string.split())
+        for param in [extra_1, extra_2, extra_3]:
+            if param is not None:
+                key, value = param.split('=')
+                setattr(self, key, value)
         self.protocol = protocol
         self.url = url
-        if push_url is not None:
-            self.push_url = push_url.split('=')[-1]
-        if branch is None:
+        if self.push_url is not None:
+            self.push_url = self.push_url.split('=')[-1]
+        if self.branch is None:
             self.branch = 'master'
         else:
-            self.branch = branch.split('=')[-1]
+            self.branch = self.branch.split('=')[-1]
         return self
 
     @property
