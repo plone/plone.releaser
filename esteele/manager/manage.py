@@ -188,6 +188,14 @@ def pulls():
                                                pull.url)
 
 
+@named('changelog')
+@arg('--start')
+@arg('--end')
+def changelog(args):
+    from esteele.manager.changelog import build_unified_changelog
+    build_unified_changelog(args.start, args.end)
+
+
 class Manage(object):
 
     def __call__(self, **kwargs):
@@ -196,7 +204,8 @@ class Manage(object):
             [checkPypi,
              checkPackageForUpdates,
              checkAllPackagesForUpdates,
-             pulls])
+             pulls,
+             changelog])
         parser.dispatch()
 
 
