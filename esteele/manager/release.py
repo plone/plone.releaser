@@ -4,6 +4,8 @@ import sys
 import os
 from esteele.manager.pypi import canUserReleasePackageToPypi
 from esteele.manager.buildout import VersionsFile, CheckoutsFile
+from esteele.manager.changelog import Changelog
+
 import git
 
 
@@ -15,10 +17,16 @@ def check_pypi_access(data):
 
 
 def show_changelog_entries(data):
-    pass
     # Find changelog
+    if data['history_file'] is not None:
+        changelog = Changelog(file_location=data['history_file'])
     # Get top release's entry
-    # list(changelog.iteritems())[0]
+    entries = changelog.get(data['new_version'])
+    print "Changelog entries for version %s." % data['new_version']
+    for entry in entries:
+        print entry
+    if not ask("Continue?", default=True):
+        sys.exit()
 
 
 def update_core(data):
