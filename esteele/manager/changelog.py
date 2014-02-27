@@ -65,6 +65,9 @@ class Changelog():
         self.data = OrderedDict()
         if content is not None:
             self._parse(content)
+        elif file_location is not None:
+            with open(file_location, 'r') as f:
+                self._parse(f.read())
 
     def __iter__(self):
         return self.data.__iter__()
