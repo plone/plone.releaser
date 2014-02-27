@@ -50,7 +50,8 @@ def checkPypi(user):
             pass
         else:
             if not pypi.canUserReleasePackageToPypi(user, package):
-                print "%s: %s" % (package, pypi.getUsersWithReleaseRights(package))
+                print "%s: %s" % (package,
+                                  pypi.getUsersWithReleaseRights(package))
 
 
 @command
@@ -79,14 +80,18 @@ def checkPackageForUpdates(package_name, interactive=False):
                     pass
                 else:
                     if latest_tag_in_branch > version:
-                        print "\nNewer version %s is available for %s." % (latest_tag_in_branch, package_name)
-                        if confirm("Update versions.cfg", default=True, skip=not interactive):
-                            buildout.setVersion(package_name, latest_tag_in_branch)
+                        print "\nNewer version %s is available for %s." % (latest_tag_in_branch,package_name)
+                        if confirm("Update versions.cfg",
+                                   default=True,
+                                   skip=not interactive):
+                            buildout.setVersion(package_name,
+                                                latest_tag_in_branch)
                             core_repo = git.Repo(os.getcwd())
                             core_repo.git.add(
                                 os.path.join(os.getcwd(), 'versions.cfg'))
                             core_repo.git.commit(message='%s=%s' %
-                                                 (package_name, latest_tag_in_branch))
+                                                 (package_name,
+                                                  latest_tag_in_branch))
                             del(core_repo)
 
                 commits_since_release = list(
@@ -104,7 +109,9 @@ def checkPackageForUpdates(package_name, interactive=False):
                     # print "No changes."
                     if package_name in checkouts and package_name not in ALWAYS_CHECKED_OUT:
                         print"\nNo new changes in %s, but it is listed for auto-checkout." % package_name
-                        if confirm("Remove %s from checkouts.cfg" % package_name, default=True, skip=not interactive):
+                        if confirm("Remove %s from checkouts.cfg" % package_name,
+                                   default=True,
+                                   skip=not interactive):
                             buildout.removeFromCheckouts(package_name)
                             core_repo = git.Repo(os.getcwd())
                             core_repo.git.add(
@@ -132,9 +139,12 @@ def checkPackageForUpdates(package_name, interactive=False):
                                 core_repo.git.commit(
                                     message='%s has changes.' % package_name)
                                 del(core_repo)
-                            elif confirm("Ignore changes in  %s" % package_name, default=False, skip=not interactive):
+                            elif confirm("Ignore changes in  %s" % package_name,
+                                         default=False,
+                                         skip=not interactive):
                                 commit_ignores.set(
-                                    package_name, commits_since_release[0].hexsha)
+                                    package_name,
+                                    commits_since_release[0].hexsha)
                         else:
                             if not interactive:
                                 print "\n"
@@ -174,7 +184,9 @@ def pulls():
             if pulls:
                 print package_name
                 for pull in pulls:
-                    print "    %s: %s (%s)" % (pull.user.login, pull.title, pull.url)
+                    print "    %s: %s (%s)" % (pull.user.login,
+                                               pull.title,
+                                               pull.url)
 
 
 class Manage(object):
