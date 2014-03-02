@@ -53,12 +53,17 @@ class VersionsFile():
         return config['versions']
 
     def __contains__(self, package_name):
-        return package_name in self.versions
+        return package_name.lower() in self.versions.keys()
 
     def __getitem__(self, package_name):
-        return self.versions.get(package_name)
+        if self.__contains__(package_name):
+            return self.versions.get(package_name)
+        else:
+            raise KeyError
 
     def __setitem__(self, package_name, new_version):
+        if not self.__contains__(package_name):
+            raise KeyError
         path = os.path.join(os.getcwd(), self.file_location)
         with open(path, 'r') as f:
             versionstxt = f.read()
@@ -67,6 +72,12 @@ class VersionsFile():
         newVersionsTxt = reg.sub(r"\g<1>%s" % new_version, versionstxt)
         with open(path, 'w') as f:
             f.write(newVersionsTxt)
+
+    def get(self, package_name):
+        return self.__getitem__(package_name)
+
+    def set(self, package_name, new_version):
+        return self.__setitem__(package_name, new_version)
 
 
 class SourcesFile(UserDict):
@@ -88,6 +99,9 @@ class SourcesFile(UserDict):
 
     def __setitem__(self, package_name, value):
         raise NotImplementedError
+
+    def __iter__(self):
+        return self.data.__iter__()
 
 
 class CheckoutsFile(UserDict):
@@ -151,13 +165,13 @@ class Buildout():
         self.checkouts = CheckoutsFile(checkouts_file)
 
     def addToCheckouts(self, package_name):
-        self.checkouts.add(package_name)
+        return self.checkouts.add(package_name)
 
     def removeFromCheckouts(self, package_name):
-        self.checkouts.remove(package_name)
+        return self.checkouts.remove(package_name)
 
     def getVersion(self, package_name):
-        self.versions.get(package_name)
+        return self.versions.get(package_name)
 
     def setVersion(self, package_name, new_version):
-        self.versions.set(package_name, new_version)
+        return self.versions.set(package_name, new_version)
