@@ -163,8 +163,8 @@ def checkPackageForUpdates(package_name, interactive=False):
 @named('report')
 @arg('--interactive', default=False)
 def checkAllPackagesForUpdates(args):
-    sources = buildout.getSources()
-    for package_name in Bar('Scanning').iter(sources):
+    sources = buildout.sources
+    for package_name, source in Bar('Scanning').iter(sources.iteritems()):
         checkPackageForUpdates(package_name, args.interactive)
         # print "\n"
 
