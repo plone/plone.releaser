@@ -18,10 +18,11 @@ def check_pypi_access(data):
 
 def show_changelog_entries(data):
     # Find changelog
+    # TODO: Figure out how to catch malformed rst
     if data['history_file'] is not None:
         changelog = Changelog(file_location=data['history_file'])
     # Get top release's entry
-    entries = changelog.get(data['new_version'])
+    entries = changelog.latest()
     print "Changelog entries for version %s." % data['new_version']
     for entry in entries:
         print entry
