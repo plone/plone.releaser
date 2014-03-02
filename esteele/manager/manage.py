@@ -60,7 +60,7 @@ def checkPackageForUpdates(package_name, interactive=False):
         source = buildout.sources.get(package_name)
         try:
             version = buildout.getVersion(package_name)
-        except NoOptionError:
+        except (NoOptionError, KeyError):
             # print "No version available for %s" % package_name
             pass
         else:
