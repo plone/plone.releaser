@@ -105,22 +105,19 @@ class CheckoutsFile(UserDict):
         return checkout_list
 
     def __setitem__(self, package_name, enabled=True):
-        if self.__contains__(package_name):
-            path = os.path.join(os.getcwd(), self.file_location)
-            with open(path, 'r') as f:
-                checkoutstxt = f.read()
-            with open(path, 'w') as f:
-                if enabled:
-                    fixes_text = "# Test fixes only"
-                    reg = re.compile("^[\s]*%s\n" % fixes_text, re.MULTILINE)
-                    newCheckoutsTxt = reg.sub('    %s\n%s\n' %
-                                              (package_name, fixes_text), checkoutstxt)
-                else:
-                    reg = re.compile("^[\s]*%s\n" % package_name, re.MULTILINE)
-                    newCheckoutsTxt = reg.sub('', checkoutstxt)
-                f.write(newCheckoutsTxt)
-        else:
-            raise KeyError
+        path = os.path.join(os.getcwd(), self.file_location)
+        with open(path, 'r') as f:
+            checkoutstxt = f.read()
+        with open(path, 'w') as f:
+            if enabled:
+                fixes_text = "# Test fixes only"
+                reg = re.compile("^[\s]*%s\n" % fixes_text, re.MULTILINE)
+                newCheckoutsTxt = reg.sub('    %s\n%s\n' %
+                                          (package_name, fixes_text), checkoutstxt)
+            else:
+                reg = re.compile("^[\s]*%s\n" % package_name, re.MULTILINE)
+                newCheckoutsTxt = reg.sub('', checkoutstxt)
+            f.write(newCheckoutsTxt)
 
     def __delitem__(self, package_name):
         return self.__setitem__(package_name, False)
