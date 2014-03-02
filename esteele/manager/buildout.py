@@ -62,10 +62,10 @@ class VersionsFile():
         path = os.path.join(os.getcwd(), self.file_location)
         with open(path, 'r') as f:
             versionstxt = f.read()
+
+        reg = re.compile("(^%s[\s\=]+)[0-9\.abrc]+" % package_name, re.MULTILINE)
+        newVersionsTxt = reg.sub(r"\g<1>%s" % new_version, versionstxt)
         with open(path, 'w') as f:
-            reg = re.compile("(^%s[\s\=]+)[0-9\.abrc]+" %
-                             package_name, re.MULTILINE)
-            newVersionsTxt = reg.sub(r"\g<1>%s" % new_version, versionstxt)
             f.write(newVersionsTxt)
 
 
