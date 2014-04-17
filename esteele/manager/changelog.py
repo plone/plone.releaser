@@ -99,7 +99,9 @@ class Changelog():
         return changes
 
     def latest(self):
-        return self.data.items()[0]
+        if self.data.items():
+            return self.data.items()[0]
+        return None
 
     def _parse(self, content):
         tree = publish_doctree(content)
