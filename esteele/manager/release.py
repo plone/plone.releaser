@@ -23,6 +23,10 @@ def show_changelog_entries(data):
         changelog = Changelog(file_location=data['history_file'])
     # Get top release's entry
     entries = changelog.latest()
+    if entries is None:
+        if not ask("Unable to parse changelog. Continue?", default=True):
+            sys.exit()
+        return
     print "Changelog entries for version %s." % data['new_version']
     for entry in entries:
         print entry
