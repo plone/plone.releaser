@@ -32,7 +32,8 @@ setup(name='esteele.manager',
           'PyGithub',
           'keyring',
           'zest.releaser',
-          'docutils'
+          'docutils',
+          'launchpadlib'
       ],
       entry_points={
           'console_scripts': [
