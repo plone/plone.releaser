@@ -1,3 +1,4 @@
+import datetime
 import os
 from shutil import rmtree
 from tempfile import mkdtemp
@@ -7,12 +8,15 @@ from argh.decorators import named
 from argh.interaction import confirm
 from configparser import NoOptionError
 from db import IgnoresDB
+from distutils.version import StrictVersion
 import git
 from github import Github
 import keyring
+from launchpadlib.launchpad import Launchpad
 from progress.bar import Bar
-from esteele.manager.buildout import Buildout
+
 from esteele.manager import pypi
+from esteele.manager.buildout import Buildout
 
 
 THIRD_PARTY_PACKAGES = ['Zope2',
@@ -196,6 +200,27 @@ def changelog(args):
     build_unified_changelog(args.start, args.end)
 
 
+@named('launchpad')
+def create_launchpad_release(version):
+    launchpad = Launchpad.login_with('esteele.manager', 'production')
+    plone = launchpad.projects['plone']
+    parsed_version = StrictVersion(version)
+    # Blech. This feels flimsy
+    series_name = '.'.join([str(a) for a in parsed_version.version[0:2]])
+    series = plone.getSeries(name=series_name)
+    if series is None:
+        return "No series named %s." % series_name
+    now = datetime.datetime.now().isoformat()
+    milestone = series.newMilestone(name=version,
+                                    date_targeted=now)
+    # TODO: Get release notes
+    release = milestone.createProductRelease(date_released=now,
+                                             release_notes='')
+
+    release_url = release.web_link
+
+    return release_url
+
 class Manage(object):
 
     def __call__(self, **kwargs):
@@ -205,7 +230,8 @@ class Manage(object):
              checkPackageForUpdates,
              checkAllPackagesForUpdates,
              pulls,
-             changelog])
+             changelog,
+             create_launchpad_release])
         parser.dispatch()
 
 
