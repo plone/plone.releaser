@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from collections import OrderedDict
 from configparser import ConfigParser, ExtendedInterpolation
 import os
@@ -117,6 +118,9 @@ class CheckoutsFile(UserDict):
         checkouts = config.get('buildout', 'auto-checkout')
         checkout_list = checkouts.split('\n')
         return checkout_list
+
+    def __contains__(self, package_name):
+        return package_name in self.data
 
     def __setitem__(self, package_name, enabled=True):
         path = os.path.join(os.getcwd(), self.file_location)
