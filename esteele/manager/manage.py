@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import datetime
 import os
 from shutil import rmtree
@@ -17,6 +18,7 @@ from progress.bar import Bar
 
 from esteele.manager import pypi
 from esteele.manager.buildout import Buildout
+from esteele.manager.buildout import CheckoutsFile
 
 
 THIRD_PARTY_PACKAGES = ['Zope2',
@@ -221,6 +223,13 @@ def create_launchpad_release(version):
 
     return release_url
 
+@command
+def check_checkout(package_name, path):
+    if package_name not in CheckoutsFile(path):
+        raise KeyError('Your package {} is not on auto-checkout section'.format(
+            package_name))
+
+
 class Manage(object):
 
     def __call__(self, **kwargs):
@@ -231,7 +240,8 @@ class Manage(object):
              checkAllPackagesForUpdates,
              pulls,
              changelog,
-             create_launchpad_release])
+             create_launchpad_release,
+             check_checkout])
         parser.dispatch()
 
 
