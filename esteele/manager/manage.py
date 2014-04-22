@@ -229,6 +229,16 @@ def check_checkout(package_name, path):
         raise KeyError('Your package {} is not on auto-checkout section'.format(
             package_name))
 
+@command
+def append_jenkins_build_number_to_package_version(setup_py_path,
+                                                   jenkins_build_number):
+    from zest.releaser.utils import cleanup_version, setup_py, system
+    command = setup_py('-V')
+    version = system(command)
+    clean_version = cleanup_version(version.strip())
+    new_version = '{}.{}'.format(clean_version, jenkins_build_number)
+    print new_version
+
 
 class Manage(object):
 
@@ -241,7 +251,8 @@ class Manage(object):
              pulls,
              changelog,
              create_launchpad_release,
-             check_checkout])
+             check_checkout,
+             append_jenkins_build_number_to_package_version])
         parser.dispatch()
 
 
