@@ -239,6 +239,7 @@ def append_jenkins_build_number_to_package_version(jenkins_build_number):
     old_version = cleanup_version(vcs.version)
     new_version = '{}.{}'.format(old_version, jenkins_build_number)
     vcs.version = new_version
+    return new_version
 
 
 class Manage(object):
