@@ -4,6 +4,9 @@ Changelog
 1.1 (unreleased)
 ----------------
 
+- add feature: add the package to the version file if it doesn't exists
+  [jfroche]
+
 - add command to set the package version in a versions config file
   [jfroche]
 
