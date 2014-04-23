@@ -17,6 +17,7 @@ from launchpadlib.launchpad import Launchpad
 from progress.bar import Bar
 
 from esteele.manager import pypi
+from esteele.manager.buildout import VersionsFile
 from esteele.manager.buildout import Buildout
 from esteele.manager.buildout import CheckoutsFile
 
@@ -242,6 +243,12 @@ def append_jenkins_build_number_to_package_version(jenkins_build_number):
     return new_version
 
 
+@command
+def set_package_version(version_file_path, package_name, new_version):
+    versions = VersionsFile(version_file_path)
+    versions.set(package_name, new_version)
+
+
 class Manage(object):
 
     def __call__(self, **kwargs):
@@ -254,7 +261,8 @@ class Manage(object):
              changelog,
              create_launchpad_release,
              check_checkout,
-             append_jenkins_build_number_to_package_version])
+             append_jenkins_build_number_to_package_version,
+             set_package_version])
         parser.dispatch()
 
 
