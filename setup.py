@@ -44,6 +44,5 @@ setup(name='esteele.manager',
               'show_changelog=esteele.manager.release:show_changelog_entries',
               'check_pypi=esteele.manager.release:check_pypi_access'],
           'zest.releaser.releaser.after': [
-              'update_core=esteele.manager.release:update_core']
-      },
+              'update_core=esteele.manager.release:update_core']},
       )
