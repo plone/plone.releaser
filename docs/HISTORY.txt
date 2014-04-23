@@ -1,7 +1,7 @@
 Changelog
 =========
 
-1.1 (unreleased)
+1.1 (2014-04-23)
 ----------------
 
 - add feature: add the package to the version file if it doesn't exists
