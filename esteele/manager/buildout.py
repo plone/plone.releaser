@@ -63,11 +63,13 @@ class VersionsFile():
             raise KeyError
 
     def __setitem__(self, package_name, new_version):
-        if not self.__contains__(package_name):
-            raise KeyError
         path = os.path.join(os.getcwd(), self.file_location)
         with open(path, 'r') as f:
             versionstxt = f.read()
+
+        if package_name not in self:
+            newline = "{} = {}".format(package_name, new_version)
+            versionstxt += newline
 
         reg = re.compile("(^%s[\s\=]+)[0-9\.abrc]+" % package_name, re.MULTILINE)
         newVersionsTxt = reg.sub(r"\g<1>%s" % new_version, versionstxt)
