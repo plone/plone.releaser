@@ -5,18 +5,20 @@ version = '1.0'
 
 setup(name='esteele.manager',
       version=version,
-      description="",
+      description="Plone release management utilities",
       long_description=open("README.txt").read() + "\n" +
       open(os.path.join("docs", "HISTORY.txt")).read(),
       # Get more strings from
       # http://pypi.python.org/pypi?:action=list_classifiers
       classifiers=[
           "Programming Language :: Python",
+          "Framework :: Plone",
+          "Programming Language :: Python :: 2.7"
       ],
-      keywords='',
-      author='',
-      author_email='',
-      url='http://svn.plone.org/svn/collective/',
+      keywords='plone release',
+      author='Eric Steele',
+      author_email='eric@esteele.net',
+      url='https://github.com/plone/esteele.manager',
       license='GPL',
       packages=find_packages(exclude=['ez_setup']),
       namespace_packages=['esteele'],
