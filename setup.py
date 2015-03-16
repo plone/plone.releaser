@@ -3,7 +3,7 @@ import os
 
 version = '1.2.dev0'
 
-setup(name='esteele.manager',
+setup(name='plone.releaser',
       version=version,
       description="Plone release management utilities",
       long_description=open("README.txt").read() + "\n" +
@@ -18,10 +18,10 @@ setup(name='esteele.manager',
       keywords='plone release',
       author='Eric Steele',
       author_email='eric@esteele.net',
-      url='https://github.com/plone/esteele.manager',
+      url='https://github.com/plone/plone.releaser',
       license='GPL',
       packages=find_packages(exclude=['ez_setup']),
-      namespace_packages=['esteele'],
+      namespace_packages=['plone'],
       include_package_data=True,
       zip_safe=False,
       install_requires=[
@@ -39,10 +39,10 @@ setup(name='esteele.manager',
       ],
       entry_points={
           'console_scripts': [
-              'manage = esteele.manager.manage:manage'],
+              'manage = plone.releaser.manage:manage'],
           'zest.releaser.prereleaser.middle': [
-              'show_changelog=esteele.manager.release:show_changelog_entries',
-              'check_pypi=esteele.manager.release:check_pypi_access'],
+              'show_changelog=plone.releaser.release:show_changelog_entries',
+              'check_pypi=plone.releaser.release:check_pypi_access'],
           'zest.releaser.releaser.after': [
-              'update_core=esteele.manager.release:update_core']},
+              'update_core=plone.releaser.release:update_core']},
       )

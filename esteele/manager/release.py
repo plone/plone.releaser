@@ -2,9 +2,9 @@ from zest.releaser.utils import ask
 from zest.releaser import pypi
 import sys
 import os
-from esteele.manager.pypi import canUserReleasePackageToPypi
-from esteele.manager.buildout import VersionsFile, CheckoutsFile
-from esteele.manager.changelog import Changelog
+from plone.releaser.pypi import canUserReleasePackageToPypi
+from plone.releaser.buildout import VersionsFile, CheckoutsFile
+from plone.releaser.changelog import Changelog
 
 import git
 

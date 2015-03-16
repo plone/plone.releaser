@@ -16,10 +16,10 @@ import keyring
 from launchpadlib.launchpad import Launchpad
 from progress.bar import Bar
 
-from esteele.manager import pypi
-from esteele.manager.buildout import VersionsFile
-from esteele.manager.buildout import Buildout
-from esteele.manager.buildout import CheckoutsFile
+from plone.releaser import pypi
+from plone.releaser.buildout import VersionsFile
+from plone.releaser.buildout import Buildout
+from plone.releaser.buildout import CheckoutsFile
 
 
 THIRD_PARTY_PACKAGES = ['Zope2',
@@ -38,7 +38,7 @@ THIRD_PARTY_PACKAGES = ['Zope2',
                         'Products.PluginRegistry',
                         'Products.ZCatalog']
 
-IGNORED_PACKAGES = ['esteele.manager']
+IGNORED_PACKAGES = ['plone.releaser']
 
 ALWAYS_CHECKED_OUT = ['Plone',
                       'Products.CMFPlone',
@@ -177,7 +177,7 @@ def checkAllPackagesForUpdates(args):
 
 def pulls():
     client_id = 'b9f6639835b8c9cf462a'
-    client_secret = keyring.get_password('esteele.manager', client_id)
+    client_secret = keyring.get_password('plone.releaser', client_id)
 
     g = Github(client_id=client_id, client_secret=client_secret)
 
@@ -198,13 +198,13 @@ def pulls():
 @arg('--start')
 @arg('--end')
 def changelog(args):
-    from esteele.manager.changelog import build_unified_changelog
+    from plone.releaser.changelog import build_unified_changelog
     build_unified_changelog(args.start, args.end)
 
 
 @named('launchpad')
 def create_launchpad_release(version):
-    launchpad = Launchpad.login_with('esteele.manager', 'production')
+    launchpad = Launchpad.login_with('plone.releaser', 'production')
     plone = launchpad.projects['plone']
     parsed_version = StrictVersion(version)
     # Blech. This feels flimsy

@@ -2,7 +2,7 @@ import urllib
 from distutils.version import StrictVersion
 from docutils.core import publish_doctree
 from itertools import product
-from esteele.manager.buildout import Buildout
+from plone.releaser.buildout import Buildout
 from collections import OrderedDict
 
 
