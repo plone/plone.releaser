@@ -4,15 +4,15 @@ version = '1.2.dev0'
 
 setup(name='plone.releaser',
       version=version,
-      description="Plone release management utilities",
-      long_description=open("README.rst").read() + "\n" +
-      open("CHANGES.rst").read(),
+      description='Plone release management utilities',
+      long_description=open('README.rst').read() + '\n' +
+      open('CHANGES.rst').read(),
       # Get more strings from
       # http://pypi.python.org/pypi?:action=list_classifiers
       classifiers=[
-          "Programming Language :: Python",
-          "Framework :: Plone",
-          "Programming Language :: Python :: 2.7"
+          'Programming Language :: Python',
+          'Framework :: Plone',
+          'Programming Language :: Python :: 2.7',
       ],
       keywords='plone release',
       author='Eric Steele',
