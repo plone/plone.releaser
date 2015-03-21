@@ -25,3 +25,4 @@ Changelog
 ----------------
 
 - Initial release
+  [esteele]
