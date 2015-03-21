@@ -1,7 +1,7 @@
 Changelog
 =========
 
-1.2 (unreleased)
+1.2 (2015-03-21)
 ----------------
 
 - Rename esteele.manager to plone.releaser.
