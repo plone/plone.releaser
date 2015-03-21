@@ -44,6 +44,7 @@ def update_core(data):
         root_path = os.path.join(os.getcwd(), '../../')
         message = "%s %s" % (package_name, new_version)
         g = git.Git(root_path)
+        g.pull()  # make sure buildout.coredev is up-to-date
         g.add('versions.cfg')
         g.add('checkouts.cfg')
         print "Commiting changes."

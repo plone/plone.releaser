@@ -4,7 +4,8 @@ Changelog
 1.3 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- Run git pull on buildout.coredev to make sure it is up-to-date.
+  [timo]
 
 
 1.2 (2015-03-21)
