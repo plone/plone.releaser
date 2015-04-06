@@ -59,7 +59,7 @@ def get_changelog(package_name):
                 return response.read()
 
 
-class Changelog():
+class Changelog(object):
 
     def __init__(self, file_location=None, content=None):
         self.data = OrderedDict()
