@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import urllib
 from distutils.version import StrictVersion
 from docutils.core import publish_doctree

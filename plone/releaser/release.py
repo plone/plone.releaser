@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from zest.releaser.utils import ask
 from zest.releaser import pypi
 import sys
