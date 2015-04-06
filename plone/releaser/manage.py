@@ -4,7 +4,7 @@ import os
 from shutil import rmtree
 from tempfile import mkdtemp
 
-from argh import ArghParser, command, arg
+from argh import ArghParser, arg
 from argh.decorators import named
 from argh.interaction import confirm
 from configparser import NoOptionError
@@ -50,7 +50,6 @@ ALWAYS_CHECKED_OUT = ['Plone',
 buildout = Buildout()
 
 
-@command
 def checkPypi(user):
     for package in buildout.sources:
         if package in THIRD_PARTY_PACKAGES:
@@ -61,7 +60,6 @@ def checkPypi(user):
                                   pypi.getUsersWithReleaseRights(package))
 
 
-@command
 def checkPackageForUpdates(package_name, interactive=False):
     if package_name not in IGNORED_PACKAGES:
         source = buildout.sources.get(package_name)
@@ -224,14 +222,12 @@ def create_launchpad_release(version):
     return release_url
 
 
-@command
 def check_checkout(package_name, path):
     if package_name not in CheckoutsFile(path):
         raise KeyError('Your package {} is not on auto-checkout section'.format(
             package_name))
 
 
-@command
 def append_jenkins_build_number_to_package_version(jenkins_build_number):
     from zest.releaser.vcs import BaseVersionControl
     from zest.releaser.utils import cleanup_version
@@ -242,7 +238,6 @@ def append_jenkins_build_number_to_package_version(jenkins_build_number):
     return new_version
 
 
-@command
 def set_package_version(version_file_path, package_name, new_version):
     versions = VersionsFile(version_file_path)
     versions.set(package_name, new_version)
