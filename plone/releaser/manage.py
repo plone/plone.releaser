@@ -77,108 +77,108 @@ def checkPackageForUpdates(package_name, interactive=False):
         # print "No version available for %s" % package_name
         pass
     else:
-        if source.protocol == 'git':
-            tmpdir = mkdtemp()
-            # print "Reading %s branch of %s for changes since %s..." %
-            # (source.branch, package_name, version)
-            repo = git.Repo.clone_from(
-                source.url, tmpdir, branch=source.branch, depth=100)
+        if source.protocol != 'git':
+            # print "Skipped check of %s as it's not a git repo." %
+            # package_name
+            return
 
-            try:
-                latest_tag_in_branch = repo.git.describe(
-                    '--abbrev=0', '--tags')
-            except git.exc.GitCommandError:
-                # print "Unable to check tags for %s" % package_name
-                pass
-            else:
-                if latest_tag_in_branch > version:
-                    msg = "\nNewer version %s is available for %s."
-                    print msg % (latest_tag_in_branch, package_name)
-                    if confirm("Update versions.cfg",
-                               default=True,
-                               skip=not interactive):
-                        buildout.setVersion(package_name,
-                                            latest_tag_in_branch)
-                        core_repo = git.Repo(os.getcwd())
-                        core_repo.git.add(
-                            os.path.join(os.getcwd(), 'versions.cfg'))
-                        core_repo.git.commit(message='%s=%s' %
-                                             (package_name,
-                                              latest_tag_in_branch))
-                        del(core_repo)
+        tmpdir = mkdtemp()
+        # print "Reading %s branch of %s for changes since %s..." %
+        # (source.branch, package_name, version)
+        repo = git.Repo.clone_from(
+            source.url, tmpdir, branch=source.branch, depth=100)
 
-            commits_since_release = list(
-                repo.iter_commits('%s..%s' % (version, source.branch)))
+        try:
+            latest_tag_in_branch = repo.git.describe(
+                '--abbrev=0', '--tags')
+        except git.exc.GitCommandError:
+            # print "Unable to check tags for %s" % package_name
+            pass
+        else:
+            if latest_tag_in_branch > version:
+                msg = "\nNewer version %s is available for %s."
+                print msg % (latest_tag_in_branch, package_name)
+                if confirm("Update versions.cfg",
+                           default=True,
+                           skip=not interactive):
+                    buildout.setVersion(package_name,
+                                        latest_tag_in_branch)
+                    core_repo = git.Repo(os.getcwd())
+                    core_repo.git.add(
+                        os.path.join(os.getcwd(), 'versions.cfg'))
+                    core_repo.git.commit(message='%s=%s' %
+                                         (package_name,
+                                          latest_tag_in_branch))
+                    del(core_repo)
 
-            commit_ignores = IgnoresDB()
-            sha = commit_ignores.get(package_name)
-            commits_since_ignore = None
-            if sha is not None:
-                commits_since_ignore = list(
-                    repo.iter_commits('%s..%s' % (sha, source.branch)))
-            if not commits_since_release\
-                    or "Back to development" in commits_since_release[0].message\
-                    or commits_since_release[0].message.startswith('vb'):
-                # print "No changes."
-                if package_name in buildout.checkouts and \
-                        package_name not in ALWAYS_CHECKED_OUT:
-                    print"\nNo new changes in %s, but it is listed for auto-checkout." % package_name
-                    if confirm("Remove %s from checkouts.cfg" % package_name,
-                               default=True,
-                               skip=not interactive):
-                        buildout.removeFromCheckouts(package_name)
+        commits_since_release = list(
+            repo.iter_commits('%s..%s' % (version, source.branch)))
+
+        commit_ignores = IgnoresDB()
+        sha = commit_ignores.get(package_name)
+        commits_since_ignore = None
+        if sha is not None:
+            commits_since_ignore = list(
+                repo.iter_commits('%s..%s' % (sha, source.branch)))
+        if not commits_since_release\
+                or "Back to development" in commits_since_release[0].message\
+                or commits_since_release[0].message.startswith('vb'):
+            # print "No changes."
+            if package_name in buildout.checkouts and \
+                    package_name not in ALWAYS_CHECKED_OUT:
+                print"\nNo new changes in %s, but it is listed for auto-checkout." % package_name
+                if confirm("Remove %s from checkouts.cfg" % package_name,
+                           default=True,
+                           skip=not interactive):
+                    buildout.removeFromCheckouts(package_name)
+                    core_repo = git.Repo(os.getcwd())
+                    core_repo.git.add(
+                        os.path.join(os.getcwd(), 'checkouts.cfg'))
+                    core_repo.git.commit(
+                        message='No new changes in %s' % package_name)
+                    del(core_repo)
+        else:
+            if commits_since_ignore is None:
+                # Check for checkout
+                if package_name not in buildout.checkouts:
+                    print "\n"
+                    print "WARNING: No auto-checkout exists for %s" % package_name
+                    print "Changes in %s:" % package_name
+                    for commit in commits_since_release:
+                        print "    %s: %s" % (commit.author.name.encode('ascii', 'replace'), commit.summary.encode('ascii', 'replace'))
+                    if package_name in THIRD_PARTY_PACKAGES:
+                        print "NOTE: %s is a third-party package." % package_name
+
+                    if confirm("Add %s to checkouts.cfg" % package_name, default=True, skip=not interactive):
+                        buildout.addToCheckouts(package_name)
                         core_repo = git.Repo(os.getcwd())
                         core_repo.git.add(
                             os.path.join(os.getcwd(), 'checkouts.cfg'))
                         core_repo.git.commit(
-                            message='No new changes in %s' % package_name)
+                            message='%s has changes.' % package_name)
                         del(core_repo)
-            else:
-                if commits_since_ignore is None:
-                    # Check for checkout
-                    if package_name not in buildout.checkouts:
+                    elif confirm("Ignore changes in  %s" % package_name,
+                                 default=False,
+                                 skip=not interactive):
+                        commit_ignores.set(
+                            package_name,
+                            commits_since_release[0].hexsha)
+                else:
+                    if not interactive:
                         print "\n"
-                        print "WARNING: No auto-checkout exists for %s" % package_name
                         print "Changes in %s:" % package_name
                         for commit in commits_since_release:
-                            print "    %s: %s" % (commit.author.name.encode('ascii', 'replace'), commit.summary.encode('ascii', 'replace'))
+                            print "    %s: %s" % (
+                                commit.author.name.encode('ascii',
+                                                          'replace'),
+                                commit.summary.encode('ascii',
+                                                      'replace')
+                            )
                         if package_name in THIRD_PARTY_PACKAGES:
-                            print "NOTE: %s is a third-party package." % package_name
-
-                        if confirm("Add %s to checkouts.cfg" % package_name, default=True, skip=not interactive):
-                            buildout.addToCheckouts(package_name)
-                            core_repo = git.Repo(os.getcwd())
-                            core_repo.git.add(
-                                os.path.join(os.getcwd(), 'checkouts.cfg'))
-                            core_repo.git.commit(
-                                message='%s has changes.' % package_name)
-                            del(core_repo)
-                        elif confirm("Ignore changes in  %s" % package_name,
-                                     default=False,
-                                     skip=not interactive):
-                            commit_ignores.set(
-                                package_name,
-                                commits_since_release[0].hexsha)
-                    else:
-                        if not interactive:
-                            print "\n"
-                            print "Changes in %s:" % package_name
-                            for commit in commits_since_release:
-                                print "    %s: %s" % (
-                                    commit.author.name.encode('ascii',
-                                                              'replace'),
-                                    commit.summary.encode('ascii',
-                                                          'replace')
-                                )
-                            if package_name in THIRD_PARTY_PACKAGES:
-                                msg = "NOTE: %s is a third-party package."
-                                print msg % package_name
-            del(repo)
-            rmtree(tmpdir)
-        else:
-            # print "Skipped check of %s as it's not a git repo." %
-            # package_name
-            pass
+                            msg = "NOTE: %s is a third-party package."
+                            print msg % package_name
+        del(repo)
+        rmtree(tmpdir)
 
 
 @named('report')
