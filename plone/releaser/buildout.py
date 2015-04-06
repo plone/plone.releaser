@@ -52,7 +52,7 @@ class VersionsFile(object):
     def versions(self):
         config = ConfigParser(interpolation=ExtendedInterpolation())
         with open(self.file_location) as f:
-            config.readfp(f)
+            config.read_file(f)
         return config['versions']
 
     def __contains__(self, package_name):
@@ -95,7 +95,7 @@ class SourcesFile(UserDict):
         config = ConfigParser(interpolation=ExtendedInterpolation())
         config.optionxform = str
         with open(self.file_location) as f:
-            config.readfp(f)
+            config.read_file(f)
         sources_dict = OrderedDict()
         for name, value in config['sources'].items():
             source = Source().create_from_string(value)
@@ -118,7 +118,7 @@ class CheckoutsFile(UserDict):
     def data(self):
         config = ConfigParser(interpolation=ExtendedInterpolation())
         with open(self.file_location) as f:
-            config.readfp(f)
+            config.read_file(f)
         checkouts = config.get('buildout', 'auto-checkout')
         checkout_list = checkouts.split('\n')
         return checkout_list
@@ -147,7 +147,7 @@ class CheckoutsFile(UserDict):
     # def setAutoCheckouts(self, checkouts_list):
     #     config = ConfigParser(interpolation=ExtendedInterpolation())
     #     with open(self.file_location) as f:
-    #         config.readfp(f)
+    #         config.read_file(f)
     #     checkouts = '\n'.join(checkouts_list)
     #     config.set('buildout', 'auto-checkout', checkouts)
     #     with open(self.file_location, 'w') as f:
