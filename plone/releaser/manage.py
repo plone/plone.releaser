@@ -84,7 +84,8 @@ def checkPackageForUpdates(package_name, interactive=False):
                     pass
                 else:
                     if latest_tag_in_branch > version:
-                        print "\nNewer version %s is available for %s." % (latest_tag_in_branch, package_name)
+                        msg = "\nNewer version %s is available for %s."
+                        print msg % (latest_tag_in_branch, package_name)
                         if confirm("Update versions.cfg",
                                    default=True,
                                    skip=not interactive):
@@ -111,7 +112,8 @@ def checkPackageForUpdates(package_name, interactive=False):
                         or "Back to development" in commits_since_release[0].message\
                         or commits_since_release[0].message.startswith('vb'):
                     # print "No changes."
-                    if package_name in buildout.checkouts and package_name not in ALWAYS_CHECKED_OUT:
+                    if package_name in buildout.checkouts and \
+                            package_name not in ALWAYS_CHECKED_OUT:
                         print"\nNo new changes in %s, but it is listed for auto-checkout." % package_name
                         if confirm("Remove %s from checkouts.cfg" % package_name,
                                    default=True,
@@ -154,9 +156,15 @@ def checkPackageForUpdates(package_name, interactive=False):
                                 print "\n"
                                 print "Changes in %s:" % package_name
                                 for commit in commits_since_release:
-                                    print "    %s: %s" % (commit.author.name.encode('ascii', 'replace'), commit.summary.encode('ascii', 'replace'))
+                                    print "    %s: %s" % (
+                                        commit.author.name.encode('ascii',
+                                                                  'replace'),
+                                        commit.summary.encode('ascii',
+                                                              'replace')
+                                    )
                                 if package_name in THIRD_PARTY_PACKAGES:
-                                    print "NOTE: %s is a third-party package." % package_name
+                                    msg = "NOTE: %s is a third-party package."
+                                    print msg % package_name
                 del(repo)
                 rmtree(tmpdir)
             else:
@@ -224,8 +232,8 @@ def create_launchpad_release(version):
 
 def check_checkout(package_name, path):
     if package_name not in CheckoutsFile(path):
-        raise KeyError('Your package {} is not on auto-checkout section'.format(
-            package_name))
+        msg = 'Your package {} is not on auto-checkout section'
+        raise KeyError(msg.format(package_name))
 
 
 def append_jenkins_build_number_to_package_version(jenkins_build_number):
