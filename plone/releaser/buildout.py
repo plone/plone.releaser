@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
+from UserDict import UserDict
 from collections import OrderedDict
-from configparser import ConfigParser, ExtendedInterpolation
+from configparser import ConfigParser
+from configparser import ExtendedInterpolation
+
 import os
 import re
-from UserDict import UserDict
 
 
 class Source(object):

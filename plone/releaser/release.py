@@ -1,13 +1,14 @@
 # -*- coding: utf-8 -*-
-from zest.releaser.utils import ask
-from zest.releaser import pypi
-import sys
-import os
-from plone.releaser.pypi import canUserReleasePackageToPypi
-from plone.releaser.buildout import VersionsFile, CheckoutsFile
+from plone.releaser.buildout import CheckoutsFile
+from plone.releaser.buildout import VersionsFile
 from plone.releaser.changelog import Changelog
+from plone.releaser.pypi import canUserReleasePackageToPypi
+from zest.releaser import pypi
+from zest.releaser.utils import ask
 
 import git
+import os
+import sys
 
 
 def check_pypi_access(data):

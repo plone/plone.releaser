@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
-import urllib
+from collections import OrderedDict
 from distutils.version import StrictVersion
 from docutils.core import publish_doctree
 from itertools import product
 from plone.releaser.buildout import Buildout
-from collections import OrderedDict
+
+import urllib
 
 
 DIST_URL = "http://dist.plone.org/release/%s/versions.cfg"

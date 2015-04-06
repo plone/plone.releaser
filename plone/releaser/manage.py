@@ -1,25 +1,25 @@
 # -*- coding: utf-8 -*-
-import datetime
-import os
-from shutil import rmtree
-from tempfile import mkdtemp
-
-from argh import ArghParser, arg
+from argh import ArghParser
+from argh import arg
 from argh.decorators import named
 from argh.interaction import confirm
 from configparser import NoOptionError
 from db import IgnoresDB
 from distutils.version import StrictVersion
-import git
 from github import Github
-import keyring
 from launchpadlib.launchpad import Launchpad
-from progress.bar import Bar
-
 from plone.releaser import pypi
-from plone.releaser.buildout import VersionsFile
 from plone.releaser.buildout import Buildout
 from plone.releaser.buildout import CheckoutsFile
+from plone.releaser.buildout import VersionsFile
+from progress.bar import Bar
+from shutil import rmtree
+from tempfile import mkdtemp
+
+import datetime
+import git
+import keyring
+import os
 
 
 THIRD_PARTY_PACKAGES = ['Zope2',
