@@ -70,7 +70,7 @@ class VersionsFile(object):
             versionstxt = f.read()
 
         if package_name not in self:
-            newline = "{} = {}".format(package_name, new_version)
+            newline = "{0} = {1}".format(package_name, new_version)
             versionstxt += newline
 
         reg = re.compile("(^%s[\s\=]+)[0-9\.abrc]+" % package_name, re.MULTILINE)

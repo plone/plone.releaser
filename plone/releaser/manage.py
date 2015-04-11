@@ -238,7 +238,7 @@ def create_launchpad_release(version):
 
 def check_checkout(package_name, path):
     if package_name not in CheckoutsFile(path):
-        msg = 'Your package {} is not on auto-checkout section'
+        msg = 'Your package {0} is not on auto-checkout section'
         raise KeyError(msg.format(package_name))
 
 
@@ -247,7 +247,7 @@ def append_jenkins_build_number_to_package_version(jenkins_build_number):
     from zest.releaser.utils import cleanup_version
     vcs = BaseVersionControl()
     old_version = cleanup_version(vcs.version)
-    new_version = '{}.{}'.format(old_version, jenkins_build_number)
+    new_version = '{0}.{1}'.format(old_version, jenkins_build_number)
     vcs.version = new_version
     return new_version
 
