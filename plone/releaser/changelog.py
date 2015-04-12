@@ -8,14 +8,14 @@ from plone.releaser.buildout import Buildout
 import urllib
 
 
-DIST_URL = "http://dist.plone.org/release/%s/versions.cfg"
+DIST_URL = "http://dist.plone.org/release/{0}/versions.cfg"
 
 buildout = Buildout()
 
 
 def pullVersions(versionNumber):
     packageVersions = OrderedDict()
-    url = DIST_URL % versionNumber
+    url = DIST_URL.format(versionNumber)
     versionsFile = urllib.urlopen(url)
     for line in versionsFile:
         line = line.strip().replace(" ", "")
@@ -27,7 +27,7 @@ def pullVersions(versionNumber):
                 pass
             else:
                 packageVersions[package] = version
-    print "Parsed %s" % url
+    print "Parsed {0}".format(url)
     return packageVersions
 
 
@@ -46,16 +46,19 @@ def get_changelog(package_name):
     file_names = ['CHANGES', 'HISTORY']
     file_extensions = ['.txt', '.rst']
     if 'github' in source_url:
-        paths = ['raw/%s/docs/' % branch, 'raw/%s/' % branch]
+        paths = [
+            'raw/{0}/docs/'.format(branch),
+            'raw/{0}/'.format(branch),
+        ]
     else:
         paths = ['/', '/docs/', '/'.join(package_name.split('.'))]
     for pathable in product(paths, file_names, file_extensions):
         structure = ''.join(pathable)
-        url = "%s/%s" % (source_url, structure)
+        url = "{0}/{1}".format(source_url, structure)
         try:
             response = urllib.urlopen(url)
         except IOError:
-            print "Unable to reach %s" % url
+            print "Unable to reach {0}".format(url)
         else:
             if response.code == 200:
                 return response.read()
@@ -88,11 +91,11 @@ class Changelog(object):
             try:
                 end_version_index = versions.index(str(end_version))
             except ValueError:
-                raise ValueError("Unknown version %s" % str(end_version))
+                raise ValueError("Unknown version {0}".format(end_version))
         try:
             start_version_index = versions.index(str(start_version))
         except ValueError:
-                raise ValueError("Unknown version %s" % str(start_version))
+                raise ValueError("Unknown version {0}".format(start_version))
 
         newer_releases = versions[end_version_index:start_version_index]
         changes = []
@@ -139,11 +142,13 @@ def build_unified_changelog(start_version, end_version):
         if package in priorVersions:
             priorVersion = priorVersions[package]
             if version > priorVersion:
-                print "%s has a newer version" % package
-                packageChange = u"%s: %s %s %s" % (package,
-                                                   priorVersion,
-                                                   u"\u2192",
-                                                   version)
+                print "{0} has a newer version".format(package)
+                packageChange = u"{0}: {1} {2} {3}".format(
+                    package,
+                    priorVersion,
+                    u"\u2192",
+                    version
+                )
                 outputStr += u"\n" + packageChange + \
                     u"\n" + u"-" * len(packageChange) + "\n"
 

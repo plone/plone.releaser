@@ -14,7 +14,8 @@ import sys
 def check_pypi_access(data):
     pypi_user = pypi.PypiConfig().config.get('pypi', 'username')
     if not canUserReleasePackageToPypi(pypi_user, data['name']):
-        if not ask("User %s does not have pypi release rights to %s. Continue?" % (pypi_user, data['name']), default=False):
+        msg = "User {0} does not have pypi release rights to {1}. Continue?"
+        if not ask(msg.format(pypi_user, data['name']), default=False):
             sys.exit()
 
 
@@ -29,7 +30,7 @@ def show_changelog_entries(data):
         if not ask("Unable to parse changelog. Continue?", default=True):
             sys.exit()
         return
-    print "Changelog entries for version %s." % data['new_version']
+    print "Changelog entries for version {0}.".format(data['new_version'])
     for entry in entries:
         print entry
     if not ask("Continue?", default=True):
@@ -44,7 +45,7 @@ def update_core(data):
         update_checkouts(package_name)
         # git commit
         root_path = os.path.join(os.getcwd(), '../../')
-        message = "%s %s" % (package_name, new_version)
+        message = "{0} {1}".format(package_name, new_version)
         g = git.Git(root_path)
         g.pull()  # make sure buildout.coredev is up-to-date
         g.add('versions.cfg')

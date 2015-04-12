@@ -73,8 +73,11 @@ class VersionsFile(object):
             newline = "{0} = {1}".format(package_name, new_version)
             versionstxt += newline
 
-        reg = re.compile("(^%s[\s\=]+)[0-9\.abrc]+" % package_name, re.MULTILINE)
-        newVersionsTxt = reg.sub(r"\g<1>%s" % new_version, versionstxt)
+        reg = re.compile(
+            "(^{0}[\s\=]+)[0-9\.abrc]+".format(package_name),
+            re.MULTILINE
+        )
+        newVersionsTxt = reg.sub(r"\g<1>{0}".format(new_version), versionstxt)
         with open(path, 'w') as f:
             f.write(newVersionsTxt)
 
@@ -133,11 +136,19 @@ class CheckoutsFile(UserDict):
         with open(path, 'w') as f:
             if enabled:
                 fixes_text = "# Test fixes only"
-                reg = re.compile("^[\s]*%s\n" % fixes_text, re.MULTILINE)
-                newCheckoutsTxt = reg.sub('    %s\n%s\n' %
-                                          (package_name, fixes_text), checkoutstxt)
+                reg = re.compile(
+                    "^[\s]*{0}\n".format(fixes_text),
+                    re.MULTILINE
+                )
+                newCheckoutsTxt = reg.sub(
+                    '    {0}\n{1}\n'.format(package_name, fixes_text),
+                    checkoutstxt
+                )
             else:
-                reg = re.compile("^[\s]*%s\n" % package_name, re.MULTILINE)
+                reg = re.compile(
+                    "^[\s]*{0}\n".format(package_name),
+                    re.MULTILINE
+                )
                 newCheckoutsTxt = reg.sub('', checkoutstxt)
             f.write(newCheckoutsTxt)
 
