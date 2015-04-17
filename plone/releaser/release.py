@@ -50,7 +50,7 @@ def update_core(data):
         g.pull()  # make sure buildout.coredev is up-to-date
         g.add('versions.cfg')
         g.add('checkouts.cfg')
-        print "Commiting changes."
+        print "Committing changes."
         g.commit(message=message)
         print "Pushing changes to server."
         g.push()
