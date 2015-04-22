@@ -39,15 +39,15 @@ def show_changelog_entries(data):
 
 def update_core(data):
     if ask("Ok to update coredev versions.cfg/checkouts.cfg?", default=True):
+        root_path = os.path.join(os.getcwd(), '../../')
+        g = git.Git(root_path)
+        g.pull()  # make sure buildout.coredev is up-to-date
         package_name = data['name']
         new_version = data['version']
         update_versions(package_name, new_version)
         update_checkouts(package_name)
         # git commit
-        root_path = os.path.join(os.getcwd(), '../../')
         message = "{0} {1}".format(package_name, new_version)
-        g = git.Git(root_path)
-        g.pull()  # make sure buildout.coredev is up-to-date
         g.add('versions.cfg')
         g.add('checkouts.cfg')
         print "Committing changes."
