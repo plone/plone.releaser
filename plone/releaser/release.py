@@ -32,7 +32,10 @@ def show_changelog_entries(data):
         return
     print "Changelog entries for version {0}.".format(data['new_version'])
     for entry in entries:
-        print entry
+        if isinstance(entry, list):
+            print '\n'.join(entry)
+        else:
+            print entry
     if not ask("Continue?", default=True):
         sys.exit()
 
