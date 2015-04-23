@@ -64,7 +64,7 @@ def checkPypi(user):
             if not pypi.canUserReleasePackageToPypi(user, package):
                 print "{0}: {1}".format(
                     package,
-                    pypi.getUsersWithReleaseRights(package)
+                    ', '.join(pypi.getUsersWithReleaseRights(package))
                 )
 
 
