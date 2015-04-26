@@ -116,6 +116,7 @@ def checkPackageForUpdates(package_name, interactive=False):
                             latest_tag_in_branch
                         )
                     )
+                    core_repo.git.push()
                     del(core_repo)
 
         try:
