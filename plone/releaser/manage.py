@@ -196,10 +196,10 @@ def checkPackageForUpdates(package_name, interactive=False):
 
 @named('report')
 @arg('--interactive', default=False)
-def checkAllPackagesForUpdates(args):
+def checkAllPackagesForUpdates(**kwargs):
     sources = buildout.sources
     for package_name, source in Bar('Scanning').iter(sources.iteritems()):
-        checkPackageForUpdates(package_name, args.interactive)
+        checkPackageForUpdates(package_name, kwargs['interactive'])
 
 
 def pulls():
@@ -226,9 +226,9 @@ def pulls():
 @named('changelog')
 @arg('--start')
 @arg('--end')
-def changelog(args):
+def changelog(**kwargs):
     from plone.releaser.changelog import build_unified_changelog
-    build_unified_changelog(args.start, args.end)
+    build_unified_changelog(kwargs['start'], kwargs['end'])
 
 
 @named('launchpad')
