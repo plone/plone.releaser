@@ -100,8 +100,8 @@ def checkPackageForUpdates(package_name, interactive=False):
             pass
         else:
             if latest_tag_in_branch > version:
-                msg = "\nNewer version {0} is available for {1}."
-                print msg.format(latest_tag_in_branch, package_name)
+                msg = "\nNewer version {0} is available for {1} (Currently {2})"
+                print msg.format(latest_tag_in_branch, package_name, version)
                 if confirm("Update versions.cfg",
                            default=True,
                            skip=not interactive):
