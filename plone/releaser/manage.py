@@ -175,7 +175,7 @@ def checkPackageForUpdates(package_name, interactive=False):
                         core_repo.git.add(
                             os.path.join(os.getcwd(), 'checkouts.cfg'))
                         core_repo.git.commit(
-                            message='{0} has changes.'.format(package_name))
+                            message='"{0} has changes."'.format(package_name))
                         del(core_repo)
                     elif confirm("Ignore changes in  {0}".format(package_name),
                                  default=False,
