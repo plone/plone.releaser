@@ -118,8 +118,13 @@ def checkPackageForUpdates(package_name, interactive=False):
                     )
                     del(core_repo)
 
-        commits_since_release = list(
-            repo.iter_commits('{0}..{1}'.format(version, source.branch)))
+        try:
+            commits_since_release = list(
+                repo.iter_commits('{0}..{1}'.format(version, source.branch)))
+        except git.exc.GitCommandError:
+            msg = "\nCould not read commits for package {0}"
+            print msg.format(package_name)
+            commits_since_release = None
 
         commit_ignores = IgnoresDB()
         sha = commit_ignores.get(package_name)
