@@ -13,11 +13,11 @@ DIST_URL = "http://dist.plone.org/release/{0}/versions.cfg"
 buildout = Buildout()
 
 
-def pullVersions(versionNumber):
-    packageVersions = OrderedDict()
-    url = DIST_URL.format(versionNumber)
-    versionsFile = urllib.urlopen(url)
-    for line in versionsFile:
+def pull_versions(version_number):
+    package_versions = OrderedDict()
+    url = DIST_URL.format(version_number)
+    versions_file = urllib.urlopen(url)
+    for line in versions_file:
         line = line.strip().replace(" ", "")
         if line and not (line.startswith('#') or line.startswith('[')):
             try:
@@ -26,12 +26,12 @@ def pullVersions(versionNumber):
             except ValueError:
                 pass
             else:
-                packageVersions[package] = version
+                package_versions[package] = version
     print "Parsed {0}".format(url)
-    return packageVersions
+    return package_versions
 
 
-def getSourceLocation(package_name):
+def get_source_location(package_name):
     source = buildout.sources.get(package_name)
     if source is not None:
         url = source.url
@@ -42,7 +42,7 @@ def getSourceLocation(package_name):
 
 
 def get_changelog(package_name):
-    source_url, branch = getSourceLocation(package_name)
+    source_url, branch = get_source_location(package_name)
     file_names = ['CHANGES', 'HISTORY']
     file_extensions = ['.txt', '.rst']
     if 'github' in source_url:
@@ -111,7 +111,7 @@ class Changelog(object):
     def _parse(self, content):
         tree = publish_doctree(content)
 
-        def isValidVersionSection(x):
+        def is_valid_version_section(x):
             if x.tagname == "section":
                 try:
                     StrictVersion(x['names'][0].split()[0])
@@ -121,47 +121,47 @@ class Changelog(object):
                     return True
             return False
 
-        def isListItem(x):
+        def is_list_item(x):
             return x.tagname == 'list_item'
 
-        foundSections = tree.traverse(condition=isValidVersionSection)
-        for section in foundSections:
+        found_sections = tree.traverse(condition=is_valid_version_section)
+        for section in found_sections:
             version = section['names'][0].split()[0]
-            list_items = section.traverse(condition=isListItem)
+            list_items = section.traverse(condition=is_list_item)
             entries = [a.rawsource for a in list_items]
             self.data[version] = entries
 
 
 def build_unified_changelog(start_version, end_version):
 
-    priorVersions = pullVersions(start_version)
-    currentVersions = pullVersions(end_version)
+    prior_versions = pull_versions(start_version)
+    current_versions = pull_versions(end_version)
 
-    outputStr = ""
-    for package, version in currentVersions.iteritems():
-        if package in priorVersions:
-            priorVersion = priorVersions[package]
-            if version > priorVersion:
+    output_str = ""
+    for package, version in current_versions.iteritems():
+        if package in prior_versions:
+            prior_version = prior_versions[package]
+            if version > prior_version:
                 print "{0} has a newer version".format(package)
                 packageChange = u"{0}: {1} {2} {3}".format(
                     package,
-                    priorVersion,
+                    prior_version,
                     u"\u2192",
                     version
                 )
-                outputStr += u"\n" + packageChange + \
+                output_str += u"\n" + packageChange + \
                     u"\n" + u"-" * len(packageChange) + "\n"
 
                 logtext = get_changelog(package)
                 changelog = Changelog(content=logtext)
                 try:
-                    changes = changelog.get_changes(priorVersion, version)
+                    changes = changelog.get_changes(prior_version, version)
                 except ValueError, e:
                     print e
                 else:
                     for change in changes:
                         bullet = "- "
                         change = change.replace("\n", "\n" + " " * len(bullet))
-                        outputStr += bullet + change + u"\n"
+                        output_str += bullet + change + u"\n"
 
-    print outputStr
+    print output_str

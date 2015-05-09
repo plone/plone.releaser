@@ -2,7 +2,7 @@
 from plone.releaser.buildout import CheckoutsFile
 from plone.releaser.buildout import VersionsFile
 from plone.releaser.changelog import Changelog
-from plone.releaser.pypi import canUserReleasePackageToPypi
+from plone.releaser.pypi import can_user_release_package_to_pypi
 from zest.releaser import pypi
 from zest.releaser.utils import ask
 
@@ -13,7 +13,7 @@ import sys
 
 def check_pypi_access(data):
     pypi_user = pypi.PypiConfig().config.get('pypi', 'username')
-    if not canUserReleasePackageToPypi(pypi_user, data['name']):
+    if not can_user_release_package_to_pypi(pypi_user, data['name']):
         msg = "User {0} does not have pypi release rights to {1}. Continue?"
         if not ask(msg.format(pypi_user, data['name']), default=False):
             sys.exit()

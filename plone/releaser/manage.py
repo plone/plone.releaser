@@ -61,10 +61,10 @@ def checkPypi(user):
         if package in THIRD_PARTY_PACKAGES:
             pass
         else:
-            if not pypi.canUserReleasePackageToPypi(user, package):
+            if not pypi.can_user_release_package_to_pypi(user, package):
                 print "{0}: {1}".format(
                     package,
-                    ', '.join(pypi.getUsersWithReleaseRights(package))
+                    ', '.join(pypi.get_users_with_release_rights(package))
                 )
 
 
