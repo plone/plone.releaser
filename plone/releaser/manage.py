@@ -4,7 +4,6 @@ from argh import arg
 from argh.decorators import named
 from argh.interaction import confirm
 from configparser import NoOptionError
-from db import IgnoresDB
 from distutils.version import StrictVersion
 from github import Github
 from launchpadlib.launchpad import Launchpad
@@ -12,6 +11,7 @@ from plone.releaser import pypi
 from plone.releaser.buildout import Buildout
 from plone.releaser.buildout import CheckoutsFile
 from plone.releaser.buildout import VersionsFile
+from plone.releaser.db import IgnoresDB
 from progress.bar import Bar
 from shutil import rmtree
 from tempfile import mkdtemp
