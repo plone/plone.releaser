@@ -32,28 +32,28 @@ setup(
     include_package_data=True,
     zip_safe=False,
     install_requires=[
-      'setuptools',
-      'argh',
-      'gitpython>=0.3',
-      'configparser',
-      'argcomplete',
-      'progress',
-      'PyGithub',
-      'keyring',
-      'zest.releaser',
-      'docutils',
-      'launchpadlib',
+        'setuptools',
+        'argh',
+        'gitpython>=0.3',
+        'configparser',
+        'argcomplete',
+        'progress',
+        'PyGithub',
+        'keyring',
+        'zest.releaser',
+        'docutils',
+        'launchpadlib',
     ],
     entry_points={
-      'console_scripts': [
-          'manage = plone.releaser.manage:manage',
-      ],
-      'zest.releaser.prereleaser.middle': [
-          'show_changelog=plone.releaser.release:show_changelog_entries',
-          'check_pypi=plone.releaser.release:check_pypi_access',
-      ],
-      'zest.releaser.releaser.after': [
-          'update_core=plone.releaser.release:update_core',
-      ]
+        'console_scripts': [
+            'manage = plone.releaser.manage:manage',
+        ],
+        'zest.releaser.prereleaser.middle': [
+            'show_changelog=plone.releaser.release:show_changelog_entries',
+            'check_pypi=plone.releaser.release:check_pypi_access',
+        ],
+        'zest.releaser.releaser.after': [
+            'update_core=plone.releaser.release:update_core',
+        ]
     },
 )
