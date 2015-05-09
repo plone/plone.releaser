@@ -74,7 +74,7 @@ def checkPackageForUpdates(package_name, interactive=False):
 
     source = buildout.sources.get(package_name)
     try:
-        version = buildout.getVersion(package_name)
+        version = buildout.get_version(package_name)
     except (NoOptionError, KeyError):
         # print "No version available for {0}".format(package_name)
         pass
@@ -105,8 +105,8 @@ def checkPackageForUpdates(package_name, interactive=False):
                 if confirm("Update versions.cfg",
                            default=True,
                            skip=not interactive):
-                    buildout.setVersion(package_name,
-                                        latest_tag_in_branch)
+                    buildout.set_version(package_name,
+                                         latest_tag_in_branch)
                     core_repo = git.Repo(os.getcwd())
                     core_repo.git.add(
                         os.path.join(os.getcwd(), 'versions.cfg'))
@@ -145,7 +145,7 @@ def checkPackageForUpdates(package_name, interactive=False):
                 if confirm(msg,
                            default=True,
                            skip=not interactive):
-                    buildout.removeFromCheckouts(package_name)
+                    buildout.remove_from_checkouts(package_name)
                     core_repo = git.Repo(os.getcwd())
                     core_repo.git.add(
                         os.path.join(os.getcwd(), 'checkouts.cfg'))
@@ -170,7 +170,7 @@ def checkPackageForUpdates(package_name, interactive=False):
 
                     msg = "Add {0} to checkouts.cfg".format(package_name)
                     if confirm(msg, default=True, skip=not interactive):
-                        buildout.addToCheckouts(package_name)
+                        buildout.add_to_checkouts(package_name)
                         core_repo = git.Repo(os.getcwd())
                         core_repo.git.add(
                             os.path.join(os.getcwd(), 'checkouts.cfg'))

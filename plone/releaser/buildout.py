@@ -183,14 +183,14 @@ class Buildout(object):
         self.versions = VersionsFile(versions_file)
         self.checkouts = CheckoutsFile(checkouts_file)
 
-    def addToCheckouts(self, package_name):
+    def add_to_checkouts(self, package_name):
         return self.checkouts.add(package_name)
 
-    def removeFromCheckouts(self, package_name):
+    def remove_from_checkouts(self, package_name):
         return self.checkouts.remove(package_name)
 
-    def getVersion(self, package_name):
+    def get_version(self, package_name):
         return self.versions.get(package_name)
 
-    def setVersion(self, package_name, new_version):
+    def set_version(self, package_name, new_version):
         return self.versions.set(package_name, new_version)
