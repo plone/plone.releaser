@@ -8,6 +8,11 @@ import os
 import re
 
 
+PATH_RE = re.compile(
+    '(\w+://)(.+@)*([\w\d\.]+)(:[\d]+){0,1}/(?P<path>.+(?=\.git))(\.git)'
+)
+
+
 class Source(object):
 
     def __init__(self, protocol=None, url=None, push_url=None, branch=None):
@@ -36,8 +41,7 @@ class Source(object):
     @property
     def path(self):
         if self.url:
-            match = re.match(
-                '(\w+://)(.+@)*([\w\d\.]+)(:[\d]+){0,1}/(?P<path>.+(?=\.git))(\.git)', self.url)
+            match = PATH_RE.match(self.url)
             if match:
                 return match.groupdict()['path']
         return None
