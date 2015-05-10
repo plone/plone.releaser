@@ -36,6 +36,15 @@ def checkPypi(user):
                 )
 
 
+@named('jenkins')
+def jenkins_report():
+    """Read-only version of checkAllPackagesForUpdates."""
+    sources = buildout.sources
+    for package_name, source in iter(sources.iteritems()):
+        pkg = Package(buildout, package_name)
+        pkg(action=ACTION_REPORT)
+
+
 @arg('--interactive', default=False)
 def checkPackageForUpdates(package_name, **kwargs):
     pkg = Package(buildout, package_name)
