@@ -2,27 +2,22 @@
 from argh import ArghParser
 from argh import arg
 from argh.decorators import named
-from argh.interaction import confirm
-from configparser import NoOptionError
 from distutils.version import StrictVersion
 from github import Github
 from launchpadlib.launchpad import Launchpad
-from plone.releaser import ALWAYS_CHECKED_OUT
-from plone.releaser import IGNORED_PACKAGES
+from plone.releaser import ACTION_BATCH
+from plone.releaser import ACTION_INTERACTIVE
+from plone.releaser import ACTION_REPORT
 from plone.releaser import THIRD_PARTY_PACKAGES
 from plone.releaser import pypi
 from plone.releaser.buildout import Buildout
 from plone.releaser.buildout import CheckoutsFile
 from plone.releaser.buildout import VersionsFile
-from plone.releaser.db import IgnoresDB
+from plone.releaser.package import Package
 from progress.bar import Bar
-from shutil import rmtree
-from tempfile import mkdtemp
 
 import datetime
-import git
 import keyring
-import os
 
 
 # TODO
@@ -41,136 +36,13 @@ def checkPypi(user):
                 )
 
 
-def checkPackageForUpdates(package_name, interactive=False):
-    if package_name in IGNORED_PACKAGES:
-        return
-
-    source = buildout.sources.get(package_name)
-    try:
-        version = buildout.get_version(package_name)
-    except (NoOptionError, KeyError):
-        # print "No version available for {0}".format(package_name)
-        pass
+@arg('--interactive', default=False)
+def checkPackageForUpdates(package_name, **kwargs):
+    pkg = Package(buildout, package_name)
+    if kwargs['interactive']:
+        pkg(action=ACTION_INTERACTIVE)
     else:
-        if source.protocol != 'git':
-            # print "Skipped check of {0} as it's not a git repo.".format(
-            #     package_name
-            # )
-            return
-
-        tmpdir = mkdtemp()
-        # print "Reading {0} branch of {1} for changes since {2}...".format(
-        #     source.branch, package_name, version
-        # )
-        repo = git.Repo.clone_from(
-            source.url, tmpdir, branch=source.branch, depth=100)
-
-        try:
-            latest_tag_in_branch = repo.git.describe(
-                '--abbrev=0', '--tags')
-        except git.exc.GitCommandError:
-            # print "Unable to check tags for {0}".format(package_name)
-            pass
-        else:
-            if latest_tag_in_branch > version:
-                msg = "\nNewer version {0} is available for {1} (Currently {2})"
-                print msg.format(latest_tag_in_branch, package_name, version)
-                if confirm("Update versions.cfg",
-                           default=True,
-                           skip=not interactive):
-                    buildout.set_version(package_name,
-                                         latest_tag_in_branch)
-                    core_repo = git.Repo(os.getcwd())
-                    core_repo.git.add(
-                        os.path.join(os.getcwd(), 'versions.cfg'))
-                    core_repo.git.commit(
-                        message='{0}={1}'.format(
-                            package_name,
-                            latest_tag_in_branch
-                        )
-                    )
-                    core_repo.git.push()
-                    del(core_repo)
-
-        try:
-            commits_since_release = list(
-                repo.iter_commits('{0}..{1}'.format(version, source.branch)))
-        except git.exc.GitCommandError:
-            msg = "\nCould not read commits for package {0}"
-            print msg.format(package_name)
-            commits_since_release = None
-
-        commit_ignores = IgnoresDB()
-        sha = commit_ignores.get(package_name)
-        commits_since_ignore = None
-        if sha is not None:
-            commits_since_ignore = list(
-                repo.iter_commits('{0}..{1}'.format(sha, source.branch)))
-        if not commits_since_release\
-                or "Back to development" in commits_since_release[0].message\
-                or commits_since_release[0].message.startswith('vb'):
-            # print "No changes."
-            if package_name in buildout.checkouts and \
-                    package_name not in ALWAYS_CHECKED_OUT:
-                print"\nNo new changes in {0}, but it is listed for " \
-                     "auto-checkout.".format(package_name)
-                msg = "Remove {0} from checkouts.cfg".format(package_name)
-                if confirm(msg,
-                           default=True,
-                           skip=not interactive):
-                    buildout.remove_from_checkouts(package_name)
-                    core_repo = git.Repo(os.getcwd())
-                    core_repo.git.add(
-                        os.path.join(os.getcwd(), 'checkouts.cfg'))
-                    core_repo.git.commit(
-                        message='No new changes in {0}'.format(package_name))
-                    del(core_repo)
-        else:
-            if commits_since_ignore is None:
-                # Check for checkout
-                if package_name not in buildout.checkouts:
-                    msg = '\nWARNING: No auto-checkout exists for {0}\n' \
-                          'Changes in {0}:'
-                    print msg.format(package_name)
-                    for commit in commits_since_release:
-                        print "    {0}: {1}".format(
-                            commit.author.name.encode('ascii', 'replace'),
-                            commit.summary.encode('ascii', 'replace')
-                        )
-                    if package_name in THIRD_PARTY_PACKAGES:
-                        msg = "NOTE: {0} is a third-party package."
-                        print msg.format(package_name)
-
-                    msg = "Add {0} to checkouts.cfg".format(package_name)
-                    if confirm(msg, default=True, skip=not interactive):
-                        buildout.add_to_checkouts(package_name)
-                        core_repo = git.Repo(os.getcwd())
-                        core_repo.git.add(
-                            os.path.join(os.getcwd(), 'checkouts.cfg'))
-                        core_repo.git.commit(
-                            message='"{0} has changes."'.format(package_name))
-                        del(core_repo)
-                    elif confirm("Ignore changes in  {0}".format(package_name),
-                                 default=False,
-                                 skip=not interactive):
-                        commit_ignores.set(
-                            package_name,
-                            commits_since_release[0].hexsha)
-                else:
-                    if not interactive:
-                        print "\nChanges in {0}:".format(package_name)
-                        for commit in commits_since_release:
-                            print "    {0}: {1}".format(
-                                commit.author.name.encode('ascii',
-                                                          'replace'),
-                                commit.summary.encode('ascii',
-                                                      'replace')
-                            )
-                        if package_name in THIRD_PARTY_PACKAGES:
-                            msg = "NOTE: {0} is a third-party package."
-                            print msg.format(package_name)
-        del(repo)
-        rmtree(tmpdir)
+        pkg(action=ACTION_BATCH)
 
 
 @named('report')
@@ -178,7 +50,11 @@ def checkPackageForUpdates(package_name, interactive=False):
 def checkAllPackagesForUpdates(**kwargs):
     sources = buildout.sources
     for package_name, source in Bar('Scanning').iter(sources.iteritems()):
-        checkPackageForUpdates(package_name, kwargs['interactive'])
+        pkg = Package(buildout, package_name)
+        if kwargs['interactive']:
+            pkg(action=ACTION_INTERACTIVE)
+        else:
+            pkg(action=ACTION_BATCH)
 
 
 def pulls():
@@ -266,7 +142,8 @@ class Manage(object):
              create_launchpad_release,
              check_checkout,
              append_jenkins_build_number_to_package_version,
-             set_package_version])
+             set_package_version,
+             jenkins_report])
         parser.dispatch()
 
 

@@ -27,3 +27,18 @@ ALWAYS_CHECKED_OUT = (
     'plone.app.upgrade',
     'plone.app.locales',
 )
+
+# Upon checking a package...
+# ... ask every time if an action should be performed
+ACTION_INTERACTIVE = 'interactive'
+# ... don't ask anything and perform all actions
+ACTION_BATCH = 'batch'
+# ... don't ask anything *AND* don't make any action, just show the status
+# of the package
+ACTION_REPORT = 'report'
+
+PACKAGE_ACTIONS = (
+    ACTION_BATCH,
+    ACTION_INTERACTIVE,
+    ACTION_REPORT,
+)
