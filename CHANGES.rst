@@ -7,6 +7,12 @@ Changelog
 - Run git pull on buildout.coredev to make sure it is up-to-date.
   [timo]
 
+- Refactor checkPackageForUpdates to be more flexible. Made it a class
+  on its own module.
+  [gforcada]
+
+- Create a jenkins report based on checkPackageForUpdates.
+  [gforcada]
 
 1.2 (2015-03-21)
 ----------------
