@@ -9,18 +9,17 @@ class IgnoresDB(object):
         self._filename = '.package_ignores'
         if not os.path.isfile(self._filename):
             open(self._filename, 'w').close()
-        f = open(self._filename, 'r')
-        content = f.read()
-        if content != '':
-            self._db = json.loads(content)
-        else:
-            self._db = {}
-        f.close()
+
+        with open(self._filename, 'r') as f:
+            content = f.read()
+            if content != '':
+                self._db = json.loads(content)
+            else:
+                self._db = {}
 
     def save(self):
-        f = open(self._filename, 'w+')
-        f.write(json.dumps(self._db))
-        f.close()
+        with open(self._filename, 'w+') as f:
+            f.write(json.dumps(self._db))
 
     def get(self, package_name):
         return self._db.get(package_name)
