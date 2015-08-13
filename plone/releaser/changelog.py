@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from collections import OrderedDict
-from distutils.version import StrictVersion
+from distutils.version import LooseVersion
 from docutils.core import publish_doctree
 from itertools import product
 from plone.releaser.buildout import Buildout
@@ -22,7 +22,7 @@ def pull_versions(version_number):
         if line and not (line.startswith('#') or line.startswith('[')):
             try:
                 package, version = line.split("=")
-                version = StrictVersion(version)
+                version = LooseVersion(version)
             except ValueError:
                 pass
             else:
@@ -114,7 +114,7 @@ class Changelog(object):
         def is_valid_version_section(x):
             if x.tagname == "section":
                 try:
-                    StrictVersion(x['names'][0].split()[0])
+                    LooseVersion(x['names'][0].split()[0])
                 except (ValueError, IndexError):
                     pass
                 else:
