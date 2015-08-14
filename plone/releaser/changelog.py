@@ -73,6 +73,7 @@ def get_changelog(package_name):
         else:
             if response.code == 200:
                 return response.read()
+    return ''
 
 
 class Changelog(object):
@@ -165,6 +166,9 @@ def build_unified_changelog(start_version, end_version):
                         u"\n" + u"-" * len(packageChange) + "\n"
 
                     logtext = get_changelog(package)
+                    if not logtext:
+                        print "No changelog found."
+                        continue
                     changelog = Changelog(content=logtext)
                     try:
                         changes = changelog.get_changes(prior_version, version)
