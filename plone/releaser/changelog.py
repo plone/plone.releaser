@@ -106,7 +106,7 @@ class Changelog(object):
         try:
             start_version_index = versions.index(str(start_version))
         except ValueError:
-                raise ValueError("Unknown version {0}".format(start_version))
+            raise ValueError("Unknown version {0}".format(start_version))
 
         newer_releases = versions[end_version_index:start_version_index]
         changes = []
