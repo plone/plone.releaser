@@ -38,24 +38,31 @@ def pull_versions(version_number):
 def get_source_location(package_name):
     source = buildout.sources.get(package_name)
     if source is not None:
+        # Go from this:
+        # git://github.com/plone/plone.batching.git
+        # to this:
+        # https://raw.githubusercontent.com/plone/plone.batching
         url = source.url
         url = url.replace('git:', 'https:')
         url = url.replace('.git', '')
+        url = url.replace('github.com', 'raw.githubusercontent.com')
         return url, source.branch
     return "", ""
 
 
 def get_changelog(package_name):
     source_url, branch = get_source_location(package_name)
+    if not source_url:
+        return ''
     file_names = ['CHANGES', 'HISTORY']
-    file_extensions = ['.txt', '.rst']
+    file_extensions = ['.rst', '.txt']
     if 'github' in source_url:
         paths = [
-            'raw/{0}/docs/'.format(branch),
-            'raw/{0}/'.format(branch),
+            '{0}/'.format(branch),
+            '{0}/docs/'.format(branch),
         ]
     else:
-        paths = ['/', '/docs/', '/'.join(package_name.split('.'))]
+        paths = ['/', '/docs/', '/'.join(package_name.split('.')) + '/']
     for pathable in product(paths, file_names, file_extensions):
         structure = ''.join(pathable)
         url = "{0}/{1}".format(source_url, structure)
