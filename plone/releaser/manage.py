@@ -89,7 +89,7 @@ def pulls():
 
 @named('changelog')
 @arg('--start')
-@arg('--end')
+@arg('--end', default='here')
 def changelog(**kwargs):
     from plone.releaser.changelog import build_unified_changelog
     build_unified_changelog(kwargs['start'], kwargs['end'])

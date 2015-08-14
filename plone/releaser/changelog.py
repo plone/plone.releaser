@@ -15,8 +15,12 @@ buildout = Buildout()
 
 def pull_versions(version_number):
     package_versions = OrderedDict()
-    url = DIST_URL.format(version_number)
-    versions_file = urllib.urlopen(url)
+    if version_number == 'here':
+        url = 'versions.cfg'
+        versions_file = open(url)
+    else:
+        url = DIST_URL.format(version_number)
+        versions_file = urllib.urlopen(url)
     for line in versions_file:
         line = line.strip().replace(" ", "")
         if line and not (line.startswith('#') or line.startswith('[')):
