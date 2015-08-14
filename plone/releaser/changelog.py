@@ -168,4 +168,4 @@ def build_unified_changelog(start_version, end_version):
                         change = change.replace("\n", "\n" + " " * len(bullet))
                         output_str += bullet + change + u"\n"
 
-    print output_str
+    print output_str.encode('utf-8')
