@@ -4,6 +4,9 @@ Changelog
 1.3 (unreleased)
 ----------------
 
+- Fail nicely if a Plone versions.cfg can't be located
+  [esteele]
+
 - When showing the changelog, accept 1.7.2.1 as version.  So loose
   version numbers instead of strict version numbers with only one or
   two dots.

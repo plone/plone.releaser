@@ -21,6 +21,8 @@ def pull_versions(version_number):
     else:
         url = DIST_URL.format(version_number)
         versions_file = urllib.urlopen(url)
+    if versions_file.code == 404:
+        raise ValueError("Version %s not found." % version_number)
     for line in versions_file:
         line = line.strip().replace(" ", "")
         if line and not (line.startswith('#') or line.startswith('[')):
@@ -145,9 +147,12 @@ class Changelog(object):
 
 
 def build_unified_changelog(start_version, end_version):
-
-    prior_versions = pull_versions(start_version)
-    current_versions = pull_versions(end_version)
+    try:
+        prior_versions = pull_versions(start_version)
+        current_versions = pull_versions(end_version)
+    except ValueError, e:
+        print e
+        return
 
     output_str = ""
     try:
