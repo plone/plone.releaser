@@ -1,7 +1,7 @@
 Changelog
 =========
 
-1.3 (unreleased)
+1.3 (2015-09-27)
 ----------------
 
 - Fail nicely if a Plone versions.cfg can't be located
