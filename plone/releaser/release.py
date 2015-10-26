@@ -9,6 +9,36 @@ from zest.releaser.utils import ask
 import git
 import os
 import sys
+import textwrap
+
+
+def set_nothing_changed_yet(data):
+    """Set line that we look for in prerelease.
+
+    This is when checking if a changelog entry has been added since last
+    release.
+
+    Note that currently this must be a single line, because
+    zest.releaser looks for this text in each line.
+    """
+    data['nothing_changed_yet'] = '*add item here*'
+
+
+def set_new_changelog(data):
+    """Set text of changelog entry that is added when we do a postrelease.
+
+    Yes, this overrides what we have set in the prerelease, and that is
+    fine.
+    """
+    text = """
+    New:
+
+    - *add item here*
+
+    Fixes:
+
+    - *add item here*"""
+    data['nothing_changed_yet'] = textwrap.dedent(text).strip()
 
 
 def check_pypi_access(data):

@@ -48,12 +48,19 @@ setup(
         'console_scripts': [
             'manage = plone.releaser.manage:manage',
         ],
+        'zest.releaser.prereleaser.before': [
+            ('set_nothing_changed_yet='
+             'plone.releaser.release:set_nothing_changed_yet'),
+        ],
         'zest.releaser.prereleaser.middle': [
             'show_changelog=plone.releaser.release:show_changelog_entries',
             'check_pypi=plone.releaser.release:check_pypi_access',
         ],
         'zest.releaser.releaser.after': [
             'update_core=plone.releaser.release:update_core',
-        ]
+        ],
+        'zest.releaser.postreleaser.before': [
+            'set_new_changelog=plone.releaser.release:set_new_changelog',
+        ],
     },
 )

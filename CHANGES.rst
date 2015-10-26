@@ -4,7 +4,13 @@ Changelog
 1.4 (unreleased)
 ----------------
 
-- Nothing changed yet.
+New:
+
+- Set new changelog format during postrelease.  Adapt check in
+  prerelease that warns when the original changelog text has not been
+  changed since the previous release.
+  Issue https://github.com/plone/Products.CMFPlone/issues/1180
+  [maurits]
 
 
 1.3 (2015-09-27)
