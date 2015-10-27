@@ -6,6 +6,10 @@ Changelog
 
 New:
 
+- Simplified showing last changelog entries.  Requires zest.releaser
+  6.0 or higher.
+  [maurits]
+
 - Set new changelog format during postrelease.  Adapt check in
   prerelease that warns when the original changelog text has not been
   changed since the previous release.

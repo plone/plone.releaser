@@ -40,7 +40,7 @@ setup(
         'progress',
         'PyGithub',
         'keyring',
-        'zest.releaser',
+        'zest.releaser>=6.0',
         'docutils',
         'launchpadlib',
     ],
