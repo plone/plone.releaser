@@ -51,6 +51,8 @@ setup(
         'zest.releaser.prereleaser.before': [
             ('set_nothing_changed_yet='
              'plone.releaser.release:set_nothing_changed_yet'),
+            ('set_required_changelog='
+             'plone.releaser.release:set_required_changelog'),
         ],
         'zest.releaser.prereleaser.middle': [
             'show_changelog=plone.releaser.release:show_changelog_entries',

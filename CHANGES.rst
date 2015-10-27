@@ -6,6 +6,10 @@ Changelog
 
 New:
 
+- Require ``New:`` or ``Fixes:`` to be present in the changelog during
+  prerelease.
+  [maurits]
+
 - Simplified showing last changelog entries.  Requires zest.releaser
   6.0 or higher.
   [maurits]

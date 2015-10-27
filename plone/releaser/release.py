@@ -24,6 +24,14 @@ def set_nothing_changed_yet(data):
     data['nothing_changed_yet'] = '*add item here*'
 
 
+def set_required_changelog(data):
+    """Require one of these strings to be present in the changelog.
+
+    This is during the prerelease phase.
+    """
+    data['required_changelog_text'] = ['New:', 'Fixes:']
+
+
 def set_new_changelog(data):
     """Set text of changelog entry that is added when we do a postrelease.
 
