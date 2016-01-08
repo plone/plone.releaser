@@ -21,8 +21,8 @@ def pull_versions(version_number):
     else:
         url = DIST_URL.format(version_number)
         versions_file = urllib.urlopen(url)
-    if versions_file.code == 404:
-        raise ValueError("Version %s not found." % version_number)
+        if versions_file.code == 404:
+            raise ValueError("Version %s not found." % version_number)
     for line in versions_file:
         line = line.strip().replace(" ", "")
         if line and not (line.startswith('#') or line.startswith('[')):
