@@ -6,6 +6,8 @@ Changelog
 
 New:
 
+- Show ``New:`` and ``Fixes:`` in unified changelog.  [maurits]
+
 - Require ``New:`` or ``Fixes:`` to be present in the changelog during
   prerelease.
   [maurits]

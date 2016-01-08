@@ -135,14 +135,21 @@ class Changelog(object):
                     return True
             return False
 
+        def is_new_or_fixes(x):
+            return x.tagname == 'paragraph' and x.rawsource in (
+                'New:', 'Fixes:')
+
         def is_list_item(x):
             return x.tagname == 'list_item'
+
+        def is_interesting(x):
+            return is_list_item(x) or is_new_or_fixes(x)
 
         found_sections = tree.traverse(condition=is_valid_version_section)
         for section in found_sections:
             version = section['names'][0].split()[0]
-            list_items = section.traverse(condition=is_list_item)
-            entries = [a.rawsource for a in list_items]
+            list_items = section.traverse(condition=is_interesting)
+            entries = [a.rawsource.strip() for a in list_items]
             self.data[version] = entries
 
 
@@ -180,10 +187,14 @@ def build_unified_changelog(start_version, end_version):
                     except ValueError, e:
                         print e
                     else:
+                        bullet = "- "
                         for change in changes:
-                            bullet = "- "
-                            change = change.replace("\n", "\n" + " " * len(bullet))
-                            output_str += bullet + change + u"\n"
+                            if change in ('New:', 'Fixes:'):
+                                output_str += change + u"\n\n"
+                            else:
+                                change = change.replace(
+                                    "\n", "\n" + " " * len(bullet))
+                                output_str += bullet + change + u"\n\n"
     except KeyboardInterrupt:
         pass
 
