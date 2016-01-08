@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from collections import OrderedDict
+from collections import defaultdict
 from distutils.version import LooseVersion
 from docutils.core import publish_doctree
 from itertools import product
@@ -112,10 +113,17 @@ class Changelog(object):
             raise ValueError("Unknown version {0}".format(start_version))
 
         newer_releases = versions[end_version_index:start_version_index]
-        changes = []
+        changes = defaultdict(list)
         for release in newer_releases:
-            changes.extend(self.data[release])
-        return changes
+            for key, entries in self.data[release].items():
+                changes[key].extend(entries)
+        result = []
+        for key in ('New:', 'Fixes:', 'other'):
+            if key in changes:
+                if key != 'other':
+                    result.append(key)
+                result.extend(changes.pop(key))
+        return result
 
     def latest(self):
         if self.data.items():
@@ -142,14 +150,23 @@ class Changelog(object):
         def is_list_item(x):
             return x.tagname == 'list_item'
 
-        def is_interesting(x):
-            return is_list_item(x) or is_new_or_fixes(x)
-
         found_sections = tree.traverse(condition=is_valid_version_section)
         for section in found_sections:
             version = section['names'][0].split()[0]
-            list_items = section.traverse(condition=is_interesting)
-            entries = [a.rawsource.strip() for a in list_items]
+            # Look for paragraphs 'New:' or 'Fixes:'.
+            # When both are found, we have a section with:
+            # paragraph 1, bullet_list 1, paragraph 2, bullet_list 2.
+            # But a single bullet_list is handled fine too.
+            # Put items in dictionary, with possible keys:
+            # new, fixes, other.
+            entries = defaultdict(list)
+            current = 'other'
+            for child in section.children:
+                if is_new_or_fixes(child):
+                    current = child.rawsource
+                    continue
+                list_items = child.traverse(condition=is_list_item)
+                entries[current] = [a.rawsource.strip() for a in list_items]
             self.data[version] = entries
 
 
