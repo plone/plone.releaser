@@ -43,6 +43,10 @@ setup(
         'zest.releaser>=6.0',
         'docutils',
         'launchpadlib',
+        # simplejson is needed because launchpadlib requires
+        # lazr.restfulclient which needs a new release.  See
+        # https://bugs.launchpad.net/lazr.restfulclient/+bug/1500460
+        'simplejson',
     ],
     entry_points={
         'console_scripts': [

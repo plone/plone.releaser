@@ -22,6 +22,12 @@ New:
   Issue https://github.com/plone/Products.CMFPlone/issues/1180
   [maurits]
 
+Fixes:
+
+- Temporarily require simplejson. This is needed because launchpadlib
+  requires lazr.restfulclient which needs a new release.  See
+  https://bugs.launchpad.net/lazr.restfulclient/+bug/1500460  [maurits]
+
 
 1.3 (2015-09-27)
 ----------------
