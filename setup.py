@@ -16,7 +16,7 @@ setup(
     description='Plone release management utilities',
     long_description=long_description,
     # Get more strings from
-    # http://pypi.python.org/pypi?:action=list_classifiers
+    # https://pypi.python.org/pypi?:action=list_classifiers
     classifiers=[
       'Framework :: Plone',
       'Programming Language :: Python',
