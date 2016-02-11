@@ -40,7 +40,7 @@ setup(
         'progress',
         'PyGithub',
         'keyring',
-        'zest.releaser>=6.0',
+        'zest.releaser>=6.6.0',
         'docutils',
         'launchpadlib',
         # simplejson is needed because launchpadlib requires
@@ -59,7 +59,6 @@ setup(
              'plone.releaser.release:set_required_changelog'),
         ],
         'zest.releaser.prereleaser.middle': [
-            'show_changelog=plone.releaser.release:show_changelog_entries',
             'check_pypi=plone.releaser.release:check_pypi_access',
         ],
         'zest.releaser.releaser.after': [

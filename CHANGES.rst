@@ -6,6 +6,9 @@ Changelog
 
 New:
 
+- Removed our 'show changelog' entry point.  Required zest.releaser
+  6.6.0 that has this itself.  [maurits]
+
 - Show ``New:`` and ``Fixes:`` in unified changelog.  [maurits]
 
 - Require ``New:`` or ``Fixes:`` to be present in the changelog during

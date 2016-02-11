@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 from plone.releaser.buildout import CheckoutsFile
 from plone.releaser.buildout import VersionsFile
-from plone.releaser.changelog import Changelog
 from plone.releaser.pypi import can_user_release_package_to_pypi
 from zest.releaser import pypi
 from zest.releaser.utils import ask
@@ -55,13 +54,6 @@ def check_pypi_access(data):
         msg = "User {0} does not have pypi release rights to {1}. Continue?"
         if not ask(msg.format(pypi_user, data['name']), default=False):
             sys.exit()
-
-
-def show_changelog_entries(data):
-    print "Changelog entries for version {0}.".format(data['new_version'])
-    print data.get('history_last_release')
-    if not ask("Continue?", default=True):
-        sys.exit()
 
 
 def update_core(data):
