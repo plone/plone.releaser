@@ -28,7 +28,7 @@ def set_required_changelog(data):
 
     This is during the prerelease phase.
     """
-    data['required_changelog_text'] = ['New:', 'Fixes:']
+    data['required_changelog_text'] = ['New:', 'Fixes:', 'Incompatibilities:']
 
 
 def set_new_changelog(data):
@@ -38,6 +38,10 @@ def set_new_changelog(data):
     fine.
     """
     text = """
+    Incompatibilities:
+
+    - *add item here*
+
     New:
 
     - *add item here*
