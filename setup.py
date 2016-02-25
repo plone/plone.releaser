@@ -57,8 +57,13 @@ setup(
              'plone.releaser.release:set_nothing_changed_yet'),
             ('set_required_changelog='
              'plone.releaser.release:set_required_changelog'),
+            ('cleanup_changelog='
+             'plone.releaser.release:cleanup_changelog'),
         ],
         'zest.releaser.prereleaser.middle': [
+            # Note: we explicitly call cleanup_changelog twice.
+            ('cleanup_changelog='
+             'plone.releaser.release:cleanup_changelog'),
             'check_pypi=plone.releaser.release:check_pypi_access',
         ],
         'zest.releaser.releaser.after': [

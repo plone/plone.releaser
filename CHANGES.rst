@@ -10,6 +10,8 @@ Incompatibilities:
 
 New:
 
+- Added prerelease hooks to cleanup empty headers.  [maurits]
+
 - Add header 'Incompatibilities:' in postrelease.  In prerelease check
   if at least one of New, Fixes, Incompatibilities is there.
   See https://github.com/plone/Products.CMFPlone/issues/1323  [maurits]

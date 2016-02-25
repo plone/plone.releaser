@@ -4,11 +4,36 @@ from plone.releaser.buildout import VersionsFile
 from plone.releaser.pypi import can_user_release_package_to_pypi
 from zest.releaser import pypi
 from zest.releaser.utils import ask
+from zest.releaser.utils import read_text_file
+from zest.releaser.utils import write_text_file
 
 import git
 import os
 import sys
 import textwrap
+
+# Define texts to check for during prereleaser or add during postrelease.
+NOTHING_CHANGED_YET = '*add item here*'
+INCOMPATIBILITIES_TEXT = """
+Incompatibilities:
+
+- {}
+""".format(NOTHING_CHANGED_YET)
+NEW_TEXT = """
+New:
+
+- {}
+""".format(NOTHING_CHANGED_YET)
+FIXES_TEXT = """
+Fixes:
+
+- {}
+""".format(NOTHING_CHANGED_YET)
+HEADERS = [
+    INCOMPATIBILITIES_TEXT,
+    NEW_TEXT,
+    FIXES_TEXT,
+]
 
 
 def set_nothing_changed_yet(data):
@@ -20,7 +45,7 @@ def set_nothing_changed_yet(data):
     Note that currently this must be a single line, because
     zest.releaser looks for this text in each line.
     """
-    data['nothing_changed_yet'] = '*add item here*'
+    data['nothing_changed_yet'] = NOTHING_CHANGED_YET
 
 
 def set_required_changelog(data):
@@ -37,19 +62,68 @@ def set_new_changelog(data):
     Yes, this overrides what we have set in the prerelease, and that is
     fine.
     """
-    text = """
-    Incompatibilities:
-
-    - *add item here*
-
-    New:
-
-    - *add item here*
-
-    Fixes:
-
-    - *add item here*"""
+    text = ''.join(HEADERS)
     data['nothing_changed_yet'] = textwrap.dedent(text).strip()
+
+
+def cleanup_changelog(data):
+    """Cleanup empty headers.
+
+    We call this twice: in prereleaser.before and prereleaser.middle.
+
+    In 'before', we are too early and zest.releaser has not looked for
+    the history file yet.  But we try 'CHANGES.rst' ourselves.
+
+    In 'middle' we are a bit too late, as zest.releaser has already
+    complained when it found the NOTHING_CHANGED_YET value in the
+    history.
+
+    So we call this twice, which should be fine.
+
+    """
+    # The history_file is probably not set yet, as we are called too early.
+    # That might change subtly in future zest.releaser versions, so let's check
+    # it anyway.
+    history_file = data.get('history_file')
+    if history_file:
+        contents = '\n'.join(data['history_lines'])
+        encoding = data['history_encoding']
+    else:
+        # We do not want to copy the logic from zest.releaser that tries to
+        # find the history file, but we can check the most obvious spot.
+        history_file = 'CHANGES.rst'
+        if not os.path.exists(history_file):
+            print('Cannot cleanup history, will try again later.')
+            return
+        contents, encoding = read_text_file(history_file)
+    orig_contents = contents
+    changed = False
+    for header in HEADERS:
+        if header in contents:
+            contents = contents.replace(header, '')
+            changed = True
+    if not changed:
+        return
+    write_text_file(
+        history_file, contents, encoding=encoding)
+    print("Cleaned up empty headers from history file {}".format(history_file))
+    # Update the data, otherwise our work may get overwritten.
+    data['history_lines'] = contents.split('\n')
+    if not os.path.isdir('.git'):
+        print('Not a git checkout, cannot commit.')
+        return
+    g = git.Git('.')
+    message = "Cleaned up empty headers from changelog.\n\n[ci skip]"
+    print(g.diff(history_file))
+    msg = "Commit changes?"
+    if not ask(msg, default=True):
+        # Restore original contents.
+        write_text_file(
+            history_file, orig_contents, encoding=encoding)
+        sys.exit()
+    print("Committing changes.")
+    print(g.add(history_file))
+    print(g.commit(message=message))
 
 
 def check_pypi_access(data):
