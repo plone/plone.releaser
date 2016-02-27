@@ -4,10 +4,6 @@ Changelog
 1.5 (unreleased)
 ----------------
 
-Incompatibilities:
-
-- *add item here*
-
 New:
 
 - Added prerelease hooks to cleanup empty headers.  [maurits]
@@ -15,10 +11,6 @@ New:
 - Add header 'Incompatibilities:' in postrelease.  In prerelease check
   if at least one of New, Fixes, Incompatibilities is there.
   See https://github.com/plone/Products.CMFPlone/issues/1323  [maurits]
-
-Fixes:
-
-- *add item here*
 
 
 1.4 (2016-02-11)
