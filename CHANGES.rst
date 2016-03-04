@@ -4,7 +4,18 @@ Changelog
 1.5.1 (unreleased)
 ------------------
 
-- Nothing changed yet.
+Incompatibilities:
+
+- *add item here*
+
+New:
+
+- *add item here*
+
+Fixes:
+
+- When compiling changelog, treat Incompatibilities header as special
+  too.  [maurits]
 
 
 1.5.0 (2016-02-27)

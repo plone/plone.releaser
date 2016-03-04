@@ -5,6 +5,7 @@ from distutils.version import LooseVersion
 from docutils.core import publish_doctree
 from itertools import product
 from plone.releaser.buildout import Buildout
+from plone.releaser.release import HEADINGS
 
 import urllib
 
@@ -118,7 +119,7 @@ class Changelog(object):
             for key, entries in self.data[release].items():
                 changes[key].extend(entries)
         result = []
-        for key in ('New:', 'Fixes:', 'other'):
+        for key in HEADINGS + ['other']:
             if key in changes:
                 if key != 'other':
                     result.append(key)
@@ -143,9 +144,8 @@ class Changelog(object):
                     return True
             return False
 
-        def is_new_or_fixes(x):
-            return x.tagname == 'paragraph' and x.rawsource in (
-                'New:', 'Fixes:')
+        def is_heading(x):
+            return x.tagname == 'paragraph' and x.rawsource in HEADINGS
 
         def is_list_item(x):
             return x.tagname == 'list_item'
@@ -153,16 +153,15 @@ class Changelog(object):
         found_sections = tree.traverse(condition=is_valid_version_section)
         for section in found_sections:
             version = section['names'][0].split()[0]
-            # Look for paragraphs 'New:' or 'Fixes:'.
-            # When both are found, we have a section with:
+            # Look for paragraph headings.
+            # When two are found, we have a section with:
             # paragraph 1, bullet_list 1, paragraph 2, bullet_list 2.
             # But a single bullet_list is handled fine too.
-            # Put items in dictionary, with possible keys:
-            # new, fixes, other.
+            # Put items in dictionary, with the headings as possible keys.
             entries = defaultdict(list)
             current = 'other'
             for child in section.children:
-                if is_new_or_fixes(child):
+                if is_heading(child):
                     current = child.rawsource
                     continue
                 list_items = child.traverse(condition=is_list_item)
@@ -206,7 +205,7 @@ def build_unified_changelog(start_version, end_version):
                     else:
                         bullet = "- "
                         for change in changes:
-                            if change in ('New:', 'Fixes:'):
+                            if change in HEADINGS:
                                 output_str += change + u"\n\n"
                             else:
                                 change = change.replace(

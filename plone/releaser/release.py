@@ -34,6 +34,12 @@ HEADERS = [
     NEW_TEXT,
     FIXES_TEXT,
 ]
+# Used by changelog.py:
+HEADINGS = [
+    'Incompatibilities:',
+    'New:',
+    'Fixes:',
+]
 
 
 def set_nothing_changed_yet(data):
