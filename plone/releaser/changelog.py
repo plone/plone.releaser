@@ -6,6 +6,7 @@ from docutils.core import publish_doctree
 from itertools import product
 from plone.releaser.buildout import Buildout
 from plone.releaser.release import HEADINGS
+from plone.releaser.release import OLD_HEADING_MAPPING
 
 import urllib
 
@@ -144,8 +145,13 @@ class Changelog(object):
                     return True
             return False
 
-        def is_heading(x):
-            return x.tagname == 'paragraph' and x.rawsource in HEADINGS
+        def heading(x):
+            if x.tagname != 'paragraph':
+                return ''
+            if x.rawsource in HEADINGS:
+                return x.rawsource
+            # Might be an old heading or unknown.
+            return OLD_HEADING_MAPPING.get(x.rawsource, '')
 
         def is_list_item(x):
             return x.tagname == 'list_item'
@@ -161,8 +167,9 @@ class Changelog(object):
             entries = defaultdict(list)
             current = 'other'
             for child in section.children:
-                if is_heading(child):
-                    current = child.rawsource
+                child_heading = heading(child)
+                if child_heading:
+                    current = child_heading
                     continue
                 list_items = child.traverse(condition=is_list_item)
                 entries[current] = [a.rawsource.strip() for a in list_items]

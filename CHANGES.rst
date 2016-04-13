@@ -4,15 +4,20 @@ Changelog
 1.5.1 (unreleased)
 ------------------
 
-Incompatibilities:
+Breaking changes:
 
 - *add item here*
 
-New:
+New features:
 
-- *add item here*
+- Changed new headings to 'Breaking changes', 'New features', 'Bug
+  fixes'.  Old headers are still accepted, but in the postrelease we
+  generate the new ones.  In the unified changelog, we combine the old
+  and new names.
+  See https://github.com/plone/Products.CMFPlone/issues/1323
+  [maurits]
 
-Fixes:
+Bug fixes:
 
 - When compiling changelog, treat Incompatibilities header as special
   too.  [maurits]
