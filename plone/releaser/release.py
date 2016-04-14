@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from copy import copy
 from plone.releaser.buildout import CheckoutsFile
 from plone.releaser.buildout import VersionsFile
 from plone.releaser.pypi import can_user_release_package_to_pypi
@@ -14,6 +15,33 @@ import textwrap
 
 # Define texts to check for during prereleaser or add during postrelease.
 NOTHING_CHANGED_YET = '*add item here*'
+BREAKING_TEXT = """
+Breaking changes:
+
+- {}
+""".format(NOTHING_CHANGED_YET)
+FEATURE_TEXT = """
+New features:
+
+- {}
+""".format(NOTHING_CHANGED_YET)
+BUGFIXES_TEXT = """
+Bug fixes:
+
+- {}
+""".format(NOTHING_CHANGED_YET)
+HEADERS = [
+    BREAKING_TEXT,
+    FEATURE_TEXT,
+    BUGFIXES_TEXT,
+]
+# Used by changelog.py:
+HEADINGS = [
+    'Breaking changes:',
+    'New features:',
+    'Bug fixes:',
+]
+# For compatibility with previous names of the headers.
 INCOMPATIBILITIES_TEXT = """
 Incompatibilities:
 
@@ -29,17 +57,20 @@ Fixes:
 
 - {}
 """.format(NOTHING_CHANGED_YET)
-HEADERS = [
+OLD_HEADERS = [
     INCOMPATIBILITIES_TEXT,
     NEW_TEXT,
     FIXES_TEXT,
 ]
-# Used by changelog.py:
-HEADINGS = [
-    'Incompatibilities:',
-    'New:',
-    'Fixes:',
-]
+ALL_HEADERS = copy(HEADERS)
+ALL_HEADERS.extend(OLD_HEADERS)
+OLD_HEADING_MAPPING = {
+    'Incompatibilities:': 'Breaking changes:',
+    'New:': 'New features:',
+    'Fixes:': 'Bug fixes:',
+}
+KNOWN_HEADINGS = copy(HEADINGS)
+KNOWN_HEADINGS.extend(OLD_HEADING_MAPPING.keys())
 
 
 def set_nothing_changed_yet(data):
@@ -59,7 +90,7 @@ def set_required_changelog(data):
 
     This is during the prerelease phase.
     """
-    data['required_changelog_text'] = ['New:', 'Fixes:', 'Incompatibilities:']
+    data['required_changelog_text'] = KNOWN_HEADINGS
 
 
 def set_new_changelog(data):
@@ -104,7 +135,7 @@ def cleanup_changelog(data):
         contents, encoding = read_text_file(history_file)
     orig_contents = contents
     changed = False
-    for header in HEADERS:
+    for header in ALL_HEADERS:
         if header in contents:
             contents = contents.replace(header, '')
             changed = True
