@@ -4,10 +4,6 @@ Changelog
 1.5.1 (unreleased)
 ------------------
 
-Breaking changes:
-
-- *add item here*
-
 New features:
 
 - Changed new headings to 'Breaking changes', 'New features', 'Bug
