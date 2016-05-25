@@ -186,8 +186,9 @@ def update_core(data):
         g.add('checkouts.cfg')
         print "Committing changes."
         g.commit(message=message)
-        print "Pushing changes to server."
-        g.push()
+        if ask("Ok to push coredev?", default=True):
+            print "Pushing changes to server."
+            g.push()
 
 
 def update_versions(package_name, new_version):

@@ -10,7 +10,7 @@ Breaking changes:
 
 New features:
 
-- *add item here*
+- Ask before pushing to coredev, after updating the checkouts and versions.  [maurits]
 
 Bug fixes:
 
