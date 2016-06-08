@@ -78,7 +78,7 @@ class VersionsFile(object):
             versionstxt += newline
 
         reg = re.compile(
-            "(^{0}[\s\=]+)[0-9\.abrc]+".format(package_name),
+            "(^{0}[\s\=]+)[0-9\.abrc]+(.post\d+)?(.dev\d+)?".format(package_name),
             re.MULTILINE
         )
         newVersionsTxt = reg.sub(r"\g<1>{0}".format(new_version), versionstxt)

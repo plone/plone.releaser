@@ -14,7 +14,8 @@ New features:
 
 Bug fixes:
 
-- *add item here*
+- Fix new versions if they had dev/post release suffix.
+  [gforcada]
 
 
 1.5.1 (2016-04-28)
