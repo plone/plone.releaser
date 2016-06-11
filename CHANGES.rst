@@ -4,10 +4,6 @@ Changelog
 1.5.2 (unreleased)
 ------------------
 
-Breaking changes:
-
-- *add item here*
-
 New features:
 
 - Ask before pushing to coredev, after updating the checkouts and versions.  [maurits]
