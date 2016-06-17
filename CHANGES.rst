@@ -14,7 +14,7 @@ New features:
 
 Bug fixes:
 
-- *add item here*
+- change  pypi-url from http to https
 
 
 1.5.2 (2016-06-12)
