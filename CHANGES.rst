@@ -14,7 +14,8 @@ New features:
 
 Bug fixes:
 
-- *add item here*
+- Change  pypi-url from http to https.
+  [fgrcon]
 
 
 1.5.2 (2016-06-12)
