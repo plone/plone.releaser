@@ -3,7 +3,7 @@ import xmlrpclib
 
 
 def get_users_with_release_rights(package_name):
-    client = xmlrpclib.ServerProxy('http://pypi.python.org/pypi')
+    client = xmlrpclib.ServerProxy('https://pypi.python.org/pypi')
     existing_admins = set([
         user for role, user in client.package_roles(package_name)])
     return existing_admins
