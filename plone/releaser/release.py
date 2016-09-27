@@ -184,16 +184,16 @@ def update_core(data):
         message = "{0} {1}".format(package_name, new_version)
         g.add('versions.cfg')
         g.add('checkouts.cfg')
-        print "Committing changes."
+        print("Committing changes.")
         g.commit(message=message)
         if ask("Ok to push coredev?", default=True):
-            print "Pushing changes to server."
+            print("Pushing changes to server.")
             g.push()
 
 
 def update_versions(package_name, new_version):
     # Update version
-    print "Updating versions.cfg"
+    print("Updating versions.cfg")
     path = os.path.join(os.getcwd(), '../../versions.cfg')
     versions = VersionsFile(path)
     versions.set(package_name, new_version)
@@ -201,7 +201,7 @@ def update_versions(package_name, new_version):
 
 def update_checkouts(package_name):
     # Remove from checkouts.cfg
-    print "Removing package from checkouts.cfg"
+    print("Removing package from checkouts.cfg")
     path = os.path.join(os.getcwd(), '../../checkouts.cfg')
     checkouts = CheckoutsFile(path)
     checkouts.remove(package_name)

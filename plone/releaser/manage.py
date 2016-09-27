@@ -30,10 +30,10 @@ def checkPypi(user):
             pass
         else:
             if not pypi.can_user_release_package_to_pypi(user, package):
-                print "{0}: {1}".format(
+                print("{0}: {1}".format(
                     package,
                     ', '.join(pypi.get_users_with_release_rights(package))
-                )
+                ))
 
 
 @named('jenkins')
@@ -78,13 +78,13 @@ def pulls():
             pulls = [a for a in repo.get_pulls(
                 'open') if a.head.ref == source.branch]
             if pulls:
-                print package_name
+                print(package_name)
                 for pull in pulls:
-                    print "    {0}: {1} ({2})".format(
+                    print("    {0}: {1} ({2})".format(
                         pull.user.login,
                         pull.title,
                         pull.url
-                    )
+                    ))
 
 
 @named('changelog')
