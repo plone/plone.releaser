@@ -36,7 +36,7 @@ def pull_versions(version_number):
                 pass
             else:
                 package_versions[package] = version
-    print "Parsed {0}".format(url)
+    print("Parsed {0}".format(url))
     return package_versions
 
 
@@ -74,7 +74,7 @@ def get_changelog(package_name):
         try:
             response = urllib.urlopen(url)
         except IOError:
-            print "Unable to reach {0}".format(url)
+            print("Unable to reach {0}".format(url))
         else:
             if response.code == 200:
                 return response.read()
@@ -181,7 +181,7 @@ def build_unified_changelog(start_version, end_version):
         prior_versions = pull_versions(start_version)
         current_versions = pull_versions(end_version)
     except ValueError, e:
-        print e
+        print(e)
         return
 
     output_str = ""
@@ -190,7 +190,7 @@ def build_unified_changelog(start_version, end_version):
             if package in prior_versions:
                 prior_version = prior_versions[package]
                 if version > prior_version:
-                    print "{0} has a newer version".format(package)
+                    print("{0} has a newer version".format(package))
                     packageChange = u"{0}: {1} {2} {3}".format(
                         package,
                         prior_version,
@@ -202,13 +202,13 @@ def build_unified_changelog(start_version, end_version):
 
                     logtext = get_changelog(package)
                     if not logtext:
-                        print "No changelog found."
+                        print("No changelog found.")
                         continue
                     changelog = Changelog(content=logtext)
                     try:
                         changes = changelog.get_changes(prior_version, version)
                     except ValueError, e:
-                        print e
+                        print(e)
                     else:
                         bullet = "- "
                         for change in changes:
@@ -221,4 +221,4 @@ def build_unified_changelog(start_version, end_version):
     except KeyboardInterrupt:
         pass
 
-    print output_str.encode('utf-8')
+    print(output_str.encode('utf-8'))

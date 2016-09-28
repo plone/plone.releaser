@@ -14,8 +14,8 @@ New features:
 
 Bug fixes:
 
-- *add item here*
-
+- Use print as a function.
+  [gforcada]
 
 1.5.3 (2016-06-27)
 ------------------

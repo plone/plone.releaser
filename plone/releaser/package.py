@@ -88,7 +88,7 @@ class Package(object):
 
     def __call__(self, action=ACTION_INTERACTIVE):
         if action not in PACKAGE_ACTIONS:
-            print 'This package action does not exist: {0}'.format(action)
+            print('This package action does not exist: {0}'.format(action))
             return
         self.set_interaction_and_report(action)
 
@@ -140,7 +140,7 @@ class Package(object):
 
                     if self.name in THIRD_PARTY_PACKAGES:
                         msg = 'NOTE: {0} is a third-party package.'
-                        print msg.format(self.name)
+                        print(msg.format(self.name))
 
                     self.add(commits_since_release)
 
@@ -151,7 +151,7 @@ class Package(object):
 
                         if self.name in THIRD_PARTY_PACKAGES:
                             msg = 'NOTE: {0} is a third-party package.'
-                            print msg.format(self.name)
+                            print(msg.format(self.name))
 
     def set_interaction_and_report(self, action):
         if action == ACTION_REPORT:
@@ -168,7 +168,7 @@ class Package(object):
         if self.source.protocol != 'git':
             if self.report_only:
                 msg = 'Skipped check of {0} as it\'s not a git repo.'
-                print msg.format(self.name)
+                print(msg.format(self.name))
             return False
         return True
 
@@ -178,7 +178,7 @@ class Package(object):
             version = self.buildout.get_version(self.name)
         except (NoOptionError, KeyError):
             if self.report_only:
-                print 'No version available for {0}'.format(self.name)
+                print('No version available for {0}'.format(self.name))
 
         return version
 
@@ -188,7 +188,7 @@ class Package(object):
             tag = repo.git.describe('--abbrev=0', '--tags')
         except git.exc.GitCommandError:
             if self.report_only:
-                print 'Unable to check tags for {0}'.format(self.name)
+                print('Unable to check tags for {0}'.format(self.name))
 
         return tag
 
@@ -202,7 +202,7 @@ class Package(object):
                 self.source.branch
             )
         except git.exc.GitCommandError:
-            print '\nCould not read commits for package {0}'.format(self.name)
+            print('\nCould not read commits for package {0}'.format(self.name))
 
         return commits
 
@@ -218,7 +218,7 @@ class Package(object):
         if self.name in self.buildout.checkouts and \
                 self.name not in ALWAYS_CHECKED_OUT:
             msg = '\nNo new changes in {0}, but it is listed for auto-checkout.'  # noqa
-            print msg.format(self.name)
+            print(msg.format(self.name))
 
         if self.report_only:
             return
@@ -258,20 +258,20 @@ class Package(object):
     @staticmethod
     def print_commits(commits_list, message=None):
         if message:
-            print message
+            print(message)
 
         for commit in commits_list:
-            print '    {0}: {1}'.format(
+            print('    {0}: {1}'.format(
                 commit.author.name.encode('ascii', 'replace'),
                 commit.summary.encode('ascii', 'replace')
-            )
+            ))
 
     def update_version(self, tag):
         if tag <= self.version:
             return
 
         msg = '\nNewer version {0} is available for {1} (Currently {2})'
-        print msg.format(tag, self.name, self.version)
+        print(msg.format(tag, self.name, self.version))
 
         if self.report_only:
             return
