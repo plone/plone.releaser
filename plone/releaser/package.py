@@ -220,18 +220,18 @@ class Package(object):
             msg = '\nNo new changes in {0}, but it is listed for auto-checkout.'  # noqa
             print(msg.format(self.name))
 
-        if self.report_only:
-            return
+            if self.report_only:
+                return
 
-        msg = 'Remove {0} from checkouts.cfg'.format(self.name)
-        if confirm(msg, default=True, skip=not self.interactive):
-            self.buildout.remove_from_checkouts(self.name)
+            msg = 'Remove {0} from checkouts.cfg'.format(self.name)
+            if confirm(msg, default=True, skip=not self.interactive):
+                self.buildout.remove_from_checkouts(self.name)
 
-            with buildout_coredev() as core_repo:
-                checkouts_path = os.path.join(os.getcwd(), 'checkouts.cfg')
-                core_repo.git.add(checkouts_path)
-                msg = 'No new changes in {0}'.format(self.name)
-                core_repo.git.commit(message=msg)
+                with buildout_coredev() as core_repo:
+                    checkouts_path = os.path.join(os.getcwd(), 'checkouts.cfg')
+                    core_repo.git.add(checkouts_path)
+                    msg = 'No new changes in {0}'.format(self.name)
+                    core_repo.git.commit(message=msg)
 
     def add(self, commits_since_release):
         if self.report_only:
