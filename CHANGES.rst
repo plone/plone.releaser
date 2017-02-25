@@ -14,7 +14,8 @@ New features:
 
 Bug fixes:
 
-- *add item here*
+- Skip over broken version definitions when building the unified changelog.
+  [esteele]
 
 
 1.5.4 (2016-11-01)

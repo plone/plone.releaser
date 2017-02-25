@@ -189,35 +189,39 @@ def build_unified_changelog(start_version, end_version):
         for package, version in current_versions.iteritems():
             if package in prior_versions:
                 prior_version = prior_versions[package]
-                if version > prior_version:
-                    print("{0} has a newer version".format(package))
-                    packageChange = u"{0}: {1} {2} {3}".format(
-                        package,
-                        prior_version,
-                        u"\u2192",
-                        version
-                    )
-                    output_str += u"\n" + packageChange + \
-                        u"\n" + u"-" * len(packageChange) + "\n"
+                try:
+                    if version > prior_version:
+                        print("{0} has a newer version".format(package))
+                        packageChange = u"{0}: {1} {2} {3}".format(
+                            package,
+                            prior_version,
+                            u"\u2192",
+                            version
+                        )
+                        output_str += u"\n" + packageChange + \
+                            u"\n" + u"-" * len(packageChange) + "\n"
 
-                    logtext = get_changelog(package)
-                    if not logtext:
-                        print("No changelog found.")
-                        continue
-                    changelog = Changelog(content=logtext)
-                    try:
-                        changes = changelog.get_changes(prior_version, version)
-                    except ValueError, e:
-                        print(e)
-                    else:
-                        bullet = "- "
-                        for change in changes:
-                            if change in HEADINGS:
-                                output_str += change + u"\n\n"
-                            else:
-                                change = change.replace(
-                                    "\n", "\n" + " " * len(bullet))
-                                output_str += bullet + change + u"\n\n"
+                        logtext = get_changelog(package)
+                        if not logtext:
+                            print("No changelog found.")
+                            continue
+                        changelog = Changelog(content=logtext)
+                        try:
+                            changes = changelog.get_changes(prior_version, version)
+                        except ValueError, e:
+                            print(e)
+                        else:
+                            bullet = "- "
+                            for change in changes:
+                                if change in HEADINGS:
+                                    output_str += change + u"\n\n"
+                                else:
+                                    change = change.replace(
+                                        "\n", "\n" + " " * len(bullet))
+                                    output_str += bullet + change + u"\n\n"
+                except AttributeError as e:
+                    # Bad version line, skip
+                    pass
     except KeyboardInterrupt:
         pass
 
