@@ -63,7 +63,7 @@ def checkAllPackagesForUpdates(**kwargs):
         if kwargs['interactive']:
             pkg(action=ACTION_INTERACTIVE)
         else:
-            pkg(action=ACTION_BATCH)
+            pkg(action=ACTION_REPORT)
 
 
 def pulls():
