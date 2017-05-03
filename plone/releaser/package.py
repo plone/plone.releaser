@@ -243,9 +243,8 @@ class Package(object):
 
             with buildout_coredev() as core_repo:
                 checkouts_path = os.path.join(os.getcwd(), 'checkouts.cfg')
-                core_repo.git.add(checkouts_path)
-                msg = '{0} has changes.'.format(self.name)
-                core_repo.git.commit(message=msg)
+                core_repo.index.add([checkouts_path])
+                core_repo.index.commit('{0} has changes.'.format(self.name))
 
         elif confirm('Ignore changes in  {0}'.format(self.name),
                      default=False,
