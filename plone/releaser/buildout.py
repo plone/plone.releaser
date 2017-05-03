@@ -139,7 +139,7 @@ class CheckoutsFile(UserDict):
             checkoutstxt = f.read()
         with open(path, 'w') as f:
             if enabled:
-                fixes_text = "# Test fixes only"
+                fixes_text = "# test-only fixes:"
                 reg = re.compile(
                     "^[\s]*{0}\n".format(fixes_text),
                     re.MULTILINE
