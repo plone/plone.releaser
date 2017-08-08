@@ -116,11 +116,15 @@ class Package(object):
             latest_ignored_commit = self.commit_ignores.get(self.name)
             commits_since_ignore = None
             if latest_ignored_commit is not None:
-                commits_since_ignore = self._commits_between(
-                    repo,
-                    latest_ignored_commit,
-                    self.source.branch
-                )
+                try:
+                    commits_since_ignore = self._commits_between(
+                        repo,
+                        latest_ignored_commit,
+                        self.source.branch
+                    )
+                except git.exc.GitCommandError:
+                    print('\nCould not read commits for package {0}'.format(self.name))
+                    return
 
             # if there are no changes since the last release (i.e. last tag)
             if not commits_since_release \
