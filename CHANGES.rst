@@ -4,14 +4,6 @@ Changelog
 1.5.5 (unreleased)
 ------------------
 
-Breaking changes:
-
-- *add item here*
-
-New features:
-
-- *add item here*
-
 Bug fixes:
 
 - Skip over broken version definitions when building the unified changelog.
