@@ -179,7 +179,7 @@ def update_core(data):
         package_name = data['name']
         new_version = data['version']
         update_versions(package_name, new_version)
-        update_checkouts(package_name)
+        remove_from_checkouts(package_name)
         # git commit
         message = "{0} {1}".format(package_name, new_version)
         g.add('versions.cfg')
@@ -199,8 +199,7 @@ def update_versions(package_name, new_version):
     versions.set(package_name, new_version)
 
 
-def update_checkouts(package_name):
-    # Remove from checkouts.cfg
+def remove_from_checkouts(package_name):
     print("Removing package from checkouts.cfg")
     path = os.path.join(os.getcwd(), '../../checkouts.cfg')
     checkouts = CheckoutsFile(path)
