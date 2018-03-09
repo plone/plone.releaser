@@ -65,6 +65,8 @@ setup(
         ],
         'zest.releaser.releaser.after': [
             'update_core=plone.releaser.release:update_core',
+            ('update_other_core_branches='
+             'plone.releaser.release:update_other_core_branches'),
         ],
         'zest.releaser.postreleaser.before': [
             'set_new_changelog=plone.releaser.release:set_new_changelog',
