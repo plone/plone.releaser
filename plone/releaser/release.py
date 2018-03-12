@@ -2,6 +2,7 @@
 from copy import copy
 from plone.releaser.buildout import CheckoutsFile
 from plone.releaser.buildout import VersionsFile
+from plone.releaser.buildout import SourcesFile
 from plone.releaser.pypi import can_user_release_package_to_pypi
 from zest.releaser import pypi
 from zest.releaser.utils import ask
@@ -171,8 +172,11 @@ def check_pypi_access(data):
             sys.exit()
 
 
-def update_core(data):
-    if ask("Ok to update coredev versions.cfg/checkouts.cfg?", default=True):
+def update_core(data, branch=None):
+    msg = "Ok to update coredev versions.cfg/checkouts.cfg?"
+    if branch:
+        msg = "Ok to update coredev {0} versions.cfg/checkouts.cfg?".format(branch)
+    if ask(msg, default=True):
         root_path = os.path.join(os.getcwd(), '../../')
         g = git.Git(root_path)
         g.pull()  # make sure buildout.coredev is up-to-date
@@ -186,9 +190,53 @@ def update_core(data):
         g.add('checkouts.cfg')
         print("Committing changes.")
         g.commit(message=message)
-        if ask("Ok to push coredev?", default=True):
+        msg = "Ok to push coredev?"
+        if branch:
+            msg = "Ok to push coredev {0}?".format(branch)
+        if ask(msg, default=True):
             print("Pushing changes to server.")
             g.push()
+
+
+def update_other_core_branches(data):
+    CORE_BRANCHES = ['4.3', '5.0', '5.1', '5.2', ]
+    package_name = data['name']
+    root_path = os.path.join(os.getcwd(), '../../')
+
+    def _get_current_core_branch():
+        g = git.Repo(root_path)
+        return g.head.reference.name
+
+    def _get_package_branch(package_name):
+        path = os.path.join(root_path, 'sources.cfg')
+        sources = SourcesFile(path)
+        try:
+            return sources[package_name].branch
+        except KeyError:  # package is not on sources.cfg of the current core branch
+            return ''
+
+    current_core_branch = _get_current_core_branch()
+    CORE_BRANCHES.remove(current_core_branch)
+
+    reference_package_branch = _get_package_branch(package_name=package_name)
+
+    g = git.Git(root_path)
+    for branch_name in CORE_BRANCHES:
+        g.checkout(branch_name)
+
+        package_branch = _get_package_branch(package_name=package_name)
+        if package_branch == reference_package_branch:
+            try:
+                update_core(data, branch=branch_name)
+            except Exception:
+                print(
+                    'There was an error trying to update {0} on {1}'.format(
+                        package_name,
+                        branch_name,
+                    )
+                )
+
+    g.checkout(current_core_branch)
 
 
 def update_versions(package_name, new_version):
