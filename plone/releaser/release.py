@@ -74,6 +74,13 @@ KNOWN_HEADINGS = copy(HEADINGS)
 KNOWN_HEADINGS.extend(OLD_HEADING_MAPPING.keys())
 
 
+ALWAYS_CHECKED_OUT_PACKAGES = (
+    'Plone',
+    'Products.CMFPlone',
+    'plone.app.upgrade',
+    'plone.app.locales',
+)
+
 def set_nothing_changed_yet(data):
     """Set line that we look for in prerelease.
 
@@ -183,7 +190,8 @@ def update_core(data, branch=None):
         package_name = data['name']
         new_version = data['version']
         update_versions(package_name, new_version)
-        remove_from_checkouts(package_name)
+        if package_name not in ALWAYS_CHECKED_OUT_PACKAGES:
+            remove_from_checkouts(package_name)
         # git commit
         message = "{0} {1}".format(package_name, new_version)
         g.add('versions.cfg')

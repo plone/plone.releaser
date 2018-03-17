@@ -15,6 +15,9 @@ New features:
   i.e. to check if the package just released is also checked out and used in other buildout.coredev branches.
   [gforcada]
 
+- Ensure that selected packages are always kept on checkouts.cfg.
+  [gforcada]
+
 Bug fixes:
 
 - *add item here*
