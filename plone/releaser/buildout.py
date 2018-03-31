@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from UserDict import UserDict
 from collections import OrderedDict
 from configparser import ConfigParser
 from configparser import ExtendedInterpolation
@@ -7,6 +6,10 @@ from configparser import ExtendedInterpolation
 import os
 import re
 
+try:
+    from collections import UserDict
+except ImportError:
+    from UserDict import UserDict
 
 PATH_RE = re.compile(
     '(\w+://)(.+@)*([\w\d\.]+)(:[\d]+){0,1}/(?P<path>.+(?=\.git))(\.git)'
