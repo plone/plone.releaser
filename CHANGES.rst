@@ -4,10 +4,6 @@ Changelog
 1.6.0 (unreleased)
 ------------------
 
-Breaking changes:
-
-- *add item here*
-
 New features:
 
 - New zest.releaser hook: update other buildout.coredev branches as well.
@@ -17,10 +13,6 @@ New features:
 
 - Ensure that selected packages are always kept on checkouts.cfg.
   [gforcada]
-
-Bug fixes:
-
-- *add item here*
 
 
 1.5.5 (2017-10-17)
