@@ -1,0 +1,33 @@
+[tool.towncrier]
+# package is required, and sadly must be importable, even though we don't want to use it.
+# It is used to get the version, but we will pass the version on the command line with --version.
+# The default title_format uses it, but we have our own version which doesn't.
+# Fortunately, after release of https://github.com/hawkowl/towncrier/pull/107
+# we should be able to pass it on the command line with --name.
+package = "plone.releaser"
+# Default issue_format is more or less: #{issue}.
+# We can make a link to the issue tracker of the project,
+# but tricky is that this may need to be the issue tracker of Products.CMFPlone.
+# You can still link to that manually in the news fragment.
+issue_format = "`Issue #{issue} <https://github.com/plone/plone.releaser/issues/{issue}>`_"
+filename = "CHANGES.rst"
+directory = "news/"
+title_format = "{version} ({project_date})"
+# First underline is used for version/date header.
+# Second underline is used for the type names (like 'Bug fixes:').
+underlines = ["-", ""]
+
+[[tool.towncrier.type]]
+directory = "breaking"
+name = "Breaking changes:"
+showcontent = true
+
+[[tool.towncrier.type]]
+directory = "feature"
+name = "New features:"
+showcontent = true
+
+[[tool.towncrier.type]]
+directory = "bugfix"
+name = "Bug fixes:"
+showcontent = true
