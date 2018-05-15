@@ -1,0 +1,11 @@
+The .misc suffix not configured in pyproject.toml so it is not shown.
+
+We could define this in pyproject.toml:
+
+[[tool.towncrier.type]]
+directory = "misc"
+name = "Miscellaneous:"
+# This type is not shown.
+showcontent = false
+
+But then towncrier still creates a Miscellaneous sub header without the content of this file, but *with* the issue number...

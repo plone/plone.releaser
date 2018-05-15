@@ -1,0 +1,7 @@
+Try an entry with **markup**.
+And especially::
+
+    Some inline code
+
+Okay, that does not work: everything gets put on one line.
+See https://github.com/hawkowl/towncrier/issues/80
