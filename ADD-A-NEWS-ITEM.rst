@@ -41,7 +41,6 @@ Configuration of ``towncrier`` is done in the ``pyproject.toml`` file in the rep
 The following configuration should work for all core Plone packages::
 
     [tool.towncrier]
-    package = "towncrier"
     filename = "CHANGES.rst"
     directory = "news/"
     title_format = "{version} ({project_date})"

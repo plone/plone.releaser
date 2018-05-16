@@ -1,10 +1,4 @@
 [tool.towncrier]
-# The package name must be importable for now, even when not used.
-# See these pull requests:
-# https://github.com/hawkowl/towncrier/pull/107
-# https://github.com/hawkowl/towncrier/pull/112
-# Workaround can be: package = "towncrier"
-package = "plone.releaser"
 # Default issue_format is more or less: #{issue}.
 # We can make a link to the issue tracker of the project,
 # but tricky is that this may need to be the issue tracker of Products.CMFPlone.

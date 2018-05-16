@@ -42,7 +42,7 @@ setup(
         'PyGithub',
         'keyring',
         'zest.releaser>=6.6.0',
-        'zestreleaser.towncrier>=1.0.0b1',
+        'zestreleaser.towncrier>=1.0.0b3',
         'docutils',
         'launchpadlib',
     ],
