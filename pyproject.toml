@@ -1,0 +1,27 @@
+[tool.towncrier]
+# Default issue_format is more or less: #{issue}.
+# We can make a link to the issue tracker of the project,
+# but tricky is that this may need to be the issue tracker of Products.CMFPlone.
+# You can still link to that manually in the news fragment.
+# issue_format = "`Issue #{issue} <https://github.com/plone/plone.releaser/issues/{issue}>`_"
+filename = "CHANGES.rst"
+directory = "news/"
+title_format = "{version} ({project_date})"
+# First underline is used for version/date header.
+# Second underline is used for the type names (like 'Bug fixes:').
+underlines = ["-", ""]
+
+[[tool.towncrier.type]]
+directory = "breaking"
+name = "Breaking changes:"
+showcontent = true
+
+[[tool.towncrier.type]]
+directory = "feature"
+name = "New features:"
+showcontent = true
+
+[[tool.towncrier.type]]
+directory = "bugfix"
+name = "Bug fixes:"
+showcontent = true
