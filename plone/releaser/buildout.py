@@ -57,7 +57,15 @@ class VersionsFile(object):
 
     @property
     def versions(self):
-        config = ConfigParser(interpolation=ExtendedInterpolation())
+        """Read the versions config.
+
+        We use strict=False to avoid a DuplicateOptionError.
+        This happens in coredev 4.3 because we pin 'babel' and 'Babel'.
+        """
+        config = ConfigParser(
+            interpolation=ExtendedInterpolation(),
+            strict=False,
+            )
         with open(self.file_location) as f:
             config.read_file(f)
         return config['versions']
