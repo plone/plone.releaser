@@ -26,6 +26,7 @@ The best way of adding news entries is this:
   - Any other extensions are ignored.
 
 - The contents of this file should be reStructuredText formatted text that will be used as the content of the ``CHANGES.rst`` entry.
+  Note: all lines are joined together, so do not use formatting that requires multiple lines.
 
 - Towncrier will automatically add a reference to the issue when rendering the ``CHANGES.rst`` file.
 
@@ -70,6 +71,9 @@ When you decide that a package must start using ``towncrier``, do this:
 - In that place, add a marker for ``towncrier``, literally this: ``.. towncrier release notes start``
 - Move the unreleased changes to files in the ``news`` directory.
 - Add a hidden comment on top of ``CHANGES.rst`` to warn against editing that file directly.
+
+For a script that automates most of this, see
+https://gist.github.com/mauritsvanrees/92c40bc16ceaf3c375d81c995b4552c4
 
 When you make a release, you could do it  manually::
 
