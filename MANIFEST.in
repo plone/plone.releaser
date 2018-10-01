@@ -1,3 +1,6 @@
 include *.py
 include *.rst
 include buildout.cfg
+include pyproject.toml
+recursive-exclude news *
+exclude news
