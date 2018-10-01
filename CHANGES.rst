@@ -8,6 +8,15 @@ Changelog
 
 .. towncrier release notes start
 
+1.7.0 (2018-10-01)
+------------------
+
+New features:
+
+
+- Require ``zestreleaser.towncrier``. And start using towncrier for our own
+  ``CHANGES.rst``. [maurits] (#17)
+
 
 1.7.0 (unreleased)
 ------------------
