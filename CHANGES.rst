@@ -8,6 +8,17 @@ Changelog
 
 .. towncrier release notes start
 
+1.7.1 (2018-12-14)
+------------------
+
+Bug fixes:
+
+
+- Python 3 compatibility fix for xmlrpclib/xmlrpc import differences. [esteele]
+  (#21)
+- Fix pypi URL. [gforcada] (#23)
+
+
 1.7.0 (2018-10-01)
 ------------------
 
