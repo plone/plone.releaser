@@ -8,6 +8,12 @@ Changelog
 
 .. towncrier release notes start
 
+1.7.2 (2019-02-13)
+------------------
+
+No significant changes.
+
+
 1.7.1 (2018-12-14)
 ------------------
 
