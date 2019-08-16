@@ -8,7 +8,12 @@ from plone.releaser.buildout import Buildout
 from plone.releaser.release import HEADINGS
 from plone.releaser.release import OLD_HEADING_MAPPING
 
-import urllib
+try:
+    # Python 3
+    from urllib.request import urlopen
+except ImportError:
+    # Python 2
+    from urllib2 import urlopen
 
 
 DIST_URL = "http://dist.plone.org/release/{0}/versions.cfg"
@@ -23,7 +28,7 @@ def pull_versions(version_number):
         versions_file = open(url)
     else:
         url = DIST_URL.format(version_number)
-        versions_file = urllib.urlopen(url)
+        versions_file = urlopen(url)
         if versions_file.code == 404:
             raise ValueError("Version %s not found." % version_number)
     for line in versions_file:
@@ -69,7 +74,7 @@ def get_changelog(package_name):
         structure = "".join(pathable)
         url = "{0}/{1}".format(source_url, structure)
         try:
-            response = urllib.urlopen(url)
+            response = urlopen(url)
         except IOError:
             print("Unable to reach {0}".format(url))
         else:
