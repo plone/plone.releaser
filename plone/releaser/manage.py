@@ -59,7 +59,7 @@ def checkPackageForUpdates(package_name, **kwargs):
 @arg("--interactive", default=False)
 def checkAllPackagesForUpdates(**kwargs):
     sources = buildout.sources
-    for package_name, source in Bar("Scanning").iter(sources.iteritems()):
+    for package_name, source in Bar("Scanning").iter(sources.items()):
         pkg = Package(buildout, package_name)
         if kwargs["interactive"]:
             pkg(action=ACTION_INTERACTIVE)
@@ -73,7 +73,7 @@ def pulls():
 
     g = Github(client_id=client_id, client_secret=client_secret)
 
-    for package_name, source in buildout.sources.iteritems():
+    for package_name, source in buildout.sources.items():
         if source.path:
             repo = g.get_repo(source.path)
             pulls = [a for a in repo.get_pulls("open") if a.head.ref == source.branch]
