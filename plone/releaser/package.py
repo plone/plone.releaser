@@ -28,12 +28,7 @@ def git_repo(source):
     http://preshing.com/20110920/the-python-with-statement-by-example/
     """
     tmp_dir = mkdtemp()
-    repo = git.Repo.clone_from(
-        source.url,
-        tmp_dir,
-        branch=source.branch,
-        depth=100
-    )
+    repo = git.Repo.clone_from(source.url, tmp_dir, branch=source.branch, depth=100)
 
     # give the control back
     yield repo
@@ -88,7 +83,7 @@ class Package(object):
 
     def __call__(self, action=ACTION_INTERACTIVE):
         if action not in PACKAGE_ACTIONS:
-            print('This package action does not exist: {0}'.format(action))
+            print("This package action does not exist: {0}".format(action))
             return
         self.set_interaction_and_report(action)
 
@@ -96,9 +91,11 @@ class Package(object):
         # - is on the ignored list
         # - there is no version available
         # - is not hosted on a git VCS
-        if self.name in IGNORED_PACKAGES or \
-                self.version is None or \
-                not self.is_git_hosted():
+        if (
+            self.name in IGNORED_PACKAGES
+            or self.version is None
+            or not self.is_git_hosted()
+        ):
             return
 
         # clone the package and gather data about it
@@ -118,43 +115,44 @@ class Package(object):
             if latest_ignored_commit is not None:
                 try:
                     commits_since_ignore = self._commits_between(
-                        repo,
-                        latest_ignored_commit,
-                        self.source.branch
+                        repo, latest_ignored_commit, self.source.branch
                     )
                 except git.exc.GitCommandError:
-                    print('\nCould not read commits for package {0}'.format(self.name))
+                    print("\nCould not read commits for package {0}".format(self.name))
                     return
 
             # if there are no changes since the last release (i.e. last tag)
-            if not commits_since_release \
-                    or 'Back to development' in commits_since_release[0].message \
-                    or commits_since_release[0].message.startswith('vb'):
+            if (
+                not commits_since_release
+                or "Back to development" in commits_since_release[0].message
+                or commits_since_release[0].message.startswith("vb")
+            ):
 
                 self.remove()
 
             elif commits_since_ignore is None:
                 # Check for checkout
                 if self.name not in self.buildout.checkouts:
-                    msg = '\nWARNING: No auto-checkout exists for {0}\n Changes in {0}:'  # noqa
+                    msg = (
+                        "\nWARNING: No auto-checkout exists for {0}\n Changes in {0}:"
+                    )  # noqa
                     self.print_commits(
-                        commits_since_release,
-                        message=msg.format(self.name)
+                        commits_since_release, message=msg.format(self.name)
                     )
 
                     if self.name in THIRD_PARTY_PACKAGES:
-                        msg = 'NOTE: {0} is a third-party package.'
+                        msg = "NOTE: {0} is a third-party package."
                         print(msg.format(self.name))
 
                     self.add(commits_since_release)
 
                 else:
                     if not self.interactive:
-                        msg = '\nChanges in {0}:'.format(self.name)
+                        msg = "\nChanges in {0}:".format(self.name)
                         self.print_commits(commits_since_release, message=msg)
 
                         if self.name in THIRD_PARTY_PACKAGES:
-                            msg = 'NOTE: {0} is a third-party package.'
+                            msg = "NOTE: {0} is a third-party package."
                             print(msg.format(self.name))
 
     def set_interaction_and_report(self, action):
@@ -169,9 +167,9 @@ class Package(object):
             self.report_only = False
 
     def is_git_hosted(self):
-        if self.source.protocol != 'git':
+        if self.source.protocol != "git":
             if self.report_only:
-                msg = 'Skipped check of {0} as it\'s not a git repo.'
+                msg = "Skipped check of {0} as it's not a git repo."
                 print(msg.format(self.name))
             return False
         return True
@@ -182,17 +180,17 @@ class Package(object):
             version = self.buildout.get_version(self.name)
         except (NoOptionError, KeyError):
             if self.report_only:
-                print('No version available for {0}'.format(self.name))
+                print("No version available for {0}".format(self.name))
 
         return version
 
     def latest_tag(self, repo):
         tag = None
         try:
-            tag = repo.git.describe('--abbrev=0', '--tags')
+            tag = repo.git.describe("--abbrev=0", "--tags")
         except git.exc.GitCommandError:
             if self.report_only:
-                print('Unable to check tags for {0}'.format(self.name))
+                print("Unable to check tags for {0}".format(self.name))
 
         return tag
 
@@ -200,63 +198,53 @@ class Package(object):
         commits = None
 
         try:
-            commits = self._commits_between(
-                repo,
-                self.version,
-                self.source.branch
-            )
+            commits = self._commits_between(repo, self.version, self.source.branch)
         except git.exc.GitCommandError:
-            print('\nCould not read commits for package {0}'.format(self.name))
+            print("\nCould not read commits for package {0}".format(self.name))
 
         return commits
 
     @staticmethod
     def _commits_between(repo, start, end):
-        return list(
-            repo.iter_commits(
-                '{0}..{1}'.format(start, end)
-            )
-        )
+        return list(repo.iter_commits("{0}..{1}".format(start, end)))
 
     def remove(self):
-        if self.name in self.buildout.checkouts and \
-                self.name not in ALWAYS_CHECKED_OUT:
-            msg = '\nNo new changes in {0}, but it is listed for auto-checkout.'  # noqa
+        if self.name in self.buildout.checkouts and self.name not in ALWAYS_CHECKED_OUT:
+            msg = "\nNo new changes in {0}, but it is listed for auto-checkout."  # noqa
             print(msg.format(self.name))
 
             if self.report_only:
                 return
 
-            msg = 'Remove {0} from checkouts.cfg'.format(self.name)
+            msg = "Remove {0} from checkouts.cfg".format(self.name)
             if confirm(msg, default=True, skip=not self.interactive):
                 self.buildout.remove_from_checkouts(self.name)
 
                 with buildout_coredev() as core_repo:
-                    checkouts_path = os.path.join(os.getcwd(), 'checkouts.cfg')
+                    checkouts_path = os.path.join(os.getcwd(), "checkouts.cfg")
                     core_repo.git.add(checkouts_path)
-                    msg = 'No new changes in {0}'.format(self.name)
+                    msg = "No new changes in {0}".format(self.name)
                     core_repo.git.commit(message=msg)
 
     def add(self, commits_since_release):
         if self.report_only:
             return
 
-        msg = 'Add {0} to checkouts.cfg'.format(self.name)
+        msg = "Add {0} to checkouts.cfg".format(self.name)
         if confirm(msg, default=True, skip=not self.interactive):
             self.buildout.add_to_checkouts(self.name)
 
             with buildout_coredev() as core_repo:
-                checkouts_path = os.path.join(os.getcwd(), 'checkouts.cfg')
+                checkouts_path = os.path.join(os.getcwd(), "checkouts.cfg")
                 core_repo.index.add([checkouts_path])
-                core_repo.index.commit('{0} has changes.'.format(self.name))
+                core_repo.index.commit("{0} has changes.".format(self.name))
 
-        elif confirm('Ignore changes in  {0}'.format(self.name),
-                     default=False,
-                     skip=not self.interactive):
-            self.commit_ignores.set(
-                self.name,
-                commits_since_release[0].hexsha
-            )
+        elif confirm(
+            "Ignore changes in  {0}".format(self.name),
+            default=False,
+            skip=not self.interactive,
+        ):
+            self.commit_ignores.set(self.name, commits_since_release[0].hexsha)
 
     @staticmethod
     def print_commits(commits_list, message=None):
@@ -264,28 +252,28 @@ class Package(object):
             print(message)
 
         for commit in commits_list:
-            print('    {0}: {1}'.format(
-                commit.author.name.encode('ascii', 'replace'),
-                commit.summary.encode('ascii', 'replace')
-            ))
+            print(
+                "    {0}: {1}".format(
+                    commit.author.name.encode("ascii", "replace"),
+                    commit.summary.encode("ascii", "replace"),
+                )
+            )
 
     def update_version(self, tag):
         if tag <= self.version:
             return
 
-        msg = '\nNewer version {0} is available for {1} (Currently {2})'
+        msg = "\nNewer version {0} is available for {1} (Currently {2})"
         print(msg.format(tag, self.name, self.version))
 
         if self.report_only:
             return
 
-        if confirm('Update versions.cfg',
-                   default=True,
-                   skip=not self.interactive):
+        if confirm("Update versions.cfg", default=True, skip=not self.interactive):
             self.buildout.set_version(self.name, tag)
 
             with buildout_coredev() as core_repo:
-                versions_path = os.path.join(os.getcwd(), 'versions.cfg')
+                versions_path = os.path.join(os.getcwd(), "versions.cfg")
                 core_repo.git.add(versions_path)
-                core_repo.git.commit(message='{0}={1}'.format(self.name, tag))
+                core_repo.git.commit(message="{0}={1}".format(self.name, tag))
                 core_repo.git.push()
