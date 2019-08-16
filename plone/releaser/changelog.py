@@ -16,7 +16,7 @@ except ImportError:
     from urllib2 import urlopen
 
 
-DIST_URL = "http://dist.plone.org/release/{0}/versions.cfg"
+DIST_URL = "https://dist.plone.org/release/{0}/versions.cfg"
 
 buildout = Buildout()
 
