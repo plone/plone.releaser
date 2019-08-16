@@ -180,7 +180,7 @@ def build_unified_changelog(start_version, end_version):
     try:
         prior_versions = pull_versions(start_version)
         current_versions = pull_versions(end_version)
-    except ValueError, e:
+    except ValueError as e:
         print(e)
         return
 
@@ -208,7 +208,7 @@ def build_unified_changelog(start_version, end_version):
                         changelog = Changelog(content=logtext)
                         try:
                             changes = changelog.get_changes(prior_version, version)
-                        except ValueError, e:
+                        except ValueError as e:
                             print(e)
                         else:
                             bullet = "- "
