@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from __future__ import print_function
 from collections import OrderedDict
 from collections import defaultdict
 from distutils.version import LooseVersion
@@ -7,13 +8,8 @@ from itertools import product
 from plone.releaser.buildout import Buildout
 from plone.releaser.release import HEADINGS
 from plone.releaser.release import OLD_HEADING_MAPPING
-
-try:
-    # Python 3
-    from urllib.request import urlopen
-except ImportError:
-    # Python 2
-    from urllib2 import urlopen
+from six.moves.urllib.request import urlopen
+import six
 
 
 DIST_URL = "https://dist.plone.org/release/{0}/versions.cfg"
@@ -96,13 +92,13 @@ class Changelog(object):
         return self.data.__iter__()
 
     def iteritems(self):
-        return self.data.iteritems()
+        return six.iteritems(self.data)
 
     def get(self, version):
         return self.data.get(version)
 
     def get_changes(self, start_version, end_version=None):
-        versions = self.data.keys()
+        versions = list(self.data.keys())
 
         end_version_index = 0
         if end_version is not None:
@@ -129,8 +125,8 @@ class Changelog(object):
         return result
 
     def latest(self):
-        if self.data.items():
-            return self.data.items()[0]
+        if list(self.data.items()):
+            return list(self.data.items())[0]
         return None
 
     def _parse(self, content):
@@ -187,7 +183,7 @@ def build_unified_changelog(start_version, end_version):
 
     output_str = ""
     try:
-        for package, version in current_versions.iteritems():
+        for package, version in six.iteritems(current_versions):
             if package in prior_versions:
                 prior_version = prior_versions[package]
                 try:

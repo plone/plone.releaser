@@ -1,9 +1,5 @@
 # -*- coding: utf-8 -*-
-
-try:
-    from xmlrpclib import ServerProxy
-except ImportError:
-    from xmlrpc.client import ServerProxy
+from six.moves.xmlrpc_client import ServerProxy
 
 
 def get_users_with_release_rights(package_name):

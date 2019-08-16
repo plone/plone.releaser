@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from __future__ import print_function
 from copy import copy
 from plone.releaser.buildout import CheckoutsFile
 from plone.releaser.buildout import VersionsFile
@@ -71,7 +72,7 @@ OLD_HEADING_MAPPING = {
     "Fixes:": "Bug fixes:",
 }
 KNOWN_HEADINGS = copy(HEADINGS)
-KNOWN_HEADINGS.extend(OLD_HEADING_MAPPING.keys())
+KNOWN_HEADINGS.extend(list(OLD_HEADING_MAPPING.keys()))
 
 
 ALWAYS_CHECKED_OUT_PACKAGES = (

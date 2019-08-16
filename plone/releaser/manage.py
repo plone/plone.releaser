@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from __future__ import print_function
 from argh import ArghParser
 from argh import arg
 from argh.decorators import named
@@ -18,6 +19,7 @@ from progress.bar import Bar
 
 import datetime
 import keyring
+import six
 
 
 # TODO
@@ -41,7 +43,7 @@ def checkPypi(user):
 def jenkins_report():
     """Read-only version of checkAllPackagesForUpdates."""
     sources = buildout.sources
-    for package_name, source in iter(sources.iteritems()):
+    for package_name, source in iter(six.iteritems(sources)):
         pkg = Package(buildout, package_name)
         pkg(action=ACTION_REPORT)
 
@@ -59,7 +61,7 @@ def checkPackageForUpdates(package_name, **kwargs):
 @arg("--interactive", default=False)
 def checkAllPackagesForUpdates(**kwargs):
     sources = buildout.sources
-    for package_name, source in Bar("Scanning").iter(sources.items()):
+    for package_name, source in Bar("Scanning").iter(list(sources.items())):
         pkg = Package(buildout, package_name)
         if kwargs["interactive"]:
             pkg(action=ACTION_INTERACTIVE)

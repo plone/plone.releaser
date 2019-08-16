@@ -67,7 +67,7 @@ class VersionsFile(object):
         return config["versions"]
 
     def __contains__(self, package_name):
-        return package_name.lower() in self.versions.keys()
+        return package_name.lower() in list(self.versions.keys())
 
     def __getitem__(self, package_name):
         if self.__contains__(package_name):

@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from __future__ import print_function
 from argh.interaction import confirm
 from configparser import NoOptionError
 from contextlib import contextmanager

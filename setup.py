@@ -40,6 +40,7 @@ setup(
         "progress",
         "PyGithub",
         "keyring",
+        "six",
         "zest.releaser>=6.6.0",
         "zestreleaser.towncrier>=1.0.0b3",
         "docutils",
