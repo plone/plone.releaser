@@ -28,10 +28,12 @@ def pull_versions(version_number):
         if versions_file.code == 404:
             raise ValueError("Version %s not found." % version_number)
     for line in versions_file:
-        line = line.strip().replace(" ", "")
-        if line and not (line.startswith("#") or line.startswith("[")):
+        if not isinstance(line, type(u"")):
+            line = line.decode("utf-8")
+        line = line.strip().replace(u" ", u"")
+        if line and not (line.startswith(u"#") or line.startswith(u"[")):
             try:
-                package, version = line.split("=")
+                package, version = line.split(u"=")
                 version = LooseVersion(version)
             except ValueError:
                 pass
