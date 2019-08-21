@@ -183,7 +183,7 @@ def build_unified_changelog(start_version, end_version):
         print(e)
         return
 
-    output_str = ""
+    output_str = u""
     try:
         for package, version in six.iteritems(current_versions):
             if package in prior_versions:
@@ -212,7 +212,7 @@ def build_unified_changelog(start_version, end_version):
                         except ValueError as e:
                             print(e)
                         else:
-                            bullet = "- "
+                            bullet = u"- "
                             for change in changes:
                                 if change in HEADINGS:
                                     output_str += change + u"\n\n"
@@ -226,5 +226,4 @@ def build_unified_changelog(start_version, end_version):
                     pass
     except KeyboardInterrupt:
         pass
-
-    print(output_str.encode("utf-8"))
+    print(output_str)
