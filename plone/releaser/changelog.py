@@ -226,6 +226,14 @@ def build_unified_changelog(start_version, end_version):
                 except AttributeError as e:
                     # Bad version line, skip
                     pass
+                except TypeError:
+                    # (Pdb) version > prior_version
+                    # *** TypeError: '<' not supported between instances of 'int' and 'str'
+                    # (Pdb) version, prior_version
+                    # (LooseVersion ('5.2.0'), LooseVersion ('5.2a1'))
+                    print("ERROR {0}: cannot compare prior version {1} with new version {2}".format(
+                        package, prior_version, version)
+                    )
     except KeyboardInterrupt:
         pass
     print(output_str)
