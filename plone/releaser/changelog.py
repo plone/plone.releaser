@@ -34,11 +34,13 @@ def pull_versions(version_number):
         if line and not (line.startswith(u"#") or line.startswith(u"[")):
             try:
                 package, version = line.split(u"=")
-                version = LooseVersion(version)
             except ValueError:
-                pass
-            else:
-                package_versions[package] = version
+                continue
+            if not version:
+                # May be a line from versionannotation
+                continue
+            version = LooseVersion(version)
+            package_versions[package] = version
     print("Parsed {0}".format(url))
     return package_versions
 
