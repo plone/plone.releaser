@@ -254,9 +254,9 @@ class Package(object):
 
         for commit in commits_list:
             print(
-                "    {0}: {1}".format(
-                    commit.author.name.encode("ascii", "replace"),
-                    commit.summary.encode("ascii", "replace"),
+                u"    {0}: {1}".format(
+                    commit.author.name,
+                    commit.summary,
                 )
             )
 
