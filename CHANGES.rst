@@ -8,6 +8,15 @@ Changelog
 
 .. towncrier release notes start
 
+1.7.3 (2019-08-29)
+------------------
+
+Bug fixes:
+
+
+- Fixed Python 3 compatibility.  [maurits] (#25)
+
+
 1.7.2 (2019-02-13)
 ------------------
 
