@@ -14,9 +14,9 @@ setup(
     version=version,
     description="Plone release management utilities",
     long_description=long_description,
-    # Get more strings from
-    # https://pypi.python.org/pypi?:action=list_classifiers
+    # Get more strings from https://pypi.org/classifiers/
     classifiers=[
+        "Development Status :: 5 - Production/Stable",
         "Framework :: Plone",
         "License :: OSI Approved :: GNU General Public License (GPL)",
         "Programming Language :: Python",
