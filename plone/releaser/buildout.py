@@ -60,20 +60,29 @@ class VersionsFile(object):
 
         We use strict=False to avoid a DuplicateOptionError.
         This happens in coredev 4.3 because we pin 'babel' and 'Babel'.
+
+        We need to combine all versions sections, like these:
+        ['versions', 'versions:python27']
+
         """
         config = ConfigParser(interpolation=ExtendedInterpolation(), strict=False)
         with open(self.file_location) as f:
             config.read_file(f)
-        return config["versions"]
+        versions = {}
+        for section in config.sections():
+            if "versions" in section.split(":"):
+                for package, version in config[section].items():
+                    # Note: the package names are lower case.
+                    versions[package] = version
+        return versions
 
     def __contains__(self, package_name):
-        return package_name.lower() in list(self.versions.keys())
+        return package_name.lower() in self.versions
 
     def __getitem__(self, package_name):
-        if self.__contains__(package_name):
-            return self.versions.get(package_name)
-        else:
-            raise KeyError
+        if package_name in self:
+            return self.versions.get(package_name.lower())
+        raise KeyError
 
     def __setitem__(self, package_name, new_version):
         path = os.path.join(os.getcwd(), self.file_location)
