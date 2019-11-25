@@ -8,6 +8,23 @@ Changelog
 
 .. towncrier release notes start
 
+1.8.0 (2019-11-25)
+------------------
+
+New features:
+
+
+- Handle coredev branch 6.0 when releasing packages.
+  [maurits] (#27)
+
+
+Bug fixes:
+
+
+- Fixed adding some package versions twice when releasing.
+  [maurits] (#24)
+
+
 1.7.3 (2019-08-29)
 ------------------
 
