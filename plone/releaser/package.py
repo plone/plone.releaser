@@ -277,4 +277,6 @@ class Package(object):
                 versions_path = os.path.join(os.getcwd(), "versions.cfg")
                 core_repo.git.add(versions_path)
                 core_repo.git.commit(message="{0}={1}".format(self.name, tag))
-                core_repo.git.push()
+                if confirm("Ok to push coredev?", default=True, skip=not self.interactive):
+                    print("Pushing changes to server.")
+                    core_repo.git.push()
