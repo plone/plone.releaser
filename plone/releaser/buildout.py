@@ -152,31 +152,28 @@ class CheckoutsFile(UserDict):
         with open(path, "r") as f:
             checkoutstxt = f.read()
         with open(path, "w") as f:
+            if not checkoutstxt.endswith("\n"):
+                # Make sure the file ends with a newline.
+                checkoutstxt += "\n"
+            # Look for the package name on a line of its own,
+            # with likely whitespace in front.
+            reg = re.compile(r"^[\s]*{0}\n".format(package_name), re.MULTILINE)
             if enabled:
-                fixes_text = "# test-only fixes:"
-                reg = re.compile("^[\s]*{0}\n".format(fixes_text), re.MULTILINE)
-                newCheckoutsTxt = reg.sub(
-                    "    {0}\n{1}\n".format(package_name, fixes_text), checkoutstxt
-                )
+                # We used to look for "# test-only fixes:" here,
+                # and place the checkout before it.
+                # But this text is no longer in any current checkouts.cfg.
+                if not reg.match(checkoutstxt):
+                    # It is indeed not yet in the checkouts.
+                    newCheckoutsTxt = checkoutstxt + "    {0}\n".format(package_name)
             else:
-                reg = re.compile("^[\s]*{0}\n".format(package_name), re.MULTILINE)
+                # Remove the package name
                 newCheckoutsTxt = reg.sub("", checkoutstxt)
             f.write(newCheckoutsTxt)
 
     def __delitem__(self, package_name):
         return self.__setitem__(package_name, False)
 
-    # def setAutoCheckouts(self, checkouts_list):
-    #     config = ConfigParser(interpolation=ExtendedInterpolation())
-    #     with open(self.file_location) as f:
-    #         config.read_file(f)
-    #     checkouts = '\n'.join(checkouts_list)
-    #     config.set('buildout', 'auto-checkout', checkouts)
-    #     with open(self.file_location, 'w') as f:
-    #         config.write(f)
-
     def add(self, package_name):
-        # TODO: Handle test-fix-only as well
         return self.__setitem__(package_name, True)
 
     def remove(self, package_name):
