@@ -8,6 +8,16 @@ Changelog
 
 .. towncrier release notes start
 
+1.8.1 (2020-03-08)
+------------------
+
+Bug fixes:
+
+
+- Fixed adding a package to checkouts.cfg.  [maurits] (#30)
+- Ask before pushing an updated version when running 'report'.  [maurits] (#32)
+
+
 1.8.0 (2019-11-25)
 ------------------
 
