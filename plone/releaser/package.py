@@ -111,8 +111,26 @@ class Package(object):
             self.update_version(latest_tag_in_branch)
 
             commits_since_release = self.latest_commits(repo)
+            if not commits_since_release:
+                # There are no changes since the last release (i.e. last tag)
+                # so we are done.
+                self.remove()
+                return
+            # The latest commit is number zero.
+            latest_commit_message = commits_since_release[0].message
+            if (
+                "Back to development" in latest_commit_message
+                or latest_commit_message.startswith("vb")
+            ):
+                # Only the regular version bump, so we are done.
+                self.remove()
+                return
+
+            # Maybe there are more commits but we have previously seen them
+            # and decided they are not interesting.  We only want to show
+            # interesting commits.
+            interesting_commits = commits_since_release
             latest_ignored_commit = self.commit_ignores.get(self.name)
-            commits_since_ignore = None
             if latest_ignored_commit is not None:
                 try:
                     commits_since_ignore = self._commits_between(
@@ -121,40 +139,38 @@ class Package(object):
                 except git.exc.GitCommandError:
                     print("\nCould not read commits for package {0}".format(self.name))
                     return
+                if not commits_since_ignore:
+                    # Okay, nothing interesting.
+                    self.remove()
+                    return
+                # I guess we could have ignored something last month
+                # and have released since.  Check which commits are still interesting:
+                # the commits since release or since ignore.
+                if len(commits_since_ignore) < len(commits_since_release):
+                    interesting_commits = commits_since_ignore
 
-            # if there are no changes since the last release (i.e. last tag)
-            if (
-                not commits_since_release
-                or "Back to development" in commits_since_release[0].message
-                or commits_since_release[0].message.startswith("vb")
-            ):
+            # Check for checkout
+            if self.name not in self.buildout.checkouts:
+                msg = (
+                    "\nWARNING: No auto-checkout exists for {0}\n Changes in {0}:"
+                )  # noqa
+                self.print_commits(
+                    commits_since_release, message=msg.format(self.name)
+                )
 
-                self.remove()
+                if self.name in THIRD_PARTY_PACKAGES:
+                    msg = "NOTE: {0} is a third-party package."
+                    print(msg.format(self.name))
 
-            elif commits_since_ignore is None:
-                # Check for checkout
-                if self.name not in self.buildout.checkouts:
-                    msg = (
-                        "\nWARNING: No auto-checkout exists for {0}\n Changes in {0}:"
-                    )  # noqa
-                    self.print_commits(
-                        commits_since_release, message=msg.format(self.name)
-                    )
+                self.add(commits_since_release)
 
-                    if self.name in THIRD_PARTY_PACKAGES:
-                        msg = "NOTE: {0} is a third-party package."
-                        print(msg.format(self.name))
+            elif not self.interactive:
+                msg = "\nChanges in {0}:".format(self.name)
+                self.print_commits(commits_since_release, message=msg)
 
-                    self.add(commits_since_release)
-
-                else:
-                    if not self.interactive:
-                        msg = "\nChanges in {0}:".format(self.name)
-                        self.print_commits(commits_since_release, message=msg)
-
-                        if self.name in THIRD_PARTY_PACKAGES:
-                            msg = "NOTE: {0} is a third-party package."
-                            print(msg.format(self.name))
+                if self.name in THIRD_PARTY_PACKAGES:
+                    msg = "NOTE: {0} is a third-party package."
+                    print(msg.format(self.name))
 
     def set_interaction_and_report(self, action):
         if action == ACTION_REPORT:
