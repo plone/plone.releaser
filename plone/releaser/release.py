@@ -198,6 +198,21 @@ def update_core(data, branch=None):
         g.add("checkouts.cfg")
         print("Committing changes.")
         g.commit(message=message)
+        # When doing releases of several packages in a row,
+        # it is better to not push, because this means a needlessly high load on Jenkins.
+        # Also, if you create a release and immediately push,
+        # then Jenkins will not find the new release yet and fail:
+        # it takes a few minutes for the release to be propagated to all PyPI mirrors.
+        # Pushing still seems the best default, but let's have an easy way to not push.
+        print("Checking PLONE_RELEASER_MULTI_PACKAGES env variable.")
+        try:
+            multi = int(os.getenv("PLONE_RELEASER_MULTI_PACKAGES"))
+        except (TypeError, ValueError, AttributeError):
+            print("ERROR: could not parse PLONE_RELEASER_MULTI_PACKAGES env var. Ignoring it.")
+            multi = False
+        if multi:
+            print("PLONE_RELEASER_MULTI_PACKAGES env variable set, so not pushing to coredev.")
+            return
         msg = "Ok to push coredev?"
         if branch:
             msg = "Ok to push coredev {0}?".format(branch)
