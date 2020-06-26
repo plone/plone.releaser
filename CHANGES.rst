@@ -8,6 +8,25 @@ Changelog
 
 .. towncrier release notes start
 
+1.8.2 (2020-06-26)
+------------------
+
+New features:
+
+
+- Support env var PLONE_RELEASER_MULTI_PACKAGES to signal doing multiple releases.
+  We still change `checkouts.cfg` and `versions.cfg` in the relevant coredev branches then,
+  but we do not offer to push them.
+  [maurits] (#37)
+
+
+Bug fixes:
+
+
+- Fixed detecting changes in packages that are missing from checkouts.
+  [maurits] (#35)
+
+
 1.8.1 (2020-03-08)
 ------------------
 
