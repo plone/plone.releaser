@@ -8,6 +8,17 @@ Changelog
 
 .. towncrier release notes start
 
+1.8.3 (2021-01-09)
+------------------
+
+Bug fixes:
+
+
+- When reporting interesting commits, catch errors when comparing with previously ignored commit.
+  Fixes `issue 39 <https://github.com/plone/plone.releaser/issues/39>`_.
+  [maurits] (#39)
+
+
 1.8.2 (2020-06-26)
 ------------------
 

@@ -1,3 +1,0 @@
-When reporting interesting commits, catch errors when comparing with previously ignored commit.
-Fixes `issue 39 <https://github.com/plone/plone.releaser/issues/39>`_.
-[maurits]
