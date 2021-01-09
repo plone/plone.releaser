@@ -137,8 +137,11 @@ class Package(object):
                         repo, latest_ignored_commit, self.source.branch
                     )
                 except git.exc.GitCommandError:
-                    print("\nCould not read commits for package {0}".format(self.name))
-                    return
+                    # Most likely error is that this fails:
+                    # git rev-list latest_ignored_commit..master
+                    # This happens when latest_ignored_commit is not on the master branch.
+                    # See https://github.com/plone/plone.releaser/issues/39
+                    commits_since_ignore = interesting_commits
                 if not commits_since_ignore:
                     # Okay, nothing interesting.
                     self.remove()
