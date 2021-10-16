@@ -8,6 +8,17 @@ Changelog
 
 .. towncrier release notes start
 
+1.8.4 (2021-10-16)
+------------------
+
+Bug fixes:
+
+
+- Do not offer updating core branches 4.3 and 5.1.
+  Only 5.2 and 6.0 are maintained.
+  [maurits] (#41)
+
+
 1.8.3 (2021-01-09)
 ------------------
 
