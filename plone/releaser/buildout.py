@@ -68,6 +68,8 @@ class VersionsFile(object):
         config = ConfigParser(interpolation=ExtendedInterpolation(), strict=False)
         with open(self.file_location) as f:
             config.read_file(f)
+        # https://github.com/plone/plone.releaser/issues/42
+        config["buildout"]["directory"] = os.getcwd()
         versions = {}
         for section in config.sections():
             if "versions" in section.split(":"):
@@ -118,9 +120,15 @@ class SourcesFile(UserDict):
         config.optionxform = str
         with open(self.file_location) as f:
             config.read_file(f)
+        config["buildout"]["directory"] = os.getcwd()
         sources_dict = OrderedDict()
         for name, value in config["sources"].items():
-            source = Source().create_from_string(value)
+            try:
+                source = Source().create_from_string(value)
+            except TypeError:
+                # Happens now for the documentation items in coredev 6.0.
+                # We could print, but this gets printed a lot.
+                continue
             sources_dict[name] = source
         return sources_dict
 
@@ -140,6 +148,7 @@ class CheckoutsFile(UserDict):
         config = ConfigParser(interpolation=ExtendedInterpolation())
         with open(self.file_location) as f:
             config.read_file(f)
+        config["buildout"]["directory"] = os.getcwd()
         checkouts = config.get("buildout", "auto-checkout")
         checkout_list = checkouts.split("\n")
         return checkout_list
