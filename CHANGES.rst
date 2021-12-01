@@ -8,6 +8,16 @@ Changelog
 
 .. towncrier release notes start
 
+1.8.5 (2021-12-01)
+------------------
+
+Bug fixes:
+
+
+- Fix InterpolationMissingOptionError when parsing coredev 6.0 sources.
+  [maurits] (#42)
+
+
 1.8.4 (2021-10-16)
 ------------------
 
