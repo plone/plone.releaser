@@ -120,7 +120,12 @@ class SourcesFile(UserDict):
         config.optionxform = str
         with open(self.file_location) as f:
             config.read_file(f)
+        # We need to define a few extra variables that are in a different
+        # buildout file that we do not parse here.
+        # See this similar issue in mr.roboto:
+        # https://github.com/plone/mr.roboto/issues/89
         config["buildout"]["directory"] = os.getcwd()
+        config["buildout"]["docs-directory"] = os.path.join(os.getcwd(), "docs")
         sources_dict = OrderedDict()
         for name, value in config["sources"].items():
             try:
