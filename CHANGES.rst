@@ -8,6 +8,17 @@ Changelog
 
 .. towncrier release notes start
 
+1.8.6 (2022-01-19)
+------------------
+
+Bug fixes:
+
+
+- Insert buildout:docs-directory when reading sources.
+  Workaround for issue similar to `mr.roboto 89 <https://github.com/plone/mr.roboto/issues/89>`_.
+  [maurits] (#89)
+
+
 1.8.5 (2021-12-01)
 ------------------
 
