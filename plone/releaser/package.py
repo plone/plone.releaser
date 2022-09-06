@@ -116,15 +116,18 @@ class Package(object):
                 # so we are done.
                 self.remove()
                 return
-            # The latest commit is number zero.
-            latest_commit_message = commits_since_release[0].message
-            if (
-                "Back to development" in latest_commit_message
-                or latest_commit_message.startswith("vb")
-            ):
-                # Only the regular version bump, so we are done.
-                self.remove()
-                return
+            if len(commits_since_release) == 1:
+                # If there is only one commit since release and it is only the
+                # regular version bump, then we are done.
+                latest_commit_message = commits_since_release[0].message.lower()
+                if (
+                    latest_commit_message.startswith("vb")
+                    or "back to development" in latest_commit_message
+                    or "bump version" in latest_commit_message
+                    or "version bump" in latest_commit_message
+                ):
+                    self.remove()
+                    return
 
             # Maybe there are more commits but we have previously seen them
             # and decided they are not interesting.  We only want to show
