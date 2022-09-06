@@ -19,6 +19,7 @@ from progress.bar import Bar
 
 import datetime
 import keyring
+import time
 import six
 
 
@@ -59,14 +60,34 @@ def checkPackageForUpdates(package_name, **kwargs):
 
 @named("report")
 @arg("--interactive", default=False)
+@arg("--sleep", default=20.0)
+@arg("--start", default=0)
 def checkAllPackagesForUpdates(**kwargs):
+    """Check all packages for updates.
+
+    For each package, we clone it with a depth of 100 to a temporary directory.
+
+    GitHub often quits, probably because I do too many large requests.
+    Sleeping should help, with the --sleep argument.
+
+    If it fails anyway, you can restart the command and pass for example
+    --start 50 to start at package 50 instead of the first one.
+    """
+    interactive = bool(kwargs["interactive"])
+    sleep = float(kwargs["sleep"])
+    start = int(kwargs["start"])
     sources = buildout.sources
-    for package_name, source in Bar("Scanning").iter(list(sources.items())):
+    packages = sorted(list(sources.items()))
+    if start > 0:
+        packages = packages[start:]
+    for package_name, source in Bar("Scanning").iter(packages):
         pkg = Package(buildout, package_name)
-        if kwargs["interactive"]:
+        if interactive:
             pkg(action=ACTION_INTERACTIVE)
         else:
             pkg(action=ACTION_REPORT)
+        if sleep:
+            time.sleep(sleep)
 
 
 def pulls():
