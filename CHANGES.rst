@@ -8,6 +8,16 @@ Changelog
 
 .. towncrier release notes start
 
+1.8.7 (2022-09-07)
+------------------
+
+Bug fixes:
+
+
+- report: add sleep and start parameters.
+  [maurits] (#44)
+
+
 1.8.6 (2022-01-19)
 ------------------
 
