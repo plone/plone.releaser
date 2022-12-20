@@ -123,7 +123,14 @@ def changelog(**kwargs):
 def create_launchpad_release(version):
     launchpad = Launchpad.login_with("plone.releaser", "production")
     plone = launchpad.projects["plone"]
-    parsed_version = StrictVersion(version)
+    try:
+        parsed_version = StrictVersion(version)
+    except ValueError:
+        # ValueError: invalid version number '5.2.10.1'
+        if version.count(".") < 3:
+            raise
+        adapted_version = ".".join(version.split(".")[:3])
+        parsed_version = StrictVersion(adapted_version)
     # Blech. This feels flimsy
     series_name = ".".join([str(a) for a in parsed_version.version[0:2]])
     series = plone.getSeries(name=series_name)
