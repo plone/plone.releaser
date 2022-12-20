@@ -1,0 +1,2 @@
+Fix ValueError when calling ``bin/manage launchpad 5.2.10.1``.
+[maurits]
