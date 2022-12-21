@@ -8,6 +8,16 @@ Changelog
 
 .. towncrier release notes start
 
+1.8.8 (2022-12-21)
+------------------
+
+Bug fixes:
+
+
+- Fix ValueError when calling ``bin/manage launchpad 5.2.10.1``.
+  [maurits] (#45)
+
+
 1.8.7 (2022-09-07)
 ------------------
 
