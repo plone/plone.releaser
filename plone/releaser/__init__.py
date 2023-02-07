@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 THIRD_PARTY_PACKAGES = (
     "Zope2",
     "ZODB3",

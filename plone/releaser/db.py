@@ -1,15 +1,14 @@
-# -*- coding: utf-8 -*-
 import json
 import os
 
 
-class IgnoresDB(object):
+class IgnoresDB:
     def __init__(self):
         self._filename = ".package_ignores"
         if not os.path.isfile(self._filename):
             open(self._filename, "w").close()
 
-        with open(self._filename, "r") as f:
+        with open(self._filename) as f:
             content = f.read()
             if content != "":
                 self._db = json.loads(content)

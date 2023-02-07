@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-from __future__ import print_function
 from collections import OrderedDict
 from collections import defaultdict
 from distutils.version import LooseVersion
@@ -8,8 +6,7 @@ from itertools import product
 from plone.releaser.buildout import Buildout
 from plone.releaser.release import HEADINGS
 from plone.releaser.release import OLD_HEADING_MAPPING
-from six.moves.urllib.request import urlopen
-import six
+from urllib.request import urlopen
 
 
 DIST_URL = "https://dist.plone.org/release/{0}/versions.cfg"
@@ -28,12 +25,12 @@ def pull_versions(version_number):
         if versions_file.code == 404:
             raise ValueError("Version %s not found." % version_number)
     for line in versions_file:
-        if not isinstance(line, type(u"")):
+        if not isinstance(line, str):
             line = line.decode("utf-8")
-        line = line.strip().replace(u" ", u"")
-        if line and not (line.startswith(u"#") or line.startswith(u"[")):
+        line = line.strip().replace(" ", "")
+        if line and not (line.startswith("#") or line.startswith("[")):
             try:
-                package, version = line.split(u"=")
+                package, version = line.split("=")
             except ValueError:
                 continue
             if not version:
@@ -41,7 +38,7 @@ def pull_versions(version_number):
                 continue
             version = LooseVersion(version)
             package_versions[package] = version
-    print("Parsed {0}".format(url))
+    print(f"Parsed {url}")
     return package_versions
 
 
@@ -67,36 +64,36 @@ def get_changelog(package_name):
     file_names = ["CHANGES", "HISTORY"]
     file_extensions = [".rst", ".txt"]
     if "github" in source_url:
-        paths = ["{0}/".format(branch), "{0}/docs/".format(branch)]
+        paths = [f"{branch}/", f"{branch}/docs/"]
     else:
         paths = ["/", "/docs/", "/".join(package_name.split(".")) + "/"]
     for pathable in product(paths, file_names, file_extensions):
         structure = "".join(pathable)
-        url = "{0}/{1}".format(source_url, structure)
+        url = f"{source_url}/{structure}"
         try:
             response = urlopen(url)
-        except IOError:
-            print("Unable to reach {0}".format(url))
+        except OSError:
+            print(f"Unable to reach {url}")
         else:
             if response.code == 200:
                 return response.read()
     return ""
 
 
-class Changelog(object):
+class Changelog:
     def __init__(self, file_location=None, content=None):
         self.data = OrderedDict()
         if content is not None:
             self._parse(content)
         elif file_location is not None:
-            with open(file_location, "r") as f:
+            with open(file_location) as f:
                 self._parse(f.read())
 
     def __iter__(self):
         return self.data.__iter__()
 
     def iteritems(self):
-        return six.iteritems(self.data)
+        return self.data.items()
 
     def get(self, version):
         return self.data.get(version)
@@ -109,11 +106,11 @@ class Changelog(object):
             try:
                 end_version_index = versions.index(str(end_version))
             except ValueError:
-                raise ValueError("Unknown version {0}".format(end_version))
+                raise ValueError(f"Unknown version {end_version}")
         try:
             start_version_index = versions.index(str(start_version))
         except ValueError:
-            raise ValueError("Unknown version {0}".format(start_version))
+            raise ValueError(f"Unknown version {start_version}")
 
         newer_releases = versions[end_version_index:start_version_index]
         changes = defaultdict(list)
@@ -185,22 +182,22 @@ def build_unified_changelog(start_version, end_version):
         print(e)
         return
 
-    output_str = u""
+    output_str = ""
     try:
-        for package, version in six.iteritems(current_versions):
+        for package, version in current_versions.items():
             if package in prior_versions:
                 prior_version = prior_versions[package]
                 try:
                     if version > prior_version:
-                        print("{0} has a newer version".format(package))
-                        packageChange = u"{0}: {1} {2} {3}".format(
-                            package, prior_version, u"\u2192", version
+                        print(f"{package} has a newer version")
+                        packageChange = "{}: {} {} {}".format(
+                            package, prior_version, "\u2192", version
                         )
                         output_str += (
-                            u"\n"
+                            "\n"
                             + packageChange
-                            + u"\n"
-                            + u"-" * len(packageChange)
+                            + "\n"
+                            + "-" * len(packageChange)
                             + "\n"
                         )
 
@@ -214,16 +211,16 @@ def build_unified_changelog(start_version, end_version):
                         except ValueError as e:
                             print(e)
                         else:
-                            bullet = u"- "
+                            bullet = "- "
                             for change in changes:
                                 if change in HEADINGS:
-                                    output_str += change + u"\n\n"
+                                    output_str += change + "\n\n"
                                 else:
                                     change = change.replace(
                                         "\n", "\n" + " " * len(bullet)
                                     )
-                                    output_str += bullet + change + u"\n\n"
-                except AttributeError as e:
+                                    output_str += bullet + change + "\n\n"
+                except AttributeError:
                     # Bad version line, skip
                     pass
                 except TypeError:
@@ -231,7 +228,7 @@ def build_unified_changelog(start_version, end_version):
                     # *** TypeError: '<' not supported between instances of 'int' and 'str'
                     # (Pdb) version, prior_version
                     # (LooseVersion ('5.2.0'), LooseVersion ('5.2a1'))
-                    print("ERROR {0}: cannot compare prior version {1} with new version {2}".format(
+                    print("ERROR {}: cannot compare prior version {} with new version {}".format(
                         package, prior_version, version)
                     )
     except KeyboardInterrupt:

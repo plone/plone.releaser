@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-from __future__ import print_function
 from argh import ArghParser
 from argh import arg
 from argh.decorators import named
@@ -20,7 +18,6 @@ from progress.bar import Bar
 import datetime
 import keyring
 import time
-import six
 
 
 # TODO
@@ -34,7 +31,7 @@ def checkPypi(user):
         else:
             if not pypi.can_user_release_package_to_pypi(user, package):
                 print(
-                    "{0}: {1}".format(
+                    "{}: {}".format(
                         package, ", ".join(pypi.get_users_with_release_rights(package))
                     )
                 )
@@ -44,7 +41,7 @@ def checkPypi(user):
 def jenkins_report():
     """Read-only version of checkAllPackagesForUpdates."""
     sources = buildout.sources
-    for package_name, source in iter(six.iteritems(sources)):
+    for package_name, source in iter(sources.items()):
         pkg = Package(buildout, package_name)
         pkg(action=ACTION_REPORT)
 
@@ -104,7 +101,7 @@ def pulls():
                 print(package_name)
                 for pull in pulls:
                     print(
-                        "    {0}: {1} ({2})".format(
+                        "    {}: {} ({})".format(
                             pull.user.login, pull.title, pull.url
                         )
                     )
@@ -135,7 +132,7 @@ def create_launchpad_release(version):
     series_name = ".".join([str(a) for a in parsed_version.version[0:2]])
     series = plone.getSeries(name=series_name)
     if series is None:
-        return "No series named {0}.".format(series_name)
+        return f"No series named {series_name}."
     now = datetime.datetime.now().isoformat()
     milestone = series.newMilestone(name=version, date_targeted=now)
     # TODO: Get release notes
@@ -158,7 +155,7 @@ def append_jenkins_build_number_to_package_version(jenkins_build_number):
 
     vcs = BaseVersionControl()
     old_version = cleanup_version(vcs.version)
-    new_version = "{0}.{1}".format(old_version, jenkins_build_number)
+    new_version = f"{old_version}.{jenkins_build_number}"
     vcs.version = new_version
     return new_version
 
@@ -168,7 +165,7 @@ def set_package_version(version_file_path, package_name, new_version):
     versions.set(package_name, new_version)
 
 
-class Manage(object):
+class Manage:
     def __call__(self, **kwargs):
         parser = ArghParser()
         parser.add_commands(

@@ -1,10 +1,9 @@
-# -*- coding: utf-8 -*-
-from six.moves.xmlrpc_client import ServerProxy
+from xmlrpc.client import ServerProxy
 
 
 def get_users_with_release_rights(package_name):
     client = ServerProxy("https://pypi.org/pypi")
-    existing_admins = set([user for role, user in client.package_roles(package_name)])
+    existing_admins = {user for role, user in client.package_roles(package_name)}
     return existing_admins
 
 

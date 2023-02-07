@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from collections import OrderedDict
 from configparser import ConfigParser
 from configparser import ExtendedInterpolation
@@ -12,11 +11,11 @@ except ImportError:
     from UserDict import UserDict
 
 PATH_RE = re.compile(
-    "(\w+://)(.+@)*([\w\d\.]+)(:[\d]+){0,1}/(?P<path>.+(?=\.git))(\.git)"
+    r"(\w+://)(.+@)*([\w\d\.]+)(:[\d]+){0,1}/(?P<path>.+(?=\.git))(\.git)"
 )
 
 
-class Source(object):
+class Source:
     def __init__(self, protocol=None, url=None, push_url=None, branch=None):
         self.protocol = protocol
         self.url = url
@@ -50,7 +49,7 @@ class Source(object):
         return None
 
 
-class VersionsFile(object):
+class VersionsFile:
     def __init__(self, file_location):
         self.file_location = file_location
 
@@ -88,18 +87,18 @@ class VersionsFile(object):
 
     def __setitem__(self, package_name, new_version):
         path = os.path.join(os.getcwd(), self.file_location)
-        with open(path, "r") as f:
+        with open(path) as f:
             versionstxt = f.read()
 
         if package_name not in self:
-            newline = "{0} = {1}".format(package_name, new_version)
+            newline = f"{package_name} = {new_version}"
             versionstxt += newline
 
         reg = re.compile(
-            "(^{0}[\s\=]+)[0-9\.abrc]+(.post\d+)?(.dev\d+)?".format(package_name),
+            fr"(^{package_name}[\s\=]+)[0-9\.abrc]+(.post\d+)?(.dev\d+)?",
             re.MULTILINE,
         )
-        newVersionsTxt = reg.sub(r"\g<1>{0}".format(new_version), versionstxt)
+        newVersionsTxt = reg.sub(fr"\g<1>{new_version}", versionstxt)
         with open(path, "w") as f:
             f.write(newVersionsTxt)
 
@@ -163,7 +162,7 @@ class CheckoutsFile(UserDict):
 
     def __setitem__(self, package_name, enabled=True):
         path = os.path.join(os.getcwd(), self.file_location)
-        with open(path, "r") as f:
+        with open(path) as f:
             checkoutstxt = f.read()
         with open(path, "w") as f:
             if not checkoutstxt.endswith("\n"):
@@ -171,14 +170,14 @@ class CheckoutsFile(UserDict):
                 checkoutstxt += "\n"
             # Look for the package name on a line of its own,
             # with likely whitespace in front.
-            reg = re.compile(r"^[\s]*{0}\n".format(package_name), re.MULTILINE)
+            reg = re.compile(fr"^[\s]*{package_name}\n", re.MULTILINE)
             if enabled:
                 # We used to look for "# test-only fixes:" here,
                 # and place the checkout before it.
                 # But this text is no longer in any current checkouts.cfg.
                 if not reg.match(checkoutstxt):
                     # It is indeed not yet in the checkouts.
-                    newCheckoutsTxt = checkoutstxt + "    {0}\n".format(package_name)
+                    newCheckoutsTxt = checkoutstxt + f"    {package_name}\n"
             else:
                 # Remove the package name
                 newCheckoutsTxt = reg.sub("", checkoutstxt)
@@ -195,7 +194,7 @@ class CheckoutsFile(UserDict):
         return self.__delitem__(package_name)
 
 
-class Buildout(object):
+class Buildout:
     def __init__(
         self,
         sources_file="sources.cfg",

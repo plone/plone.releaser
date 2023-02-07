@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-from __future__ import print_function
 from copy import copy
 from plone.releaser.buildout import CheckoutsFile
 from plone.releaser.buildout import VersionsFile
@@ -152,7 +150,7 @@ def cleanup_changelog(data):
     if not changed:
         return
     write_text_file(history_file, contents, encoding=encoding)
-    print("Cleaned up empty headers from history file {}".format(history_file))
+    print(f"Cleaned up empty headers from history file {history_file}")
     # Update the data, otherwise our work may get overwritten.
     data["history_lines"] = contents.split("\n")
     if not os.path.isdir(".git"):
@@ -182,7 +180,7 @@ def check_pypi_access(data):
 def update_core(data, branch=None):
     msg = "Ok to update coredev versions.cfg/checkouts.cfg?"
     if branch:
-        msg = "Ok to update coredev {0} versions.cfg/checkouts.cfg?".format(branch)
+        msg = f"Ok to update coredev {branch} versions.cfg/checkouts.cfg?"
     if ask(msg, default=True):
         root_path = os.path.join(os.getcwd(), "../../")
         g = git.Git(root_path)
@@ -193,7 +191,7 @@ def update_core(data, branch=None):
         if package_name not in ALWAYS_CHECKED_OUT_PACKAGES:
             remove_from_checkouts(package_name)
         # git commit
-        message = "{0} {1}".format(package_name, new_version)
+        message = f"{package_name} {new_version}"
         g.add("versions.cfg")
         g.add("checkouts.cfg")
         print("Committing changes.")
@@ -215,7 +213,7 @@ def update_core(data, branch=None):
             return
         msg = "Ok to push coredev?"
         if branch:
-            msg = "Ok to push coredev {0}?".format(branch)
+            msg = f"Ok to push coredev {branch}?"
         if ask(msg, default=True):
             print("Pushing changes to server.")
             g.push()
@@ -253,7 +251,7 @@ def update_other_core_branches(data):
                 update_core(data, branch=branch_name)
             except Exception:
                 print(
-                    "There was an error trying to update {0} on {1}".format(
+                    "There was an error trying to update {} on {}".format(
                         package_name, branch_name
                     )
                 )
