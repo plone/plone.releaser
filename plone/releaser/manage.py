@@ -3,7 +3,6 @@ from argh import ArghParser
 from argh.decorators import named
 from distutils.version import StrictVersion
 from github import Github
-from launchpadlib.launchpad import Launchpad
 from plone.releaser import ACTION_BATCH
 from plone.releaser import ACTION_INTERACTIVE
 from plone.releaser import ACTION_REPORT
@@ -112,33 +111,6 @@ def changelog(**kwargs):
     build_unified_changelog(kwargs["start"], kwargs["end"])
 
 
-@named("launchpad")
-def create_launchpad_release(version):
-    launchpad = Launchpad.login_with("plone.releaser", "production")
-    plone = launchpad.projects["plone"]
-    try:
-        parsed_version = StrictVersion(version)
-    except ValueError:
-        # ValueError: invalid version number '5.2.10.1'
-        if version.count(".") < 3:
-            raise
-        adapted_version = ".".join(version.split(".")[:3])
-        parsed_version = StrictVersion(adapted_version)
-    # Blech. This feels flimsy
-    series_name = ".".join([str(a) for a in parsed_version.version[0:2]])
-    series = plone.getSeries(name=series_name)
-    if series is None:
-        return f"No series named {series_name}."
-    now = datetime.datetime.now().isoformat()
-    milestone = series.newMilestone(name=version, date_targeted=now)
-    # TODO: Get release notes
-    release = milestone.createProductRelease(date_released=now, release_notes="")
-
-    release_url = release.web_link
-
-    return release_url
-
-
 def check_checkout(package_name, path):
     if package_name not in CheckoutsFile(path):
         msg = "Your package {0} is not on auto-checkout section"
@@ -171,7 +143,6 @@ class Manage:
                 checkAllPackagesForUpdates,
                 pulls,
                 changelog,
-                create_launchpad_release,
                 check_checkout,
                 append_jenkins_build_number_to_package_version,
                 set_package_version,

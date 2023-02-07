@@ -39,10 +39,6 @@ Changelog::
 
   $ bin/manage changelog
 
-Launchpad::
-
-  $ bin/manage launchpad
-
 Check checkout::
 
   $ bin/manage check-checkout

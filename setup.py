@@ -45,7 +45,6 @@ setup(
         "zest.releaser[recommended]>=7.2.0",
         "zestreleaser.towncrier>=1.3.0",
         "docutils",
-        "launchpadlib",
     ],
     entry_points={
         "console_scripts": ["manage = plone.releaser.manage:manage"],
