@@ -39,7 +39,6 @@ setup(
         "argh",
         "gitpython>=0.3",
         "configparser",
-        "argcomplete",
         "progress",
         "PyGithub",
         "keyring",
