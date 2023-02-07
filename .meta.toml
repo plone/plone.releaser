@@ -9,3 +9,4 @@ mappings = [
     "gitpython = ['git']",
     "pygithub = ['github']",
     ]
+ignores = "['zestreleaser.towncrier']"

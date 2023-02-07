@@ -43,5 +43,6 @@ profile = "plone"
 target-version = ["py38"]
 
 [tool.dependencychecker]
+ignore-packages = ['zestreleaser.towncrier']
 gitpython = ['git']
 pygithub = ['github']
