@@ -42,7 +42,7 @@ setup(
         "progress",
         "PyGithub",
         "keyring",
-        "zest.releaser>=7.2.0",
+        "zest.releaser[recommended]>=7.2.0",
         "zestreleaser.towncrier>=1.3.0",
         "docutils",
         "launchpadlib",
