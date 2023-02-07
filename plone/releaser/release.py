@@ -1,7 +1,7 @@
 from copy import copy
 from plone.releaser.buildout import CheckoutsFile
-from plone.releaser.buildout import VersionsFile
 from plone.releaser.buildout import SourcesFile
+from plone.releaser.buildout import VersionsFile
 from plone.releaser.pypi import can_user_release_package_to_pypi
 from zest.releaser import pypi
 from zest.releaser.utils import ask
@@ -12,6 +12,7 @@ import git
 import os
 import sys
 import textwrap
+
 
 # Define texts to check for during prereleaser or add during postrelease.
 NOTHING_CHANGED_YET = "*add item here*"
@@ -206,10 +207,14 @@ def update_core(data, branch=None):
         try:
             multi = int(os.getenv("PLONE_RELEASER_MULTI_PACKAGES"))
         except (TypeError, ValueError, AttributeError):
-            print("ERROR: could not parse PLONE_RELEASER_MULTI_PACKAGES env var. Ignoring it.")
+            print(
+                "ERROR: could not parse PLONE_RELEASER_MULTI_PACKAGES env var. Ignoring it."
+            )
             multi = False
         if multi:
-            print("PLONE_RELEASER_MULTI_PACKAGES env variable set, so not pushing to coredev.")
+            print(
+                "PLONE_RELEASER_MULTI_PACKAGES env variable set, so not pushing to coredev."
+            )
             return
         msg = "Ok to push coredev?"
         if branch:

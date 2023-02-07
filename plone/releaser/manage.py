@@ -1,5 +1,5 @@
-from argh import ArghParser
 from argh import arg
+from argh import ArghParser
 from argh.decorators import named
 from distutils.version import StrictVersion
 from github import Github
@@ -7,8 +7,8 @@ from launchpadlib.launchpad import Launchpad
 from plone.releaser import ACTION_BATCH
 from plone.releaser import ACTION_INTERACTIVE
 from plone.releaser import ACTION_REPORT
-from plone.releaser import THIRD_PARTY_PACKAGES
 from plone.releaser import pypi
+from plone.releaser import THIRD_PARTY_PACKAGES
 from plone.releaser.buildout import Buildout
 from plone.releaser.buildout import CheckoutsFile
 from plone.releaser.buildout import VersionsFile
@@ -100,11 +100,7 @@ def pulls():
             if pulls:
                 print(package_name)
                 for pull in pulls:
-                    print(
-                        "    {}: {} ({})".format(
-                            pull.user.login, pull.title, pull.url
-                        )
-                    )
+                    print(f"    {pull.user.login}: {pull.title} ({pull.url})")
 
 
 @named("changelog")
@@ -150,8 +146,8 @@ def check_checkout(package_name, path):
 
 
 def append_jenkins_build_number_to_package_version(jenkins_build_number):
-    from zest.releaser.vcs import BaseVersionControl
     from zest.releaser.utils import cleanup_version
+    from zest.releaser.vcs import BaseVersionControl
 
     vcs = BaseVersionControl()
     old_version = cleanup_version(vcs.version)

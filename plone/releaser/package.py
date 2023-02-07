@@ -155,12 +155,8 @@ class Package:
 
             # Check for checkout
             if self.name not in self.buildout.checkouts:
-                msg = (
-                    "\nWARNING: No auto-checkout exists for {0}\n Changes in {0}:"
-                )  # noqa
-                self.print_commits(
-                    commits_since_release, message=msg.format(self.name)
-                )
+                msg = "\nWARNING: No auto-checkout exists for {0}\n Changes in {0}:"  # noqa
+                self.print_commits(commits_since_release, message=msg.format(self.name))
 
                 if self.name in THIRD_PARTY_PACKAGES:
                     msg = "NOTE: {0} is a third-party package."
@@ -221,9 +217,11 @@ class Package:
         try:
             commits = self._commits_between(repo, self.version, self.source.branch)
         except git.exc.GitCommandError:
-            print("\nCould not read commits between {} and {} for package {}".format(
-                self.version, self.source.branch, self.name
-            ))
+            print(
+                "\nCould not read commits between {} and {} for package {}".format(
+                    self.version, self.source.branch, self.name
+                )
+            )
 
         return commits
 
@@ -299,6 +297,8 @@ class Package:
                 versions_path = os.path.join(os.getcwd(), "versions.cfg")
                 core_repo.git.add(versions_path)
                 core_repo.git.commit(message=f"{self.name}={tag}")
-                if confirm("Ok to push coredev?", default=True, skip=not self.interactive):
+                if confirm(
+                    "Ok to push coredev?", default=True, skip=not self.interactive
+                ):
                     print("Pushing changes to server.")
                     core_repo.git.push()

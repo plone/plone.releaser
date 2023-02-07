@@ -5,6 +5,7 @@ from configparser import ExtendedInterpolation
 import os
 import re
 
+
 try:
     from collections import UserDict
 except ImportError:
@@ -95,10 +96,10 @@ class VersionsFile:
             versionstxt += newline
 
         reg = re.compile(
-            fr"(^{package_name}[\s\=]+)[0-9\.abrc]+(.post\d+)?(.dev\d+)?",
+            rf"(^{package_name}[\s\=]+)[0-9\.abrc]+(.post\d+)?(.dev\d+)?",
             re.MULTILINE,
         )
-        newVersionsTxt = reg.sub(fr"\g<1>{new_version}", versionstxt)
+        newVersionsTxt = reg.sub(rf"\g<1>{new_version}", versionstxt)
         with open(path, "w") as f:
             f.write(newVersionsTxt)
 
@@ -170,7 +171,7 @@ class CheckoutsFile(UserDict):
                 checkoutstxt += "\n"
             # Look for the package name on a line of its own,
             # with likely whitespace in front.
-            reg = re.compile(fr"^[\s]*{package_name}\n", re.MULTILINE)
+            reg = re.compile(rf"^[\s]*{package_name}\n", re.MULTILINE)
             if enabled:
                 # We used to look for "# test-only fixes:" here,
                 # and place the checkout before it.

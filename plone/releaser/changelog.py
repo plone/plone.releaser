@@ -1,5 +1,5 @@
-from collections import OrderedDict
 from collections import defaultdict
+from collections import OrderedDict
 from distutils.version import LooseVersion
 from docutils.core import publish_doctree
 from itertools import product
@@ -228,8 +228,10 @@ def build_unified_changelog(start_version, end_version):
                     # *** TypeError: '<' not supported between instances of 'int' and 'str'
                     # (Pdb) version, prior_version
                     # (LooseVersion ('5.2.0'), LooseVersion ('5.2a1'))
-                    print("ERROR {}: cannot compare prior version {} with new version {}".format(
-                        package, prior_version, version)
+                    print(
+                        "ERROR {}: cannot compare prior version {} with new version {}".format(
+                            package, prior_version, version
+                        )
                     )
     except KeyboardInterrupt:
         pass
