@@ -1,7 +1,6 @@
 from argh import arg
 from argh import ArghParser
 from argh.decorators import named
-from distutils.version import StrictVersion
 from github import Github
 from plone.releaser import ACTION_BATCH
 from plone.releaser import ACTION_INTERACTIVE
@@ -14,7 +13,6 @@ from plone.releaser.buildout import VersionsFile
 from plone.releaser.package import Package
 from progress.bar import Bar
 
-import datetime
 import keyring
 import time
 
