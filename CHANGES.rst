@@ -159,7 +159,7 @@ New features:
 New features:
 
 - New zest.releaser hook: update other buildout.coredev branches as well.
-  This automates the manual bookeeping that one has to do whenever releasing packages:
+  This automates the manual bookkeeping that one has to do whenever releasing packages:
   i.e. to check if the package just released is also checked out and used in other buildout.coredev branches.
   [gforcada]
 

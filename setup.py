@@ -1,11 +1,10 @@
-# -*- coding: utf-8 -*-
 from setuptools import find_packages
 from setuptools import setup
 
 
-version = "1.8.9.dev0"
+version = "2.0.0.dev0"
 
-long_description = "{0}\n{1}".format(
+long_description = "{}\n{}".format(
     open("README.rst").read(), open("CHANGES.rst").read()
 )
 
@@ -18,11 +17,9 @@ setup(
     classifiers=[
         "Development Status :: 5 - Production/Stable",
         "Framework :: Plone",
+        "Framework :: Plone :: 6.0",
         "License :: OSI Approved :: GNU General Public License (GPL)",
         "Programming Language :: Python",
-        "Programming Language :: Python :: 2.7",
-        "Programming Language :: Python :: 3.6",
-        "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
@@ -37,21 +34,18 @@ setup(
     namespace_packages=["plone"],
     include_package_data=True,
     zip_safe=False,
-    python_requires=">=2.7,!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,!=3.5.*",
+    python_requires=">=3.8",
     install_requires=[
         "setuptools",
         "argh",
-        "gitpython>=0.3",
+        "gitpython>=3.0.0",
         "configparser",
-        "argcomplete",
         "progress",
         "PyGithub",
         "keyring",
-        "six",
-        "zest.releaser>=6.6.0",
-        "zestreleaser.towncrier>=1.0.0b3",
+        "zest.releaser[recommended]>=7.2.0",
+        "zestreleaser.towncrier>=1.3.0",
         "docutils",
-        "launchpadlib",
     ],
     entry_points={
         "console_scripts": ["manage = plone.releaser.manage:manage"],

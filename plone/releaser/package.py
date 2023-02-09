@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-from __future__ import print_function
 from argh.interaction import confirm
 from configparser import NoOptionError
 from contextlib import contextmanager
@@ -51,7 +49,7 @@ def buildout_coredev():
     del repo
 
 
-class Package(object):
+class Package:
 
     # A reference to an plone.releaser.buildout.Buildout instance
     buildout = None
@@ -84,7 +82,7 @@ class Package(object):
 
     def __call__(self, action=ACTION_INTERACTIVE):
         if action not in PACKAGE_ACTIONS:
-            print("This package action does not exist: {0}".format(action))
+            print(f"This package action does not exist: {action}")
             return
         self.set_interaction_and_report(action)
 
@@ -157,12 +155,8 @@ class Package(object):
 
             # Check for checkout
             if self.name not in self.buildout.checkouts:
-                msg = (
-                    "\nWARNING: No auto-checkout exists for {0}\n Changes in {0}:"
-                )  # noqa
-                self.print_commits(
-                    commits_since_release, message=msg.format(self.name)
-                )
+                msg = "\nWARNING: No auto-checkout exists for {0}\n Changes in {0}:"  # noqa
+                self.print_commits(commits_since_release, message=msg.format(self.name))
 
                 if self.name in THIRD_PARTY_PACKAGES:
                     msg = "NOTE: {0} is a third-party package."
@@ -171,7 +165,7 @@ class Package(object):
                 self.add(commits_since_release)
 
             elif not self.interactive:
-                msg = "\nChanges in {0}:".format(self.name)
+                msg = f"\nChanges in {self.name}:"
                 self.print_commits(commits_since_release, message=msg)
 
                 if self.name in THIRD_PARTY_PACKAGES:
@@ -203,7 +197,7 @@ class Package(object):
             version = self.buildout.get_version(self.name)
         except (NoOptionError, KeyError):
             if self.report_only:
-                print("No version available for {0}".format(self.name))
+                print(f"No version available for {self.name}")
 
         return version
 
@@ -213,7 +207,7 @@ class Package(object):
             tag = repo.git.describe("--abbrev=0", "--tags")
         except git.exc.GitCommandError:
             if self.report_only:
-                print("Unable to check tags for {0}".format(self.name))
+                print(f"Unable to check tags for {self.name}")
 
         return tag
 
@@ -223,15 +217,17 @@ class Package(object):
         try:
             commits = self._commits_between(repo, self.version, self.source.branch)
         except git.exc.GitCommandError:
-            print("\nCould not read commits between {0} and {1} for package {2}".format(
-                self.version, self.source.branch, self.name
-                ))
+            print(
+                "\nCould not read commits between {} and {} for package {}".format(
+                    self.version, self.source.branch, self.name
+                )
+            )
 
         return commits
 
     @staticmethod
     def _commits_between(repo, start, end):
-        return list(repo.iter_commits("{0}..{1}".format(start, end)))
+        return list(repo.iter_commits(f"{start}..{end}"))
 
     def remove(self):
         if self.name in self.buildout.checkouts and self.name not in ALWAYS_CHECKED_OUT:
@@ -241,31 +237,31 @@ class Package(object):
             if self.report_only:
                 return
 
-            msg = "Remove {0} from checkouts.cfg".format(self.name)
+            msg = f"Remove {self.name} from checkouts.cfg"
             if confirm(msg, default=True, skip=not self.interactive):
                 self.buildout.remove_from_checkouts(self.name)
 
                 with buildout_coredev() as core_repo:
                     checkouts_path = os.path.join(os.getcwd(), "checkouts.cfg")
                     core_repo.git.add(checkouts_path)
-                    msg = "No new changes in {0}".format(self.name)
+                    msg = f"No new changes in {self.name}"
                     core_repo.git.commit(message=msg)
 
     def add(self, commits_since_release):
         if self.report_only:
             return
 
-        msg = "Add {0} to checkouts.cfg".format(self.name)
+        msg = f"Add {self.name} to checkouts.cfg"
         if confirm(msg, default=True, skip=not self.interactive):
             self.buildout.add_to_checkouts(self.name)
 
             with buildout_coredev() as core_repo:
                 checkouts_path = os.path.join(os.getcwd(), "checkouts.cfg")
                 core_repo.index.add([checkouts_path])
-                core_repo.index.commit("{0} has changes.".format(self.name))
+                core_repo.index.commit(f"{self.name} has changes.")
 
         elif confirm(
-            "Ignore changes in  {0}".format(self.name),
+            f"Ignore changes in  {self.name}",
             default=False,
             skip=not self.interactive,
         ):
@@ -278,7 +274,7 @@ class Package(object):
 
         for commit in commits_list:
             print(
-                u"    {0}: {1}".format(
+                "    {}: {}".format(
                     commit.author.name,
                     commit.summary,
                 )
@@ -300,7 +296,9 @@ class Package(object):
             with buildout_coredev() as core_repo:
                 versions_path = os.path.join(os.getcwd(), "versions.cfg")
                 core_repo.git.add(versions_path)
-                core_repo.git.commit(message="{0}={1}".format(self.name, tag))
-                if confirm("Ok to push coredev?", default=True, skip=not self.interactive):
+                core_repo.git.commit(message=f"{self.name}={tag}")
+                if confirm(
+                    "Ok to push coredev?", default=True, skip=not self.interactive
+                ):
                     print("Pushing changes to server.")
                     core_repo.git.push()

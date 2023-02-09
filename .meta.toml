@@ -1,0 +1,12 @@
+# Generated from:
+# https://github.com/plone/meta/tree/master/config/default
+[meta]
+template = "default"
+commit-id = "0953d384"
+
+[dependencies]
+mappings = [
+    "gitpython = ['git']",
+    "pygithub = ['github']",
+    ]
+ignores = "['zestreleaser.towncrier']"
