@@ -46,9 +46,13 @@ setup(
         "zest.releaser[recommended]>=7.2.0",
         "zestreleaser.towncrier>=1.3.0",
         "docutils",
+        "mxdev",
     ],
     entry_points={
         "console_scripts": ["manage = plone.releaser.manage:manage"],
+        "mxdev": [
+            "hook = plone.releaser.mxdevhooks:WriteBuildoutVersionsExtension",
+        ],
         "zest.releaser.prereleaser.before": [
             (
                 "set_nothing_changed_yet="
