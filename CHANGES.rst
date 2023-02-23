@@ -8,6 +8,18 @@ Changelog
 
 .. towncrier release notes start
 
+2.0.0 (2023-02-23)
+------------------
+
+Breaking changes:
+
+
+- Require Python 3.8+.
+  Cleanup code and dependencies, with help op plone/meta.
+  Drop support for Plone 5.2 releases: no launchpad code anymore.
+  [maurits] (#200)
+
+
 1.8.8 (2022-12-21)
 ------------------
 

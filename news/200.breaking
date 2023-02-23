@@ -1,4 +1,0 @@
-Require Python 3.8+.
-Cleanup code and dependencies, with help op plone/meta.
-Drop support for Plone 5.2 releases: no launchpad code anymore.
-[maurits]
