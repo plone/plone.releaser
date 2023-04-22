@@ -42,11 +42,3 @@ Changelog::
 Check checkout::
 
   $ bin/manage check-checkout
-
-Append Jenkins build number to package version::
-
-  $ bin/append-jenkins-build-number-to-package-version
-
-Set package version::
-
-  $ bin/set-package-version
