@@ -171,7 +171,23 @@ def cleanup_changelog(data):
 
 
 def check_pypi_access(data):
-    pypi_user = pypi.PypiConfig().config.get("pypi", "username")
+    env_var = "PLONE_RELEASER_CHECK_PYPI_ACCESS"
+    try:
+        if int(os.getenv(env_var, 1)) == 0:
+            print(
+                f"{env_var} variable set to zero: not checking pypi release rights."
+            )
+            return
+    except (TypeError, ValueError, AttributeError):
+        print(
+            f"ERROR: could not parse {env_var} env var. Ignoring it."
+        )
+
+    section = os.getenv("TWINE_REPOSITORY", "pypi")
+    pypi_user = pypi.PypiConfig().config.get(section, "username")
+    if pypi_user == "__token__":
+        print("Using token for PyPI upload: cannot check if you have release rights.")
+        return
     if not can_user_release_package_to_pypi(pypi_user, data["name"]):
         msg = "User {0} does not have pypi release rights to {1}. Continue?"
         if not ask(msg.format(pypi_user, data["name"]), default=False):
@@ -225,7 +241,7 @@ def update_core(data, branch=None):
 
 
 def update_other_core_branches(data):
-    CORE_BRANCHES = ["5.2", "6.0"]
+    CORE_BRANCHES = ["5.2", "6.0", "6.1"]
     package_name = data["name"]
     root_path = os.path.join(os.getcwd(), "../../")
 
