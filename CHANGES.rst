@@ -8,6 +8,18 @@ Changelog
 
 .. towncrier release notes start
 
+2.0.1 (2023-06-22)
+------------------
+
+Bug fixes:
+
+
+- Allow disabling PyPI rights check, as this does not know how to check organisations.
+  Set env variable ``PLONE_RELEASER_CHECK_PYPI_ACCESS=0`` if you want to disable it.
+  Also, we do not check PyPI if the user is `__token__`, so using an API token.
+  [maurits] (#50)
+
+
 2.0.0 (2023-02-23)
 ------------------
 
