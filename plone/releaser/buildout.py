@@ -65,7 +65,8 @@ class VersionsFile:
         with open(self.file_location) as f:
             config.read_file(f)
         # https://github.com/plone/plone.releaser/issues/42
-        config["buildout"]["directory"] = os.getcwd()
+        if config.has_section("buildout"):
+            config["buildout"]["directory"] = os.getcwd()
         versions = {}
         for section in config.sections():
             if "versions" in section.split(":"):
