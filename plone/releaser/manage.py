@@ -12,10 +12,12 @@ from plone.releaser.buildout import CheckoutsFile
 from plone.releaser.buildout import VersionsFile
 from plone.releaser.package import Package
 from plone.releaser.pip import ConstraintsFile
+from plone.releaser.pip import IniFile
 from progress.bar import Bar
 
 import keyring
 import time
+import sys
 
 
 # TODO
@@ -111,9 +113,22 @@ def changelog(**kwargs):
 
 
 def check_checkout(package_name, path):
-    if package_name not in CheckoutsFile(path):
-        msg = "Your package {0} is not on auto-checkout section"
-        raise KeyError(msg.format(package_name))
+    if path.endswith(".ini"):
+        checkouts = IniFile(path)
+    else:
+        checkouts = CheckoutsFile(path)
+    if package_name not in checkouts:
+        print(f"No, your package {package_name} is NOT on auto checkout.")
+        sys.exit(1)
+    print(f"YES, your package {package_name} is on auto checkout.")
+
+
+def remove_checkout(package_name, path):
+    if path.endswith(".ini"):
+        checkouts = IniFile(path)
+    else:
+        checkouts = CheckoutsFile(path)
+    checkouts.remove(package_name)
 
 
 def append_jenkins_build_number_to_package_version(jenkins_build_number):
@@ -156,6 +171,7 @@ class Manage:
                 pulls,
                 changelog,
                 check_checkout,
+                remove_checkout,
                 append_jenkins_build_number_to_package_version,
                 set_package_version,
                 jenkins_report,

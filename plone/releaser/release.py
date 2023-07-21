@@ -3,6 +3,7 @@ from plone.releaser.buildout import CheckoutsFile
 from plone.releaser.buildout import SourcesFile
 from plone.releaser.buildout import VersionsFile
 from plone.releaser.pip import ConstraintsFile
+from plone.releaser.pip import IniFile
 from plone.releaser.pypi import can_user_release_package_to_pypi
 from zest.releaser import pypi
 from zest.releaser.utils import ask
@@ -306,7 +307,14 @@ def update_versions(package_name, new_version):
 
 
 def remove_from_checkouts(package_name):
-    print("Removing package from checkouts.cfg")
-    path = os.path.join(os.getcwd(), "../../checkouts.cfg")
-    checkouts = CheckoutsFile(path)
-    checkouts.remove(package_name)
+    print("Removing package from checkouts")
+    cwd = pathlib.Path.cwd()
+    coredev_dir = (cwd / os.pardir / os.pardir).resolve()
+    checkouts_file = coredev_dir / "checkouts.cfg"
+    if checkouts_file.exists():
+        checkouts = CheckoutsFile(checkouts_file)
+        checkouts.remove(package_name)
+    checkouts_file = coredev_dir / "mxdev.ini"
+    if checkouts_file.exists():
+        checkouts = IniFile(checkouts_file)
+        checkouts.remove(package_name)

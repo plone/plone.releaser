@@ -1,5 +1,17 @@
+from collections import UserDict
+from configparser import ConfigParser
+from configparser import ExtendedInterpolation
+
 import pathlib
 import re
+
+
+def to_bool(value):
+    if not isinstance(value, str):
+        return bool(value)
+    if value.lower() in ("true", "on", "yes", "1"):
+        return True
+    return False
 
 
 class ConstraintsFile:
@@ -61,3 +73,100 @@ class ConstraintsFile:
 
     def set(self, package_name, new_version):
         return self.__setitem__(package_name, new_version)
+
+
+class IniFile(UserDict):
+    """Ini file for mxdev.
+
+    What we want to do here is similar to what we have in buildout.py
+    in the CheckoutsFile: remove a package from auto-checkouts.
+    For mxdev: set 'use = false'.
+    The default is in 'settings': 'default-use'.
+    """
+    def __init__(self, file_location):
+        self.file_location = file_location
+        self.path = pathlib.Path(self.file_location).resolve()
+        self.config = ConfigParser(
+            default_section="settings",
+            interpolation=ExtendedInterpolation(),
+        )
+        with open(self.file_location) as f:
+            self.config.read_file(f)
+        self.default_use = to_bool(self.config["settings"].get("default-use", True))
+
+    @property
+    def data(self):
+        checkouts = []
+        for package in self.config.sections():
+            use = to_bool(self.config[package].get("use", self.default_use))
+            if use:
+                checkouts.append(package)
+        return checkouts
+
+    def __contains__(self, package_name):
+        return package_name in self.data
+
+    def __setitem__(self, package_name, enabled=True):
+        """Enable or disable a checkout.
+
+        Mostly this will be called to disable a checkout.
+        Expected is that default-use is false.
+        This means we can remove 'use = true' from the package.
+
+        But let's support the other way around as well:
+        when default-use is true, we set 'use = false'.
+        """
+        use = to_bool(self.config[package_name].get("use", self.default_use))
+        if use and enabled:
+            print(f"{package_name} is already used as checkout.")
+            return
+        if not use and not enabled:
+            print(f"{package_name} is not used as checkout.")
+            return
+
+        contents = self.path.read_text()
+        if not contents.endswith("\n"):
+            contents += "\n"
+
+        lines = []
+        found_package = False
+        for line in contents.splitlines():
+            line = line.rstrip()
+            if line == f"[{package_name}]":
+                found_package = True
+                lines.append(line)
+                continue
+            if not found_package:
+                lines.append(line)
+                continue
+            if line.startswith("use =") or line.startswith("use="):
+                # Ignore this line.  We may add a new one a bit further.
+                continue
+            if line == "" or line.startswith("["):
+                # A new section is starting.
+                if self.default_use and not enabled:
+                    # We need to explicitly disable it.
+                    lines.append("use = false")
+                elif not self.default_use and enabled:
+                    # We need to explicitly enable it.
+                    lines.append("use = true")
+                # We are done with the section for this package name.
+                found_package = False
+                # We still need to append the original line.
+                lines.append(line)
+                continue
+            # Just a regular line.
+            lines.append(line)
+
+        contents = "\n".join(lines) + "\n"
+        self.path.write_text(contents)
+
+    def __delitem__(self, package_name):
+        return self.__setitem__(package_name, False)
+
+    def add(self, package_name):
+        return self.__setitem__(package_name, True)
+
+    def remove(self, package_name):
+        # Remove from checkouts.
+        return self.__delitem__(package_name)
