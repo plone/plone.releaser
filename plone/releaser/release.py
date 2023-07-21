@@ -9,7 +9,9 @@ from zest.releaser.utils import read_text_file
 from zest.releaser.utils import write_text_file
 
 import git
+import glob
 import os
+import pathlib
 import sys
 import textwrap
 
@@ -282,10 +284,16 @@ def update_other_core_branches(data):
 
 def update_versions(package_name, new_version):
     # Update version
-    print("Updating versions.cfg")
-    path = os.path.join(os.getcwd(), "../../versions.cfg")
-    versions = VersionsFile(path)
-    versions.set(package_name, new_version)
+    print("Updating buildout versions")
+    cwd = pathlib.Path.cwd()
+    buildout_dir = (cwd / os.pardir / os.pardir).resolve()
+    # In coredev 6.0 we have versions.cfg, versions-ecosystem.cfg, versions-extra.cfg.
+    for filename in glob.glob("versions*.cfg", root_dir=buildout_dir):
+        path = buildout_dir / filename
+        versions = VersionsFile(path)
+        if package_name in versions:
+            print(f"Updating {filename}")
+            versions.set(package_name, new_version)
 
 
 def remove_from_checkouts(package_name):
