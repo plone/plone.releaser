@@ -11,6 +11,7 @@ from plone.releaser.buildout import Buildout
 from plone.releaser.buildout import CheckoutsFile
 from plone.releaser.buildout import VersionsFile
 from plone.releaser.package import Package
+from plone.releaser.pip import ConstraintsFile
 from progress.bar import Bar
 
 import keyring
@@ -127,7 +128,20 @@ def append_jenkins_build_number_to_package_version(jenkins_build_number):
 
 
 def set_package_version(version_file_path, package_name, new_version):
-    versions = VersionsFile(version_file_path)
+    """Pin package to new version in a versions file.
+
+    This can also be a pip constraints file.
+    If the package is not pinned yet, we add it.
+
+    If you want it really fancy you can also add identifiers,
+    but that only gives valid results for pip files:
+
+    bin/manage set-package-version requirements.txt setuptools "65.7.0; python_version >= '3.0'"
+    """
+    if version_file_path.endswith(".txt"):
+        versions = ConstraintsFile(version_file_path)
+    else:
+        versions = VersionsFile(version_file_path)
     versions.set(package_name, new_version)
 
 

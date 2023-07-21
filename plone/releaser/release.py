@@ -2,6 +2,7 @@ from copy import copy
 from plone.releaser.buildout import CheckoutsFile
 from plone.releaser.buildout import SourcesFile
 from plone.releaser.buildout import VersionsFile
+from plone.releaser.pip import ConstraintsFile
 from plone.releaser.pypi import can_user_release_package_to_pypi
 from zest.releaser import pypi
 from zest.releaser.utils import ask
@@ -286,11 +287,19 @@ def update_versions(package_name, new_version):
     # Update version
     print("Updating buildout versions")
     cwd = pathlib.Path.cwd()
-    buildout_dir = (cwd / os.pardir / os.pardir).resolve()
+    coredev_dir = (cwd / os.pardir / os.pardir).resolve()
     # In coredev 6.0 we have versions.cfg, versions-ecosystem.cfg, versions-extra.cfg.
-    for filename in glob.glob("versions*.cfg", root_dir=buildout_dir):
-        path = buildout_dir / filename
+    for filename in glob.glob("versions*.cfg", root_dir=coredev_dir):
+        path = coredev_dir / filename
         versions = VersionsFile(path)
+        if package_name in versions:
+            print(f"Updating {filename}")
+            versions.set(package_name, new_version)
+
+    # We may have pip constraints files to update.
+    for filename in glob.glob("constraints*.txt", root_dir=coredev_dir):
+        path = coredev_dir / filename
+        versions = ConstraintsFile(path)
         if package_name in versions:
             print(f"Updating {filename}")
             versions.set(package_name, new_version)
