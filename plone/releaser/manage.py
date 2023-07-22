@@ -15,6 +15,7 @@ from plone.releaser.pip import ConstraintsFile
 from plone.releaser.pip import IniFile
 from progress.bar import Bar
 
+import glob
 import keyring
 import time
 import sys
@@ -142,22 +143,31 @@ def append_jenkins_build_number_to_package_version(jenkins_build_number):
     return new_version
 
 
-def set_package_version(version_file_path, package_name, new_version):
+def set_package_version(package_name, new_version, version_file_path=None):
     """Pin package to new version in a versions file.
 
     This can also be a pip constraints file.
     If the package is not pinned yet, we add it.
 
+    If no path is given, we try several paths and set the version in all of them.
+
     If you want it really fancy you can also add identifiers,
     but that only gives valid results for pip files:
 
-    bin/manage set-package-version requirements.txt setuptools "65.7.0; python_version >= '3.0'"
+    bin/manage set-package-version setuptools "65.7.0; python_version >= '3.0'" requirements.txt
     """
-    if version_file_path.endswith(".txt"):
-        versions = ConstraintsFile(version_file_path)
+    if version_file_path:
+        paths = [version_file_path]
     else:
-        versions = VersionsFile(version_file_path)
-    versions.set(package_name, new_version)
+        paths = glob.glob("constraints*.txt") + glob.glob("versions*.cfg")
+    for path in paths:
+        if path.endswith(".txt"):
+            versions = ConstraintsFile(path)
+        else:
+            versions = VersionsFile(path)
+        if package_name in versions:
+            print(f"Updating {path}")
+            versions.set(package_name, new_version)
 
 
 class Manage:
