@@ -113,23 +113,43 @@ def changelog(**kwargs):
     build_unified_changelog(kwargs["start"], kwargs["end"])
 
 
-def check_checkout(package_name, path):
-    if path.endswith(".ini"):
-        checkouts = IniFile(path)
+def check_checkout(package_name, path=None):
+    """Check if package is in the checkouts.
+
+    If no path is given, we try several paths:
+    both checkouts.cfg and mxdev.ini.
+    """
+    if path:
+        paths = [path]
     else:
-        checkouts = CheckoutsFile(path)
-    if package_name not in checkouts:
-        print(f"No, your package {package_name} is NOT on auto checkout.")
-        sys.exit(1)
-    print(f"YES, your package {package_name} is on auto checkout.")
+        paths = glob.glob("mxdev.ini") + glob.glob("checkouts.cfg")
+    for path in paths:
+        if path.endswith(".ini"):
+            checkouts = IniFile(path)
+        else:
+            checkouts = CheckoutsFile(path)
+        if package_name not in checkouts:
+            print(f"No, your package {package_name} is NOT on auto checkout in {path}.")
+        else:
+            print(f"YES, your package {package_name} is on auto checkout in {path}.")
 
 
-def remove_checkout(package_name, path):
-    if path.endswith(".ini"):
-        checkouts = IniFile(path)
+def remove_checkout(package_name, path=None):
+    """Remove package from auto checkouts.
+
+    If no path is given, we try several paths:
+    both checkouts.cfg and mxdev.ini.
+    """
+    if path:
+        paths = [path]
     else:
-        checkouts = CheckoutsFile(path)
-    checkouts.remove(package_name)
+        paths = glob.glob("mxdev.ini") + glob.glob("checkouts.cfg")
+    for path in paths:
+        if path.endswith(".ini"):
+            checkouts = IniFile(path)
+        else:
+            checkouts = CheckoutsFile(path)
+        checkouts.remove(package_name)
 
 
 def append_jenkins_build_number_to_package_version(jenkins_build_number):
