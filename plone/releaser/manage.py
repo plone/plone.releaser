@@ -152,6 +152,24 @@ def remove_checkout(package_name, path=None):
         checkouts.remove(package_name)
 
 
+def add_checkout(package_name, path=None):
+    """Add package to auto checkouts.
+
+    If no path is given, we try several paths:
+    both checkouts.cfg and mxdev.ini.
+    """
+    if path:
+        paths = [path]
+    else:
+        paths = glob.glob("mxdev.ini") + glob.glob("checkouts.cfg")
+    for path in paths:
+        if path.endswith(".ini"):
+            checkouts = IniFile(path)
+        else:
+            checkouts = CheckoutsFile(path)
+        checkouts.add(package_name)
+
+
 def append_jenkins_build_number_to_package_version(jenkins_build_number):
     from zest.releaser.utils import cleanup_version
     from zest.releaser.vcs import BaseVersionControl
@@ -202,6 +220,7 @@ class Manage:
                 changelog,
                 check_checkout,
                 remove_checkout,
+                add_checkout,
                 append_jenkins_build_number_to_package_version,
                 set_package_version,
                 jenkins_report,

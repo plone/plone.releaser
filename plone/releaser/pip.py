@@ -96,15 +96,16 @@ class IniFile(UserDict):
 
     @property
     def data(self):
-        checkouts = []
+        checkouts = {}
         for package in self.config.sections():
             use = to_bool(self.config[package].get("use", self.default_use))
             if use:
-                checkouts.append(package)
+                # Map from lower case to actual case, so we can find the package.
+                checkouts[package.lower()] = package
         return checkouts
 
     def __contains__(self, package_name):
-        return package_name in self.data
+        return package_name.lower() in self.data
 
     def __setitem__(self, package_name, enabled=True):
         """Enable or disable a checkout.
@@ -116,7 +117,12 @@ class IniFile(UserDict):
         But let's support the other way around as well:
         when default-use is true, we set 'use = false'.
         """
-        use = to_bool(self.config[package_name].get("use", self.default_use))
+        stored_package_name = self.data.get(package_name.lower())
+        if stored_package_name:
+            package_name = stored_package_name
+            use = to_bool(self.config[package_name].get("use", self.default_use))
+        else:
+            use = False
         if use and enabled:
             print(f"{package_name} is already used as checkout.")
             return

@@ -152,33 +152,47 @@ class CheckoutsFile(UserDict):
             config.read_file(f)
         config["buildout"]["directory"] = os.getcwd()
         checkouts = config.get("buildout", "auto-checkout")
-        checkout_list = checkouts.split("\n")
-        return checkout_list
+        # Map from lower case to actual case, so we can find the package.
+        mapping = {}
+        for package in checkouts.splitlines():
+            mapping[package.lower()] = package
+        return mapping
 
     def __contains__(self, package_name):
-        return package_name in self.data
+        return package_name.lower() in self.data
 
     def __setitem__(self, package_name, enabled=True):
         path = os.path.join(os.getcwd(), self.file_location)
         with open(path) as f:
             checkoutstxt = f.read()
-        with open(path, "w") as f:
-            if not checkoutstxt.endswith("\n"):
-                # Make sure the file ends with a newline.
-                checkoutstxt += "\n"
-            # Look for the package name on a line of its own,
-            # with likely whitespace in front.
-            reg = re.compile(rf"^[\s]*{package_name}\n", re.MULTILINE)
+        # Look for the package name on a line of its own,
+        # with likely whitespace in front.
+        # Regexp is failing we while trying to use re.IGNORECASE,
+        # so let's do it line by line.
+        # reg = re.compile(rf"^[\s]*{package_name}\n", re.MULTILINE | re.IGNORECASE)
+        lines = []
+        found = False
+        for line in checkoutstxt.splitlines():
+            if line.strip().lower() != package_name.lower():
+                lines.append(line)
+                continue
+            # We have a match.
+            if found:
+                # This is a duplicate, ignore the line.
+                continue
+            found = True
+            # Include this line only if we want it enabled.
             if enabled:
-                # We used to look for "# test-only fixes:" here,
-                # and place the checkout before it.
-                # But this text is no longer in any current checkouts.cfg.
-                if not reg.match(checkoutstxt):
-                    # It is indeed not yet in the checkouts.
-                    newCheckoutsTxt = checkoutstxt + f"    {package_name}\n"
-            else:
-                # Remove the package name
-                newCheckoutsTxt = reg.sub("", checkoutstxt)
+                lines.append(line)
+        # The only case we still need to handle, is when the package was not found
+        # and enabled=True.
+        if enabled and not found:
+            lines.append(f"    {package_name}")
+        newCheckoutsTxt = "\n".join(lines)
+        if not newCheckoutsTxt.endswith("\n"):
+            # Make sure the file ends with a newline.
+            newCheckoutsTxt += "\n"
+        with open(path, "w") as f:
             f.write(newCheckoutsTxt)
 
     def __delitem__(self, package_name):
