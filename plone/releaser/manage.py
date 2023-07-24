@@ -163,7 +163,7 @@ def append_jenkins_build_number_to_package_version(jenkins_build_number):
     return new_version
 
 
-def set_package_version(package_name, new_version, version_file_path=None):
+def set_package_version(package_name, new_version, path=None):
     """Pin package to new version in a versions file.
 
     This can also be a pip constraints file.
@@ -174,10 +174,10 @@ def set_package_version(package_name, new_version, version_file_path=None):
     If you want it really fancy you can also add identifiers,
     but that only gives valid results for pip files:
 
-    bin/manage set-package-version setuptools "65.7.0; python_version >= '3.0'" requirements.txt
+    bin/manage set-package-version setuptools "65.7.0; python_version >= '3.0'" --path requirements.txt
     """
-    if version_file_path:
-        paths = [version_file_path]
+    if path:
+        paths = [path]
     else:
         paths = glob.glob("constraints*.txt") + glob.glob("versions*.cfg")
     for path in paths:
