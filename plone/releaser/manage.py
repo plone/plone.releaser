@@ -198,7 +198,7 @@ def get_package_version(package_name, path=None):
 
     If no path is given, we try several paths.
     """
-    for constraints in _get_constraints(path=None):
+    for constraints in _get_constraints(path=path):
         if package_name not in constraints:
             print(f"{constraints.file_location}: {package_name} missing.")
             continue
@@ -221,7 +221,7 @@ def set_package_version(package_name, new_version, path=None):
 
     bin/manage set-package-version setuptools "65.7.0; python_version >= '3.0'" --path requirements.txt
     """
-    for constraints in _get_constraints(path=None):
+    for constraints in _get_constraints(path=path):
         if package_name not in constraints:
             if path is None:
                 print(f"{constraints.file_location}: {package_name} missing.")
