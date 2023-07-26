@@ -1,6 +1,7 @@
 from collections import UserDict
 from configparser import ConfigParser
 from configparser import ExtendedInterpolation
+from functools import cached_property
 
 import pathlib
 import re
@@ -19,7 +20,7 @@ class ConstraintsFile:
         self.file_location = file_location
         self.path = pathlib.Path(self.file_location).resolve()
 
-    @property
+    @cached_property
     def constraints(self):
         """Read the constraints."""
         contents = self.path.read_text()
