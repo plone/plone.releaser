@@ -18,7 +18,6 @@ from progress.bar import Bar
 import glob
 import keyring
 import time
-import sys
 
 
 # TODO
@@ -113,10 +112,10 @@ def changelog(**kwargs):
     build_unified_changelog(kwargs["start"], kwargs["end"])
 
 
-def check_checkout(package_name, path=None):
-    """Check if package is in the checkouts.
+def _get_checkouts(path=None):
+    """Get the parsed checkouts file at the given path.
 
-    If no path is given, we try several paths:
+    If no path is given, we use several paths:
     both checkouts.cfg and mxdev.ini.
     """
     if path:
@@ -128,10 +127,25 @@ def check_checkout(package_name, path=None):
             checkouts = IniFile(path)
         else:
             checkouts = CheckoutsFile(path)
+        yield checkouts
+
+
+def check_checkout(package_name, path=None):
+    """Check if package is in the checkouts.
+
+    If no path is given, we try several paths:
+    both checkouts.cfg and mxdev.ini.
+    """
+    for checkouts in _get_checkouts(path=path):
+        loc = checkouts.file_location
         if package_name not in checkouts:
-            print(f"No, your package {package_name} is NOT on auto checkout in {path}.")
+            print(
+                f"No, your package {package_name} is NOT on auto checkout in {loc}."
+            )
         else:
-            print(f"YES, your package {package_name} is on auto checkout in {path}.")
+            print(
+                f"YES, your package {package_name} is on auto checkout in {loc}."
+            )
 
 
 def remove_checkout(package_name, path=None):
@@ -140,15 +154,7 @@ def remove_checkout(package_name, path=None):
     If no path is given, we try several paths:
     both checkouts.cfg and mxdev.ini.
     """
-    if path:
-        paths = [path]
-    else:
-        paths = glob.glob("mxdev.ini") + glob.glob("checkouts.cfg")
-    for path in paths:
-        if path.endswith(".ini"):
-            checkouts = IniFile(path)
-        else:
-            checkouts = CheckoutsFile(path)
+    for checkouts in _get_checkouts(path=path):
         checkouts.remove(package_name)
 
 
@@ -158,15 +164,7 @@ def add_checkout(package_name, path=None):
     If no path is given, we try several paths:
     both checkouts.cfg and mxdev.ini.
     """
-    if path:
-        paths = [path]
-    else:
-        paths = glob.glob("mxdev.ini") + glob.glob("checkouts.cfg")
-    for path in paths:
-        if path.endswith(".ini"):
-            checkouts = IniFile(path)
-        else:
-            checkouts = CheckoutsFile(path)
+    for checkouts in _get_checkouts(path=path):
         checkouts.add(package_name)
 
 
