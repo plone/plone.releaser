@@ -184,10 +184,16 @@ class CheckoutsFile(UserDict):
             # Include this line only if we want it enabled.
             if enabled:
                 lines.append(line)
-        # The only case we still need to handle, is when the package was not found
-        # and enabled=True.
-        if enabled and not found:
-            lines.append(f"    {package_name}")
+                print(f"{self.file_location}: {package_name} already in checkouts.")
+            else:
+                print(f"{self.file_location}: {package_name} removed from checkouts.")
+        if not found:
+            if enabled:
+                lines.append(f"    {package_name}")
+                print(f"{self.file_location}: {package_name} added to checkouts.")
+            else:
+                print(f"{self.file_location}: {package_name} not in checkouts.")
+
         newCheckoutsTxt = "\n".join(lines)
         if not newCheckoutsTxt.endswith("\n"):
             # Make sure the file ends with a newline.

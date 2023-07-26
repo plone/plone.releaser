@@ -83,6 +83,7 @@ class IniFile(UserDict):
     For mxdev: set 'use = false'.
     The default is in 'settings': 'default-use'.
     """
+
     def __init__(self, file_location):
         self.file_location = file_location
         self.path = pathlib.Path(self.file_location).resolve()
@@ -124,10 +125,10 @@ class IniFile(UserDict):
         else:
             use = False
         if use and enabled:
-            print(f"{package_name} is already used as checkout.")
+            print(f"{self.file_location}: {package_name} already in checkouts.")
             return
         if not use and not enabled:
-            print(f"{package_name} is not used as checkout.")
+            print(f"{self.file_location}: {package_name} not in checkouts.")
             return
 
         contents = self.path.read_text()
@@ -150,12 +151,18 @@ class IniFile(UserDict):
                 continue
             if line == "" or line.startswith("["):
                 # A new section is starting.
-                if self.default_use and not enabled:
-                    # We need to explicitly disable it.
-                    lines.append("use = false")
-                elif not self.default_use and enabled:
-                    # We need to explicitly enable it.
-                    lines.append("use = true")
+                if not enabled:
+                    if self.default_use:
+                        # We need to explicitly disable it.
+                        lines.append("use = false")
+                    print(
+                        f"{self.file_location}: {package_name} removed from checkouts."
+                    )
+                else:
+                    if not self.default_use:
+                        # We need to explicitly enable it.
+                        lines.append("use = true")
+                    print(f"{self.file_location}: {package_name} added to checkouts.")
                 # We are done with the section for this package name.
                 found_package = False
                 # We still need to append the original line.
