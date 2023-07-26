@@ -178,14 +178,10 @@ def check_pypi_access(data):
     env_var = "PLONE_RELEASER_CHECK_PYPI_ACCESS"
     try:
         if int(os.getenv(env_var, 1)) == 0:
-            print(
-                f"{env_var} variable set to zero: not checking pypi release rights."
-            )
+            print(f"{env_var} variable set to zero: not checking pypi release rights.")
             return
     except (TypeError, ValueError, AttributeError):
-        print(
-            f"ERROR: could not parse {env_var} env var. Ignoring it."
-        )
+        print(f"ERROR: could not parse {env_var} env var. Ignoring it.")
 
     section = os.getenv("TWINE_REPOSITORY", "pypi")
     pypi_user = pypi.PypiConfig().config.get(section, "username")

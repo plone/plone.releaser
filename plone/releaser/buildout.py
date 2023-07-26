@@ -3,6 +3,7 @@ from collections import UserDict
 from configparser import ConfigParser
 from configparser import ExtendedInterpolation
 
+import pathlib
 import os
 import re
 
@@ -49,6 +50,7 @@ class Source:
 class VersionsFile:
     def __init__(self, file_location):
         self.file_location = file_location
+        self.path = pathlib.Path(self.file_location).resolve()
 
     @property
     def versions(self):
@@ -84,21 +86,28 @@ class VersionsFile:
         raise KeyError
 
     def __setitem__(self, package_name, new_version):
-        path = os.path.join(os.getcwd(), self.file_location)
-        with open(path) as f:
-            versionstxt = f.read()
+        versionstxt = self.path.read_text()
+        if not versionstxt.endswith("\n"):
+            versionstxt += "\n"
+            self.path.write_text(versionstxt)
 
+        newline = f"{package_name} = {new_version}"
         if package_name not in self:
-            newline = f"{package_name} = {new_version}"
             versionstxt += newline
+            print(f"{self.file_location}: '{newline}' added.")
+            self.path.write_text(versionstxt)
+            return
 
         reg = re.compile(
             rf"(^{package_name}[\s\=]+)[0-9\.abrc]+(.post\d+)?(.dev\d+)?",
             re.MULTILINE,
         )
         newVersionsTxt = reg.sub(rf"\g<1>{new_version}", versionstxt)
-        with open(path, "w") as f:
-            f.write(newVersionsTxt)
+        if versionstxt != newVersionsTxt:
+            print(f"{self.file_location}: have set '{newline}'.")
+            self.path.write_text(newVersionsTxt)
+            return
+        print(f"{self.file_location}: '{newline}' already there.")
 
     def get(self, package_name):
         return self.__getitem__(package_name)
@@ -110,6 +119,7 @@ class VersionsFile:
 class SourcesFile(UserDict):
     def __init__(self, file_location):
         self.file_location = file_location
+        self.path = pathlib.Path(self.file_location).resolve()
 
     @property
     def data(self):
@@ -144,6 +154,7 @@ class SourcesFile(UserDict):
 class CheckoutsFile(UserDict):
     def __init__(self, file_location):
         self.file_location = file_location
+        self.path = pathlib.Path(self.file_location).resolve()
 
     @property
     def data(self):
@@ -162,9 +173,12 @@ class CheckoutsFile(UserDict):
         return package_name.lower() in self.data
 
     def __setitem__(self, package_name, enabled=True):
-        path = os.path.join(os.getcwd(), self.file_location)
-        with open(path) as f:
-            checkoutstxt = f.read()
+        checkoutstxt = self.path.read_text()
+        if not checkoutstxt.endswith("\n"):
+            # Make sure the file ends with a newline.
+            checkoutstxt += "\n"
+            self.path.write_text(checkoutstxt)
+
         # Look for the package name on a line of its own,
         # with likely whitespace in front.
         # Regexp is failing we while trying to use re.IGNORECASE,
@@ -194,12 +208,9 @@ class CheckoutsFile(UserDict):
             else:
                 print(f"{self.file_location}: {package_name} not in checkouts.")
 
-        newCheckoutsTxt = "\n".join(lines)
-        if not newCheckoutsTxt.endswith("\n"):
-            # Make sure the file ends with a newline.
-            newCheckoutsTxt += "\n"
-        with open(path, "w") as f:
-            f.write(newCheckoutsTxt)
+        newCheckoutsTxt = "\n".join(lines) + "\n"
+        if checkoutstxt != newCheckoutsTxt:
+            self.path.write_text(newCheckoutsTxt)
 
     def __delitem__(self, package_name):
         return self.__setitem__(package_name, False)

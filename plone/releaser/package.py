@@ -50,7 +50,6 @@ def buildout_coredev():
 
 
 class Package:
-
     # A reference to an plone.releaser.buildout.Buildout instance
     buildout = None
 

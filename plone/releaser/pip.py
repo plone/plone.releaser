@@ -53,17 +53,25 @@ class ConstraintsFile:
         contents = self.path.read_text()
         if not contents.endswith("\n"):
             contents += "\n"
+            self.path.write_text(contents)
 
         newline = f"{package_name}=={new_version}"
         if package_name not in self:
             contents += newline + "\n"
+            print(f"{self.file_location}: '{newline}' added.")
+            self.path.write_text(contents)
+            return
 
         reg = re.compile(
             rf"^{package_name} ?==.*$",
             re.MULTILINE,
         )
         new_contents = reg.sub(newline, contents)
-        self.path.write_text(new_contents)
+        if contents != new_contents:
+            print(f"{self.file_location}: have set '{newline}'.")
+            self.path.write_text(new_contents)
+            return
+        print(f"{self.file_location}: '{newline}' already there.")
 
     def get(self, package_name):
         return self.__getitem__(package_name)
@@ -131,6 +139,7 @@ class IniFile(UserDict):
         contents = self.path.read_text()
         if not contents.endswith("\n"):
             contents += "\n"
+            self.path.write_text(contents)
 
         lines = []
         found_package = False

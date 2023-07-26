@@ -139,13 +139,9 @@ def check_checkout(package_name, path=None):
     for checkouts in _get_checkouts(path=path):
         loc = checkouts.file_location
         if package_name not in checkouts:
-            print(
-                f"No, your package {package_name} is NOT on auto checkout in {loc}."
-            )
+            print(f"No, your package {package_name} is NOT on auto checkout in {loc}.")
         else:
-            print(
-                f"YES, your package {package_name} is on auto checkout in {loc}."
-            )
+            print(f"YES, your package {package_name} is on auto checkout in {loc}.")
 
 
 def remove_checkout(package_name, path=None):
@@ -179,18 +175,11 @@ def append_jenkins_build_number_to_package_version(jenkins_build_number):
     return new_version
 
 
-def set_package_version(package_name, new_version, path=None):
-    """Pin package to new version in a versions file.
+def _get_constraints(path=None):
+    """Get the parsed constraints/versions file at the given path.
 
-    This can also be a pip constraints file.
-    If the package is not pinned yet, we add it.
-
-    If no path is given, we try several paths and set the version in all of them.
-
-    If you want it really fancy you can also add identifiers,
-    but that only gives valid results for pip files:
-
-    bin/manage set-package-version setuptools "65.7.0; python_version >= '3.0'" --path requirements.txt
+    If no path is given, we use several paths:
+    constraints*.txt and versions*.cfg.
     """
     if path:
         paths = [path]
@@ -198,12 +187,50 @@ def set_package_version(package_name, new_version, path=None):
         paths = glob.glob("constraints*.txt") + glob.glob("versions*.cfg")
     for path in paths:
         if path.endswith(".txt"):
-            versions = ConstraintsFile(path)
+            constraints = ConstraintsFile(path)
         else:
-            versions = VersionsFile(path)
-        if package_name in versions:
-            print(f"Updating {path}")
-            versions.set(package_name, new_version)
+            constraints = VersionsFile(path)
+        yield constraints
+
+
+def get_package_version(package_name, path=None):
+    """Get package version fron constraints/versions file.
+
+    If no path is given, we try several paths.
+    """
+    for constraints in _get_constraints(path=None):
+        if package_name not in constraints:
+            print(f"{constraints.file_location}: {package_name} missing.")
+            continue
+        version = constraints.get(package_name)
+        print(f"{constraints.file_location}: {package_name} {version}.")
+
+
+def set_package_version(package_name, new_version, path=None):
+    """Pin package to new version in a versions file.
+
+    This can also be a pip constraints file.
+    If the package is not pinned yet, we add it.
+
+    If no path is given, we try several paths and set the version in all of them,
+    bu only if the package is already there: we do not want to add one package
+    in three versions*.cfg files.
+
+    If you want it really fancy you can also add identifiers,
+    but that only gives valid results for pip files:
+
+    bin/manage set-package-version setuptools "65.7.0; python_version >= '3.0'" --path requirements.txt
+    """
+    for constraints in _get_constraints(path=None):
+        if package_name not in constraints:
+            if path is None:
+                print(f"{constraints.file_location}: {package_name} missing.")
+                continue
+            print(
+                f"{constraints.file_location}: {package_name} not pinned yet. "
+                f"Adding pin because you explicitly gave the path."
+            )
+        constraints.set(package_name, new_version)
 
 
 class Manage:
@@ -221,6 +248,7 @@ class Manage:
                 add_checkout,
                 append_jenkins_build_number_to_package_version,
                 set_package_version,
+                get_package_version,
                 jenkins_report,
             ]
         )
