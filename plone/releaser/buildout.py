@@ -13,6 +13,65 @@ PATH_RE = re.compile(
 )
 
 
+def update_contents(contents, line_check, newline, filename, stop_check=None):
+    """Update contents to have a new line if needed.
+
+    * contents is some file contents
+    * line_check is a function we call to check if a line matches.
+    * newline is the line with which we replace the matched line.
+      This can be None to signal that the old line should be removed
+    * filename is used for reporting.
+    * stop_check is an optional function we call to check if we should stop
+      trying to match.
+
+    Returns the new contents.
+    """
+    lines = []
+    found = False
+    content_lines = contents.splitlines()
+    while content_lines:
+        line = content_lines.pop(0)
+        line = line.rstrip()
+        if stop_check is not None and stop_check(line):
+            # Put this line back.  We will handle this line and the other
+            # remaining lines outside of this loop.
+            content_lines.insert(0, line)
+            break
+        if not line_check(line):
+            lines.append(line)
+            continue
+        # We have a match.
+        if found:
+            # This is a duplicate, ignore the line.
+            continue
+        found = True
+        # Include this line only if we want it enabled.
+        if newline is None:
+            print(f"{filename}: '{line}' removed.")
+        elif line == newline:
+            lines.append(line)
+            print(f"{filename}: '{newline}' already there.")
+        else:
+            lines.append(newline)
+            print(f"{filename}: have set '{newline}'.")
+
+    if not found:
+        if newline is None:
+            print(f"{filename}: line not found.")
+        else:
+            if not lines[-1]:
+                # Insert before this last empty line.
+                lines.insert(-1, newline)
+            else:
+                lines.append(newline)
+            print(f"{filename}: '{newline}' added.")
+
+    if content_lines:
+        lines.extend(content_lines)
+
+    return "\n".join(lines) + "\n"
+
+
 class Source:
     def __init__(self, protocol=None, url=None, push_url=None, branch=None):
         self.protocol = protocol
@@ -86,28 +145,36 @@ class VersionsFile:
         raise KeyError
 
     def __setitem__(self, package_name, new_version):
-        versionstxt = self.path.read_text()
-        if not versionstxt.endswith("\n"):
-            versionstxt += "\n"
-            self.path.write_text(versionstxt)
+        contents = self.path.read_text()
+        if not contents.endswith("\n"):
+            # Make sure the file ends with a newline.
+            contents += "\n"
+            self.path.write_text(contents)
 
         newline = f"{package_name} = {new_version}"
-        if package_name not in self:
-            versionstxt += newline
-            print(f"{self.file_location}: '{newline}' added.")
-            self.path.write_text(versionstxt)
-            return
+        # if package_name not in self:
+        #     contents += newline + "\n"
+        #     print(f"{self.file_location}: '{newline}' added.")
+        #     self.path.write_text(contents)
+        #     return
 
-        reg = re.compile(
-            rf"(^{package_name}[\s\=]+)[0-9\.abrc]+(.post\d+)?(.dev\d+)?",
-            re.MULTILINE,
+        line_reg = re.compile(rf"^{package_name.lower()} *=.*")
+
+        def line_check(line):
+            # Look for the 'package name = version' on a line of its own,
+            # no whitespace in front.  Maybe whitespace in between.
+            return line_reg.match(line)
+
+        def stop_check(line):
+            # If we see this line, we should stop trying to match.
+            return line.startswith("[versionannotations]") or line.startswith("[versions:")
+
+        # set version in contents.
+        new_contents = update_contents(
+            contents, line_check, newline, self.file_location, stop_check=stop_check
         )
-        newVersionsTxt = reg.sub(rf"\g<1>{new_version}", versionstxt)
-        if versionstxt != newVersionsTxt:
-            print(f"{self.file_location}: have set '{newline}'.")
-            self.path.write_text(newVersionsTxt)
-            return
-        print(f"{self.file_location}: '{newline}' already there.")
+        if contents != new_contents:
+            self.path.write_text(new_contents)
 
     def get(self, package_name):
         return self.__getitem__(package_name)
@@ -173,44 +240,24 @@ class CheckoutsFile(UserDict):
         return package_name.lower() in self.data
 
     def __setitem__(self, package_name, enabled=True):
-        checkoutstxt = self.path.read_text()
-        if not checkoutstxt.endswith("\n"):
+        contents = self.path.read_text()
+        if not contents.endswith("\n"):
             # Make sure the file ends with a newline.
-            checkoutstxt += "\n"
-            self.path.write_text(checkoutstxt)
+            contents += "\n"
+            self.path.write_text(contents)
 
-        # Look for the package name on a line of its own,
-        # with likely whitespace in front.
-        # Regexp is failing we while trying to use re.IGNORECASE,
-        # so let's do it line by line.
-        # reg = re.compile(rf"^[\s]*{package_name}\n", re.MULTILINE | re.IGNORECASE)
-        lines = []
-        found = False
-        for line in checkoutstxt.splitlines():
-            if line.strip().lower() != package_name.lower():
-                lines.append(line)
-                continue
-            # We have a match.
-            if found:
-                # This is a duplicate, ignore the line.
-                continue
-            found = True
-            # Include this line only if we want it enabled.
-            if enabled:
-                lines.append(line)
-                print(f"{self.file_location}: {package_name} already in checkouts.")
-            else:
-                print(f"{self.file_location}: {package_name} removed from checkouts.")
-        if not found:
-            if enabled:
-                lines.append(f"    {package_name}")
-                print(f"{self.file_location}: {package_name} added to checkouts.")
-            else:
-                print(f"{self.file_location}: {package_name} not in checkouts.")
+        def line_check(line):
+            # Look for the package name on a line of its own,
+            # with likely whitespace in front.
+            return line.strip().lower() == package_name.lower()
 
-        newCheckoutsTxt = "\n".join(lines) + "\n"
-        if checkoutstxt != newCheckoutsTxt:
-            self.path.write_text(newCheckoutsTxt)
+        # add or remove the package name from the contents.
+        newline = f"    {package_name}" if enabled else None
+        new_contents = update_contents(
+            contents, line_check, newline, self.file_location
+        )
+        if contents != new_contents:
+            self.path.write_text(new_contents)
 
     def __delitem__(self, package_name):
         return self.__setitem__(package_name, False)
