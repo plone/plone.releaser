@@ -54,11 +54,7 @@ class ConstraintsFile:
         if not contents.endswith("\n"):
             contents += "\n"
 
-        # Should we use '==' or ' == '?  Use spaces when more than half already
-        # uses them.
         newline = f"{package_name}=={new_version}"
-        if contents.count(" == ") > contents.count("==") / 2:
-            newline = newline.replace("==", " == ")
         if package_name not in self:
             contents += newline + "\n"
 
