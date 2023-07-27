@@ -114,8 +114,10 @@ class VersionsFile:
         if contents != new_contents:
             self.path.write_text(new_contents)
 
-    def get(self, package_name):
-        return self.__getitem__(package_name)
+    def get(self, package_name, default=None):
+        if package_name in self:
+            return self.__getitem__(package_name)
+        return default
 
     def set(self, package_name, new_version):
         return self.__setitem__(package_name, new_version)
