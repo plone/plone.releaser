@@ -194,7 +194,7 @@ def _get_constraints(path=None):
 
 
 def get_package_version(package_name, path=None):
-    """Get package version fron constraints/versions file.
+    """Get package version from constraints/versions file.
 
     If no path is given, we try several paths.
     """
@@ -213,7 +213,7 @@ def set_package_version(package_name, new_version, path=None):
     If the package is not pinned yet, we add it.
 
     If no path is given, we try several paths and set the version in all of them,
-    bu only if the package is already there: we do not want to add one package
+    but only if the package is already there: we do not want to add one package
     in three versions*.cfg files.
 
     If you want it really fancy you can also add identifiers,

@@ -4,8 +4,8 @@ from collections import UserDict
 from configparser import ConfigParser
 from configparser import ExtendedInterpolation
 
-import pathlib
 import os
+import pathlib
 import re
 
 

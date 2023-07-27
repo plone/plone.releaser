@@ -2,5 +2,7 @@ include *.py
 include *.rst
 include buildout.cfg
 include pyproject.toml
+graft plone
 recursive-exclude news *
 exclude news
+global-exclude *.pyc
