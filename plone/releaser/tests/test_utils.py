@@ -17,22 +17,26 @@ def test_update_contents_newline_at_end():
     assert update_contents("", lambda x: True, "", "") == "\n"
 
 
-def test_update_contents_versions_match():
+def test_update_contents_versions_match(capsys):
     def line_check(line):
         return line.startswith("package =")
 
-    result = update_contents(VERSIONS, line_check, "package = 2.0", "")
+    result = update_contents(VERSIONS, line_check, "package = 2.0", "file")
     assert "package = 2.0" in result
     assert "package = 1.0" not in result
+    captured = capsys.readouterr()
+    assert captured.out.strip() == "file: have set 'package = 2.0'."
 
 
-def test_update_contents_versions_add_at_end():
+def test_update_contents_versions_add_at_end(capsys):
     def line_check(line):
         return line.startswith("new =")
 
-    result = update_contents(VERSIONS, line_check, "new = 2.0", "")
+    result = update_contents(VERSIONS, line_check, "new = 2.0", "file")
     assert "new = 2.0" in result
     assert "new = 2.0" == result.splitlines()[-1]
+    captured = capsys.readouterr()
+    assert captured.out.strip() == "file: 'new = 2.0' added."
 
 
 def test_update_contents_versions_add_before_markers():
