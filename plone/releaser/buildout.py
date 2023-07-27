@@ -94,12 +94,6 @@ class VersionsFile:
             self.path.write_text(contents)
 
         newline = f"{package_name} = {new_version}"
-        # if package_name not in self:
-        #     contents += newline + "\n"
-        #     print(f"{self.file_location}: '{newline}' added.")
-        #     self.path.write_text(contents)
-        #     return
-
         line_reg = re.compile(rf"^{package_name.lower()} *=.*")
 
         def line_check(line):

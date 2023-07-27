@@ -1,3 +1,4 @@
+from .utils import update_contents
 from collections import UserDict
 from configparser import ConfigParser
 from configparser import ExtendedInterpolation
@@ -56,22 +57,19 @@ class ConstraintsFile:
             self.path.write_text(contents)
 
         newline = f"{package_name}=={new_version}"
-        if package_name not in self:
-            contents += newline + "\n"
-            print(f"{self.file_location}: '{newline}' added.")
-            self.path.write_text(contents)
-            return
+        line_reg = re.compile(rf"^{package_name.lower()}==.*")
 
-        reg = re.compile(
-            rf"^{package_name} ?==.*$",
-            re.MULTILINE,
+        def line_check(line):
+            # Look for 'package name==version' on a line of its own,
+            # no whitespace in front.
+            return line_reg.match(line)
+
+        # set version in contents.
+        new_contents = update_contents(
+            contents, line_check, newline, self.file_location
         )
-        new_contents = reg.sub(newline, contents)
         if contents != new_contents:
-            print(f"{self.file_location}: have set '{newline}'.")
             self.path.write_text(new_contents)
-            return
-        print(f"{self.file_location}: '{newline}' already there.")
 
     def get(self, package_name):
         return self.__getitem__(package_name)
