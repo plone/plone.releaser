@@ -2,6 +2,7 @@ from plone.releaser.buildout import VersionsFile
 
 import pathlib
 import pytest
+import shutil
 
 
 TESTS_DIR = pathlib.Path(__file__).parent
@@ -59,3 +60,14 @@ def test_versions_file_get():
     assert vf["uppercase"] == "1.0"
     assert vf["UpperCase"] == "1.0"
     assert vf["UPPERCASE"] == "1.0"
+
+
+def test_versions_file_set(tmp_path):
+    # When we set a version, the file changes, so we work on a copy.
+    shutil.copyfile(VERSIONS_FILE, tmp_path / "versions.cfg")
+    vf = VersionsFile(tmp_path / "versions.cfg")
+    assert vf.get("package") == "1.0"
+    vf.set("package", "2.0")
+    assert vf.get("package") == "2.0"
+    vf["package"] = "3.0"
+    assert vf.get("package") == "3.0"
