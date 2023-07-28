@@ -90,3 +90,17 @@ def test_versions_file_set_ignore_markers(tmp_path):
     vf = VersionsFile(copy_path)
     assert vf.get("package") == "1.1"
     assert "pyspecific = 2.0" in copy_path.read_text()
+
+
+def test_versions_file_set_cleanup_duplicates(tmp_path):
+    copy_path = tmp_path / "versions.cfg"
+    shutil.copyfile(VERSIONS_FILE, copy_path)
+    assert copy_path.read_text().count("duplicate = 1.0") == 2
+    vf = VersionsFile(copy_path)
+    assert vf.get("duplicate") == "1.0"
+    vf.set("duplicate", "2.0")
+    # Let's read it fresh, for good measure.
+    vf = VersionsFile(copy_path)
+    assert vf.get("duplicate") == "2.0"
+    assert copy_path.read_text().count("duplicate = 2.0") == 1
+    assert copy_path.read_text().count("duplicate = 1.0") == 0
