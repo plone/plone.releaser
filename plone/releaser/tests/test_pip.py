@@ -78,8 +78,8 @@ def test_constraints_file_set_normal(tmp_path):
 
 
 def test_constraints_file_set_ignore_markers(tmp_path):
-    # [constraints:python312] pins 'pyspecific = 2.0'.
-    # We do not report or change this section.
+    # pyspecific==2.0; python_version=="3.12"
+    # version pins that have a specific `python_version` are not changed.
     copy_path = tmp_path / "constraints.txt"
     shutil.copyfile(CONSTRAINTS_FILE, copy_path)
     cf = ConstraintsFile(copy_path)
