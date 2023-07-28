@@ -197,6 +197,24 @@ def get_package_version(package_name, path=None):
     """Get package version from constraints/versions file.
 
     If no path is given, we try several paths.
+
+    Note that versions with environment markers are ignored.
+    See https://peps.python.org/pep-0496/ explaining them.
+    The 99.99 percent use case of this part of plone.releaser is to get or set
+    versions for a Plone package, and after abandoning Python 2 we are unlikely
+    to need different versions of our core packages for different environments.
+
+    So in all the following cases, package version 1.0 is reported:
+
+    package==1.0
+    package==2.0; python_version=="3.11"
+
+    [versions]
+    package = 1.0
+    [versions:python311]
+    package = 2.0
+    [versions:python_version=="3.12"]
+    package = 3.0
     """
     for constraints in _get_constraints(path=path):
         if package_name not in constraints:
@@ -216,10 +234,8 @@ def set_package_version(package_name, new_version, path=None):
     but only if the package is already there: we do not want to add one package
     in three versions*.cfg files.
 
-    If you want it really fancy you can also add identifiers,
-    but that only gives valid results for pip files:
-
-    bin/manage set-package-version setuptools "65.7.0; python_version >= '3.0'" --path requirements.txt
+    If you want to add environment markers, like "python_version >= '3.0'",
+    please just edit the files yourself.
     """
     for constraints in _get_constraints(path=path):
         if package_name not in constraints:
