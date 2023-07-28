@@ -47,7 +47,8 @@ class ConstraintsFile:
                 if constraints[package] != version:
                     print(
                         f"ERROR: {package} is in {self.file_location} with two "
-                        f"constraints: '{contraints[package]}' and '{version}'.")
+                        f"constraints: '{constraints[package]}' and '{version}'."
+                    )
                 continue
             constraints[package] = version
         return constraints
