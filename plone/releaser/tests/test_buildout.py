@@ -62,12 +62,16 @@ def test_versions_file_get():
     assert vf["UPPERCASE"] == "1.0"
 
 
-def test_versions_file_set(tmp_path):
+def test_versions_file_set_normal(tmp_path):
     # When we set a version, the file changes, so we work on a copy.
-    shutil.copyfile(VERSIONS_FILE, tmp_path / "versions.cfg")
-    vf = VersionsFile(tmp_path / "versions.cfg")
+    copy_path = tmp_path / "versions.cfg"
+    shutil.copyfile(VERSIONS_FILE, copy_path)
+    vf = VersionsFile(copy_path)
     assert vf.get("package") == "1.0"
     vf.set("package", "2.0")
+    # Let's read it fresh, for good measure.
+    vf = VersionsFile(copy_path)
     assert vf.get("package") == "2.0"
     vf["package"] = "3.0"
+    vf = VersionsFile(copy_path)
     assert vf.get("package") == "3.0"
