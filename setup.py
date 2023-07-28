@@ -47,6 +47,9 @@ setup(
         "zestreleaser.towncrier>=1.3.0",
         "docutils",
     ],
+    extras_requires={
+        "test": ["pytest"],
+    },
     entry_points={
         "console_scripts": ["manage = plone.releaser.manage:manage"],
         "zest.releaser.prereleaser.before": [

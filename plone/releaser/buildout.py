@@ -1,9 +1,11 @@
+from .utils import update_contents
 from collections import OrderedDict
 from collections import UserDict
 from configparser import ConfigParser
 from configparser import ExtendedInterpolation
 
 import os
+import pathlib
 import re
 
 
@@ -49,6 +51,7 @@ class Source:
 class VersionsFile:
     def __init__(self, file_location):
         self.file_location = file_location
+        self.path = pathlib.Path(self.file_location).resolve()
 
     @property
     def versions(self):
@@ -57,18 +60,27 @@ class VersionsFile:
         We use strict=False to avoid a DuplicateOptionError.
         This happens in coredev 4.3 because we pin 'babel' and 'Babel'.
 
-        We need to combine all versions sections, like these:
+        We used to combine all versions sections, like these:
         ['versions', 'versions:python27']
+        That fixed https://github.com/plone/plone.releaser/issues/24
+        and was needed when we had packages like Archetypes which were only for
+        Python 2.  With Plone 6 I don't think we will need this.  We can still
+        have Python-version-specific sections, but that would be for external
+        packages.  I don't think we will be releasing Plone packages that are
+        for specific Python versions.  Or if we do, it would be overkill for
+        plone.releaser to support such a corner case.
 
+        So we do not want to report or edit anything except the versions section.
         """
         config = ConfigParser(interpolation=ExtendedInterpolation(), strict=False)
         with open(self.file_location) as f:
             config.read_file(f)
         # https://github.com/plone/plone.releaser/issues/42
-        config["buildout"]["directory"] = os.getcwd()
+        if config.has_section("buildout"):
+            config["buildout"]["directory"] = os.getcwd()
         versions = {}
         for section in config.sections():
-            if "versions" in section.split(":"):
+            if section == "versions":
                 for package, version in config[section].items():
                     # Note: the package names are lower case.
                     versions[package] = version
@@ -83,24 +95,37 @@ class VersionsFile:
         raise KeyError
 
     def __setitem__(self, package_name, new_version):
-        path = os.path.join(os.getcwd(), self.file_location)
-        with open(path) as f:
-            versionstxt = f.read()
+        contents = self.path.read_text()
+        if not contents.endswith("\n"):
+            # Make sure the file ends with a newline.
+            contents += "\n"
+            self.path.write_text(contents)
 
-        if package_name not in self:
-            newline = f"{package_name} = {new_version}"
-            versionstxt += newline
+        newline = f"{package_name} = {new_version}"
+        line_reg = re.compile(rf"^{package_name.lower()} *=.*")
 
-        reg = re.compile(
-            rf"(^{package_name}[\s\=]+)[0-9\.abrc]+(.post\d+)?(.dev\d+)?",
-            re.MULTILINE,
+        def line_check(line):
+            # Look for the 'package name = version' on a line of its own,
+            # no whitespace in front.  Maybe whitespace in between.
+            return line_reg.match(line)
+
+        def stop_check(line):
+            # If we see this line, we should stop trying to match.
+            return line.startswith("[versionannotations]") or line.startswith(
+                "[versions:"
+            )
+
+        # set version in contents.
+        new_contents = update_contents(
+            contents, line_check, newline, self.file_location, stop_check=stop_check
         )
-        newVersionsTxt = reg.sub(rf"\g<1>{new_version}", versionstxt)
-        with open(path, "w") as f:
-            f.write(newVersionsTxt)
+        if contents != new_contents:
+            self.path.write_text(new_contents)
 
-    def get(self, package_name):
-        return self.__getitem__(package_name)
+    def get(self, package_name, default=None):
+        if package_name in self:
+            return self.__getitem__(package_name)
+        return default
 
     def set(self, package_name, new_version):
         return self.__setitem__(package_name, new_version)
@@ -109,6 +134,7 @@ class VersionsFile:
 class SourcesFile(UserDict):
     def __init__(self, file_location):
         self.file_location = file_location
+        self.path = pathlib.Path(self.file_location).resolve()
 
     @property
     def data(self):
@@ -143,6 +169,7 @@ class SourcesFile(UserDict):
 class CheckoutsFile(UserDict):
     def __init__(self, file_location):
         self.file_location = file_location
+        self.path = pathlib.Path(self.file_location).resolve()
 
     @property
     def data(self):
@@ -151,34 +178,34 @@ class CheckoutsFile(UserDict):
             config.read_file(f)
         config["buildout"]["directory"] = os.getcwd()
         checkouts = config.get("buildout", "auto-checkout")
-        checkout_list = checkouts.split("\n")
-        return checkout_list
+        # Map from lower case to actual case, so we can find the package.
+        mapping = {}
+        for package in checkouts.splitlines():
+            mapping[package.lower()] = package
+        return mapping
 
     def __contains__(self, package_name):
-        return package_name in self.data
+        return package_name.lower() in self.data
 
     def __setitem__(self, package_name, enabled=True):
-        path = os.path.join(os.getcwd(), self.file_location)
-        with open(path) as f:
-            checkoutstxt = f.read()
-        with open(path, "w") as f:
-            if not checkoutstxt.endswith("\n"):
-                # Make sure the file ends with a newline.
-                checkoutstxt += "\n"
+        contents = self.path.read_text()
+        if not contents.endswith("\n"):
+            # Make sure the file ends with a newline.
+            contents += "\n"
+            self.path.write_text(contents)
+
+        def line_check(line):
             # Look for the package name on a line of its own,
             # with likely whitespace in front.
-            reg = re.compile(rf"^[\s]*{package_name}\n", re.MULTILINE)
-            if enabled:
-                # We used to look for "# test-only fixes:" here,
-                # and place the checkout before it.
-                # But this text is no longer in any current checkouts.cfg.
-                if not reg.match(checkoutstxt):
-                    # It is indeed not yet in the checkouts.
-                    newCheckoutsTxt = checkoutstxt + f"    {package_name}\n"
-            else:
-                # Remove the package name
-                newCheckoutsTxt = reg.sub("", checkoutstxt)
-            f.write(newCheckoutsTxt)
+            return line.strip().lower() == package_name.lower()
+
+        # add or remove the package name from the contents.
+        newline = f"    {package_name}" if enabled else None
+        new_contents = update_contents(
+            contents, line_check, newline, self.file_location
+        )
+        if contents != new_contents:
+            self.path.write_text(new_contents)
 
     def __delitem__(self, package_name):
         return self.__setitem__(package_name, False)

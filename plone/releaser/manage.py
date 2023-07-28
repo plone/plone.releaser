@@ -11,8 +11,11 @@ from plone.releaser.buildout import Buildout
 from plone.releaser.buildout import CheckoutsFile
 from plone.releaser.buildout import VersionsFile
 from plone.releaser.package import Package
+from plone.releaser.pip import ConstraintsFile
+from plone.releaser.pip import IniFile
 from progress.bar import Bar
 
+import glob
 import keyring
 import time
 
@@ -109,10 +112,56 @@ def changelog(**kwargs):
     build_unified_changelog(kwargs["start"], kwargs["end"])
 
 
-def check_checkout(package_name, path):
-    if package_name not in CheckoutsFile(path):
-        msg = "Your package {0} is not on auto-checkout section"
-        raise KeyError(msg.format(package_name))
+def _get_checkouts(path=None):
+    """Get the parsed checkouts file at the given path.
+
+    If no path is given, we use several paths:
+    both checkouts.cfg and mxdev.ini.
+    """
+    if path:
+        paths = [path]
+    else:
+        paths = glob.glob("mxdev.ini") + glob.glob("checkouts.cfg")
+    for path in paths:
+        if path.endswith(".ini"):
+            checkouts = IniFile(path)
+        else:
+            checkouts = CheckoutsFile(path)
+        yield checkouts
+
+
+def check_checkout(package_name, path=None):
+    """Check if package is in the checkouts.
+
+    If no path is given, we try several paths:
+    both checkouts.cfg and mxdev.ini.
+    """
+    for checkouts in _get_checkouts(path=path):
+        loc = checkouts.file_location
+        if package_name not in checkouts:
+            print(f"No, your package {package_name} is NOT on auto checkout in {loc}.")
+        else:
+            print(f"YES, your package {package_name} is on auto checkout in {loc}.")
+
+
+def remove_checkout(package_name, path=None):
+    """Remove package from auto checkouts.
+
+    If no path is given, we try several paths:
+    both checkouts.cfg and mxdev.ini.
+    """
+    for checkouts in _get_checkouts(path=path):
+        checkouts.remove(package_name)
+
+
+def add_checkout(package_name, path=None):
+    """Add package to auto checkouts.
+
+    If no path is given, we try several paths:
+    both checkouts.cfg and mxdev.ini.
+    """
+    for checkouts in _get_checkouts(path=path):
+        checkouts.add(package_name)
 
 
 def append_jenkins_build_number_to_package_version(jenkins_build_number):
@@ -126,9 +175,78 @@ def append_jenkins_build_number_to_package_version(jenkins_build_number):
     return new_version
 
 
-def set_package_version(version_file_path, package_name, new_version):
-    versions = VersionsFile(version_file_path)
-    versions.set(package_name, new_version)
+def _get_constraints(path=None):
+    """Get the parsed constraints/versions file at the given path.
+
+    If no path is given, we use several paths:
+    constraints*.txt and versions*.cfg.
+    """
+    if path:
+        paths = [path]
+    else:
+        paths = glob.glob("constraints*.txt") + glob.glob("versions*.cfg")
+    for path in paths:
+        if path.endswith(".txt"):
+            constraints = ConstraintsFile(path)
+        else:
+            constraints = VersionsFile(path)
+        yield constraints
+
+
+def get_package_version(package_name, path=None):
+    """Get package version from constraints/versions file.
+
+    If no path is given, we try several paths.
+
+    Note that versions with environment markers are ignored.
+    See https://peps.python.org/pep-0496/ explaining them.
+    The 99.99 percent use case of this part of plone.releaser is to get or set
+    versions for a Plone package, and after abandoning Python 2 we are unlikely
+    to need different versions of our core packages for different environments.
+
+    So in all the following cases, package version 1.0 is reported:
+
+    package==1.0
+    package==2.0; python_version=="3.11"
+
+    [versions]
+    package = 1.0
+    [versions:python311]
+    package = 2.0
+    [versions:python_version=="3.12"]
+    package = 3.0
+    """
+    for constraints in _get_constraints(path=path):
+        if package_name not in constraints:
+            print(f"{constraints.file_location}: {package_name} missing.")
+            continue
+        version = constraints.get(package_name)
+        print(f"{constraints.file_location}: {package_name} {version}.")
+
+
+def set_package_version(package_name, new_version, path=None):
+    """Pin package to new version in a versions file.
+
+    This can also be a pip constraints file.
+    If the package is not pinned yet, we add it.
+
+    If no path is given, we try several paths and set the version in all of them,
+    but only if the package is already there: we do not want to add one package
+    in three versions*.cfg files.
+
+    If you want to add environment markers, like "python_version >= '3.0'",
+    please just edit the files yourself.
+    """
+    for constraints in _get_constraints(path=path):
+        if package_name not in constraints:
+            if path is None:
+                print(f"{constraints.file_location}: {package_name} missing.")
+                continue
+            print(
+                f"{constraints.file_location}: {package_name} not pinned yet. "
+                f"Adding pin because you explicitly gave the path."
+            )
+        constraints.set(package_name, new_version)
 
 
 class Manage:
@@ -142,8 +260,11 @@ class Manage:
                 pulls,
                 changelog,
                 check_checkout,
+                remove_checkout,
+                add_checkout,
                 append_jenkins_build_number_to_package_version,
                 set_package_version,
+                get_package_version,
                 jenkins_report,
             ]
         )
