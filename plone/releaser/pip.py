@@ -67,11 +67,11 @@ class ConstraintsFile:
             self.path.write_text(contents)
 
         newline = f"{package_name}=={new_version}"
-        line_reg = re.compile(rf"^{package_name.lower()}==.*")
+        # Look for 'package name==version' on a line of its own,
+        # no whitespace, no environment markers.
+        line_reg = re.compile(rf"^{package_name.lower()}==[^;]*$")
 
         def line_check(line):
-            # Look for 'package name==version' on a line of its own,
-            # no whitespace in front.
             return line_reg.match(line)
 
         # set version in contents.

@@ -85,10 +85,10 @@ def test_constraints_file_set_ignore_markers(tmp_path):
     cf = ConstraintsFile(copy_path)
     assert "pyspecific==2.0" in copy_path.read_text()
     assert cf.get("pyspecific") == "1.0"
-    cf.set("package", "1.1")
+    cf.set("pyspecific", "1.1")
     # Let's read it fresh, for good measure.
     cf = ConstraintsFile(copy_path)
-    assert cf.get("package") == "1.1"
+    assert cf.get("pyspecific") == "1.1"
     assert "pyspecific==2.0" in copy_path.read_text()
 
 

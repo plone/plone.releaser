@@ -85,10 +85,10 @@ def test_versions_file_set_ignore_markers(tmp_path):
     vf = VersionsFile(copy_path)
     assert "pyspecific = 2.0" in copy_path.read_text()
     assert vf.get("pyspecific") == "1.0"
-    vf.set("package", "1.1")
+    vf.set("pyspecific", "1.1")
     # Let's read it fresh, for good measure.
     vf = VersionsFile(copy_path)
-    assert vf.get("package") == "1.1"
+    assert vf.get("pyspecific") == "1.1"
     assert "pyspecific = 2.0" in copy_path.read_text()
 
 
