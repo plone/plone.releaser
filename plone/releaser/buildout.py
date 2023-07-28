@@ -60,9 +60,17 @@ class VersionsFile:
         We use strict=False to avoid a DuplicateOptionError.
         This happens in coredev 4.3 because we pin 'babel' and 'Babel'.
 
-        We need to combine all versions sections, like these:
+        We used to combine all versions sections, like these:
         ['versions', 'versions:python27']
+        That fixed https://github.com/plone/plone.releaser/issues/24
+        and was needed when we had packages like Archetypes which were only for
+        Python 2.  With Plone 6 I don't think we will need this.  We can still
+        have Python-version-specific sections, but that would be for external
+        packages.  I don't think we will be releasing Plone packages that are
+        for specific Python versions.  Or if we do, it would be overkill for
+        plone.releaser to support such a corner case.
 
+        So we do not want to report or edit anything except the versions section.
         """
         config = ConfigParser(interpolation=ExtendedInterpolation(), strict=False)
         with open(self.file_location) as f:
@@ -72,7 +80,7 @@ class VersionsFile:
             config["buildout"]["directory"] = os.getcwd()
         versions = {}
         for section in config.sections():
-            if "versions" in section.split(":"):
+            if section == "versions":
                 for package, version in config[section].items():
                     # Note: the package names are lower case.
                     versions[package] = version

@@ -19,7 +19,7 @@ def test_versions_file_versions():
         "duplicate": "1.0",
         "lowercase": "1.0",
         "package": "1.0",
-        "pyspecific": "2.0",
+        "pyspecific": "1.0",
         "uppercase": "1.0",
     }
 
@@ -75,3 +75,18 @@ def test_versions_file_set_normal(tmp_path):
     vf["package"] = "3.0"
     vf = VersionsFile(copy_path)
     assert vf.get("package") == "3.0"
+
+
+def test_versions_file_set_ignore_markers(tmp_path):
+    # [versions:python312] pins 'pyspecific = 2.0'.
+    # We do not report or change this section.
+    copy_path = tmp_path / "versions.cfg"
+    shutil.copyfile(VERSIONS_FILE, copy_path)
+    vf = VersionsFile(copy_path)
+    assert "pyspecific = 2.0" in copy_path.read_text()
+    assert vf.get("pyspecific") == "1.0"
+    vf.set("package", "1.1")
+    # Let's read it fresh, for good measure.
+    vf = VersionsFile(copy_path)
+    assert vf.get("package") == "1.1"
+    assert "pyspecific = 2.0" in copy_path.read_text()
