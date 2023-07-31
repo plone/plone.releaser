@@ -11,3 +11,6 @@ dependencies_mappings = [
     "gitpython = ['git']",
     "pygithub = ['github']",
     ]
+
+[tox]
+test_runner = "pytest"
