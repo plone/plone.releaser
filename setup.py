@@ -47,7 +47,7 @@ setup(
         "zestreleaser.towncrier>=1.3.0",
         "docutils",
     ],
-    extras_requires={
+    extras_require={
         "test": ["pytest"],
     },
     entry_points={
