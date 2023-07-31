@@ -181,11 +181,18 @@ class CheckoutsFile(UserDict):
         # Map from lower case to actual case, so we can find the package.
         mapping = {}
         for package in checkouts.splitlines():
+            if not package:
+                continue
             mapping[package.lower()] = package
         return mapping
 
     def __contains__(self, package_name):
         return package_name.lower() in self.data
+
+    def __getitem__(self, package_name):
+        if package_name in self:
+            return self.data.get(package_name.lower())
+        raise KeyError
 
     def __setitem__(self, package_name, enabled=True):
         contents = self.path.read_text()
@@ -209,6 +216,15 @@ class CheckoutsFile(UserDict):
 
     def __delitem__(self, package_name):
         return self.__setitem__(package_name, False)
+
+    def get(self, package_name, default=None):
+        if package_name in self:
+            return self.__getitem__(package_name)
+        return default
+
+    def set(self, package_name, new_version):
+        # This method makes no sense for this class.
+        raise NotImplementedError
 
     def add(self, package_name):
         return self.__setitem__(package_name, True)

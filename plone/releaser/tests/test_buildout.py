@@ -1,3 +1,4 @@
+from plone.releaser.buildout import CheckoutsFile
 from plone.releaser.buildout import VersionsFile
 
 import pathlib
@@ -8,6 +9,68 @@ import shutil
 TESTS_DIR = pathlib.Path(__file__).parent
 INPUT_DIR = TESTS_DIR / "input"
 VERSIONS_FILE = INPUT_DIR / "versions.cfg"
+CHECKOUTS_FILE = INPUT_DIR / "checkouts.cfg"
+
+
+def test_checkouts_file_data():
+    cf = CheckoutsFile(CHECKOUTS_FILE)
+    # The data maps lower case to actual case.
+    assert cf.data == {
+        "camelcase": "CamelCase",
+        "package": "package",
+    }
+
+
+def test_checkouts_file_contains():
+    cf = CheckoutsFile(CHECKOUTS_FILE)
+    assert "package" in cf
+    assert "nope" not in cf
+    # We compare case insensitively.
+    assert "camelcase" in cf
+    assert "CamelCase" in cf
+    assert "CAMELCASE" in cf
+
+
+def test_checkouts_file_get():
+    cf = CheckoutsFile(CHECKOUTS_FILE)
+    # The data maps lower case to actual case.
+    assert cf["package"] == "package"
+    assert cf.get("package") == "package"
+    assert cf["camelcase"] == "CamelCase"
+    assert cf["CAMELCASE"] == "CamelCase"
+    assert cf["CamelCase"] == "CamelCase"
+    with pytest.raises(KeyError):
+        cf["nope"]
+
+
+def test_checkouts_file_add(tmp_path):
+    # When we add or remove a checkout, the file changes, so we work on a copy.
+    copy_path = tmp_path / "checkouts.cfg"
+    shutil.copyfile(CHECKOUTS_FILE, copy_path)
+    cf = CheckoutsFile(copy_path)
+    assert "Extra" not in cf
+    cf.add("Extra")
+    # Let's read it fresh, for good measure.
+    cf = CheckoutsFile(copy_path)
+    assert "Extra" in cf
+    assert cf.get("extra") == "Extra"
+
+
+def test_checkouts_file_remove(tmp_path):
+    copy_path = tmp_path / "checkouts.cfg"
+    shutil.copyfile(CHECKOUTS_FILE, copy_path)
+    cf = CheckoutsFile(copy_path)
+    assert "package" in cf
+    cf.remove("package")
+    # Let's read it fresh, for good measure.
+    cf = CheckoutsFile(copy_path)
+    assert "package" not in cf
+    assert "CAMELCASE" in cf
+    cf.remove("CAMELCASE")
+    cf = CheckoutsFile(copy_path)
+    assert "CAMELCASE" not in cf
+    assert "CamelCase" not in cf
+    assert "camelcase" not in cf
 
 
 def test_versions_file_versions():
