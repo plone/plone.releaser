@@ -116,6 +116,9 @@ Zope = [
   'Products.CMFCore', 'Products.CMFDynamicViewFTI',
 ]
 python-dateutil = ['dateutil']
+ignore-packages = ['zestreleaser.towncrier']
+gitpython = ['git']
+pygithub = ['github']
 
 ##
 # Add extra configuration options in .meta.toml:

@@ -5,9 +5,9 @@
 template = "default"
 commit-id = "a7c2b777"
 
-[dependencies]
-mappings = [
+[pyproject]
+dependencies_ignores = "['zestreleaser.towncrier']"
+dependencies_mappings = [
     "gitpython = ['git']",
     "pygithub = ['github']",
     ]
-ignores = "['zestreleaser.towncrier']"
