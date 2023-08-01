@@ -121,8 +121,23 @@ class IniFile(UserDict):
                 checkouts[package.lower()] = package
         return checkouts
 
+    @property
+    def sections(self):
+        # If we want to use a package, we must first know that it exists.
+        sections = {}
+        for package in self.config.sections():
+            # Map from lower case to actual case, so we can find the package.
+            sections[package.lower()] = package
+        return sections
+
     def __contains__(self, package_name):
+        # Is the package defined AND is it used?
         return package_name.lower() in self.data
+
+    def __getitem__(self, package_name):
+        if package_name in self:
+            return self.data.get(package_name.lower())
+        raise KeyError
 
     def __setitem__(self, package_name, enabled=True):
         """Enable or disable a checkout.
@@ -133,10 +148,19 @@ class IniFile(UserDict):
 
         But let's support the other way around as well:
         when default-use is true, we set 'use = false'.
+
+        Note that in our Buildout setup, we have sources.cfg separately.
+        In mxdev.ini the source definition and 'use = false/true' is combined.
+        So if the package we want to enable is not defined, meaning it has no
+        section, then we should fail loudly.
         """
-        stored_package_name = self.data.get(package_name.lower())
-        if stored_package_name:
-            package_name = stored_package_name
+        stored_package_name = self.sections.get(package_name.lower())
+        if not stored_package_name:
+            raise KeyError(
+                f"{self.file_location}: There is no definition for {package_name}"
+            )
+        package_name = stored_package_name
+        if package_name in self:
             use = to_bool(self.config[package_name].get("use", self.default_use))
         else:
             use = False
@@ -154,7 +178,9 @@ class IniFile(UserDict):
 
         lines = []
         found_package = False
-        for line in contents.splitlines():
+        # Add extra line at the end.  This eases parsing and editing the final section.
+        orig_lines = contents.splitlines() + ["\n"]
+        for line in orig_lines:
             line = line.rstrip()
             if line == f"[{package_name}]":
                 found_package = True
@@ -188,7 +214,7 @@ class IniFile(UserDict):
             # Just a regular line.
             lines.append(line)
 
-        contents = "\n".join(lines) + "\n"
+        contents = "\n".join(lines)
         self.path.write_text(contents)
 
     def __delitem__(self, package_name):
