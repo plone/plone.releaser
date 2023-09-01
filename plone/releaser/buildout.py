@@ -15,29 +15,24 @@ PATH_RE = re.compile(
 
 
 class Source:
-    def __init__(self, protocol=None, url=None, push_url=None, branch=None):
+    def __init__(self, protocol=None, url=None, pushurl=None, branch=None):
         self.protocol = protocol
         self.url = url
-        self.push_url = push_url
+        self.pushurl = pushurl
         self.branch = branch
 
-    def create_from_string(self, source_string):
+    @classmethod
+    def create_from_string(cls, source_string):
         protocol, url, extra_1, extra_2, extra_3 = (
             lambda a, b, c=None, d=None, e=None: (a, b, c, d, e)
         )(*source_string.split())
+        # September 2023: mr.developer defaults to master, mxdev to main.
+        options = {"protocol": protocol, "url": url, "branch": "master"}
         for param in [extra_1, extra_2, extra_3]:
             if param is not None:
                 key, value = param.split("=")
-                setattr(self, key, value)
-        self.protocol = protocol
-        self.url = url
-        if self.push_url is not None:
-            self.push_url = self.push_url.split("=")[-1]
-        if self.branch is None:
-            self.branch = "master"
-        else:
-            self.branch = self.branch.split("=")[-1]
-        return self
+                options[key] = value
+        return cls(**options)
 
     @property
     def path(self):
@@ -151,7 +146,7 @@ class SourcesFile(UserDict):
         sources_dict = OrderedDict()
         for name, value in config["sources"].items():
             try:
-                source = Source().create_from_string(value)
+                source = Source.create_from_string(value)
             except TypeError:
                 # Happens now for the documentation items in coredev 6.0.
                 # We could print, but this gets printed a lot.

@@ -1,4 +1,5 @@
 from plone.releaser.buildout import CheckoutsFile
+from plone.releaser.buildout import Source
 from plone.releaser.buildout import VersionsFile
 
 import pathlib
@@ -71,6 +72,32 @@ def test_checkouts_file_remove(tmp_path):
     assert "CAMELCASE" not in cf
     assert "CamelCase" not in cf
     assert "camelcase" not in cf
+
+
+def test_source_standard():
+    src = Source.create_from_string(
+        "git https://github.com/plone/Plone.git pushurl=git@github.com:plone/Plone.git branch=6.0.x"
+    )
+    assert src.protocol == "git"
+    assert src.url == "https://github.com/plone/Plone.git"
+    assert src.pushurl == "git@github.com:plone/Plone.git"
+    assert src.branch == "6.0.x"
+
+
+def test_source_not_enough_parameters():
+    with pytest.raises(TypeError):
+        Source.create_from_string("")
+    with pytest.raises(TypeError):
+        Source.create_from_string("git")
+
+
+def test_source_just_enough_parameters():
+    # protocol and url are enough
+    src = Source.create_from_string("git https://github.com/plone/Plone.git")
+    assert src.protocol == "git"
+    assert src.url == "https://github.com/plone/Plone.git"
+    assert src.pushurl is None
+    assert src.branch == "master"
 
 
 def test_versions_file_versions():
