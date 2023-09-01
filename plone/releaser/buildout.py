@@ -10,22 +10,39 @@ import re
 
 
 class Source:
-    def __init__(self, protocol=None, url=None, pushurl=None, branch=None):
+    """Source definition for mr.developer"""
+
+    def __init__(
+        self, protocol=None, url=None, pushurl=None, branch=None, path=None, egg=True
+    ):
+        # I think mxdev only supports git as protocol.
         self.protocol = protocol
         self.url = url
         self.pushurl = pushurl
         self.branch = branch
+        # mxdev has target (default: sources) instead of path (default: src).
+        self.path = path
+        # egg=True: mxdev install-mode="direct"
+        # egg=False: mxdev install-mode="skip"
+        self.egg = egg
 
     @classmethod
     def create_from_string(cls, source_string):
-        protocol, url, extra_1, extra_2, extra_3 = (
-            lambda a, b, c=None, d=None, e=None: (a, b, c, d, e)
-        )(*source_string.split())
+        line_options = source_string.split()
+        protocol = line_options.pop(0)
+        url = line_options.pop(0)
         # September 2023: mr.developer defaults to master, mxdev to main.
         options = {"protocol": protocol, "url": url, "branch": "master"}
-        for param in [extra_1, extra_2, extra_3]:
+
+        # The rest of the line options are key/value pairs.
+        for param in line_options:
             if param is not None:
                 key, value = param.split("=")
+                if key == "egg":
+                    if value.lower() in ("true", "yes", "on"):
+                        value = True
+                    elif value.lower() in ("false", "no", "off"):
+                        value = False
                 options[key] = value
         return cls(**options)
 
@@ -132,12 +149,7 @@ class SourcesFile(UserDict):
         config["buildout"]["docs-directory"] = os.path.join(os.getcwd(), "docs")
         sources_dict = OrderedDict()
         for name, value in config["sources"].items():
-            try:
-                source = Source.create_from_string(value)
-            except TypeError:
-                # Happens now for the documentation items in coredev 6.0.
-                # We could print, but this gets printed a lot.
-                continue
+            source = Source.create_from_string(value)
             sources_dict[name] = source
         return sources_dict
 
