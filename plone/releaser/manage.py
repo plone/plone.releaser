@@ -1,7 +1,6 @@
 from argh import arg
 from argh import ArghParser
 from argh.decorators import named
-from github import Github
 from plone.releaser import ACTION_BATCH
 from plone.releaser import ACTION_INTERACTIVE
 from plone.releaser import ACTION_REPORT
@@ -16,7 +15,6 @@ from plone.releaser.pip import IniFile
 from progress.bar import Bar
 
 import glob
-import keyring
 import time
 
 
@@ -85,22 +83,6 @@ def checkAllPackagesForUpdates(**kwargs):
             pkg(action=ACTION_REPORT)
         if sleep:
             time.sleep(sleep)
-
-
-def pulls():
-    client_id = "b9f6639835b8c9cf462a"
-    client_secret = keyring.get_password("plone.releaser", client_id)
-
-    g = Github(client_id=client_id, client_secret=client_secret)
-
-    for package_name, source in buildout.sources.items():
-        if source.path:
-            repo = g.get_repo(source.path)
-            pulls = [a for a in repo.get_pulls("open") if a.head.ref == source.branch]
-            if pulls:
-                print(package_name)
-                for pull in pulls:
-                    print(f"    {pull.user.login}: {pull.title} ({pull.url})")
 
 
 @named("changelog")
@@ -257,7 +239,6 @@ class Manage:
                 checkPypi,
                 checkPackageForUpdates,
                 checkAllPackagesForUpdates,
-                pulls,
                 changelog,
                 check_checkout,
                 remove_checkout,

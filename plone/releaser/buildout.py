@@ -9,11 +9,6 @@ import pathlib
 import re
 
 
-PATH_RE = re.compile(
-    r"(\w+://)(.+@)*([\w\d\.]+)(:[\d]+){0,1}/(?P<path>.+(?=\.git))(\.git)"
-)
-
-
 class Source:
     def __init__(self, protocol=None, url=None, pushurl=None, branch=None):
         self.protocol = protocol
@@ -33,14 +28,6 @@ class Source:
                 key, value = param.split("=")
                 options[key] = value
         return cls(**options)
-
-    @property
-    def path(self):
-        if self.url:
-            match = PATH_RE.match(self.url)
-            if match:
-                return match.groupdict()["path"]
-        return None
 
 
 class VersionsFile:
