@@ -16,13 +16,13 @@ def to_bool(value):
     return False
 
 
-class ConstraintsFile:
+class ConstraintsFile(UserDict):
     def __init__(self, file_location):
         self.file_location = file_location
         self.path = pathlib.Path(self.file_location).resolve()
 
     @cached_property
-    def constraints(self):
+    def data(self):
         """Read the constraints."""
         contents = self.path.read_text()
         constraints = {}
@@ -54,11 +54,11 @@ class ConstraintsFile:
         return constraints
 
     def __contains__(self, package_name):
-        return package_name.lower() in self.constraints
+        return package_name.lower() in self.data
 
     def __getitem__(self, package_name):
         if package_name in self:
-            return self.constraints.get(package_name.lower())
+            return self.data.get(package_name.lower())
         raise KeyError
 
     def __setitem__(self, package_name, new_version):

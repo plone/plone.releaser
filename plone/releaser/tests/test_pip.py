@@ -96,7 +96,7 @@ def test_mxdev_file_remove(tmp_path):
 def test_constraints_file_constraints():
     cf = ConstraintsFile(CONSTRAINTS_FILE)
     # All constraints are reported lowercased.
-    assert cf.constraints == {
+    assert cf.data == {
         "annotated": "1.0",
         "camelcase": "1.0",
         "duplicate": "1.0",
