@@ -1,7 +1,9 @@
 from plone.releaser.buildout import CheckoutsFile
 from plone.releaser.buildout import Source
+from plone.releaser.buildout import SourcesFile
 from plone.releaser.buildout import VersionsFile
 
+import os
 import pathlib
 import pytest
 import shutil
@@ -9,8 +11,9 @@ import shutil
 
 TESTS_DIR = pathlib.Path(__file__).parent
 INPUT_DIR = TESTS_DIR / "input"
-VERSIONS_FILE = INPUT_DIR / "versions.cfg"
 CHECKOUTS_FILE = INPUT_DIR / "checkouts.cfg"
+SOURCES_FILE = INPUT_DIR / "sources.cfg"
+VERSIONS_FILE = INPUT_DIR / "versions.cfg"
 
 
 def test_checkouts_file_data():
@@ -115,6 +118,57 @@ def test_source_docs():
     assert src.branch == "6.0"
     assert src.egg is False
     assert src.path == "docs"
+
+
+def test_sources_file_data():
+    sf = SourcesFile(SOURCES_FILE)
+    # Note that the keys are lowercase.
+    assert sorted(sf.data.keys()) == ["docs", "plone", "plone.alterego", "plone.base"]
+
+
+def test_sources_file_contains():
+    sf = SourcesFile(SOURCES_FILE)
+    assert "docs" in sf
+    assert "plone.base" in sf
+    assert "nope" not in sf
+    # We compare case insensitively.
+    assert "Plone" in sf
+    assert "plone" in sf
+    assert "PLONE" in sf
+    assert "PLONE.BASE" in sf
+
+
+def test_sources_file_get():
+    sf = SourcesFile(SOURCES_FILE)
+    with pytest.raises(KeyError):
+        assert sf["nope"]
+    assert sf["plone"] == sf["PLONE"]
+    assert sf["plone"] == sf["Plone"]
+    assert sf["plone"] != sf["plone.base"]
+    plone = sf["plone"]
+    assert plone.url == "https://github.com/plone/Plone.git"
+    assert plone.pushurl == "git@github.com:plone/Plone.git"
+    assert plone.branch == "6.0.x"
+    assert plone.path is None
+    assert plone.egg
+    docs = sf["docs"]
+    assert docs.url == "https://github.com/plone/documentation.git"
+    assert docs.pushurl is None
+    assert docs.branch == "6.0"
+    assert docs.path == f"{os.getcwd()}/documentation"
+    assert not docs.egg
+    alterego = sf["plone.alterego"]
+    assert alterego.url == "https://github.com/plone/plone.alterego.git"
+    assert alterego.pushurl is None
+    assert alterego.branch == "master"
+    assert alterego.path is None
+    assert alterego.egg
+    base = sf["plone.base"]
+    assert base.url == "https://github.com/plone/plone.base.git"
+    assert base.pushurl is None
+    assert base.branch == "main"
+    assert base.path is None
+    assert base.egg
 
 
 def test_versions_file_versions():

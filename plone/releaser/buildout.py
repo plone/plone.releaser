@@ -46,6 +46,12 @@ class Source:
                 options[key] = value
         return cls(**options)
 
+    def __repr__(self):
+        return f"<Source {self.protocol} url={self.url} pushurl={self.pushurl} branch={self.branch} path={self.path} egg={self.egg}>"
+
+    def __eq__(self, other):
+        return repr(self) == repr(other)
+
 
 class VersionsFile:
     def __init__(self, file_location):
@@ -146,11 +152,10 @@ class SourcesFile(UserDict):
         # See this similar issue in mr.roboto:
         # https://github.com/plone/mr.roboto/issues/89
         config["buildout"]["directory"] = os.getcwd()
-        config["buildout"]["docs-directory"] = os.path.join(os.getcwd(), "docs")
         sources_dict = OrderedDict()
         for name, value in config["sources"].items():
             source = Source.create_from_string(value)
-            sources_dict[name] = source
+            sources_dict[name.lower()] = source
         return sources_dict
 
     def __setitem__(self, package_name, value):
@@ -158,6 +163,14 @@ class SourcesFile(UserDict):
 
     def __iter__(self):
         return self.data.__iter__()
+
+    def __contains__(self, package_name):
+        return package_name.lower() in self.data
+
+    def __getitem__(self, package_name):
+        if package_name in self:
+            return self.data.get(package_name.lower())
+        raise KeyError
 
 
 class CheckoutsFile(UserDict):
