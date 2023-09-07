@@ -1,5 +1,5 @@
+from .base import BaseFile
 from .utils import update_contents
-from collections import UserDict
 from configparser import ConfigParser
 from configparser import ExtendedInterpolation
 from functools import cached_property
@@ -16,11 +16,7 @@ def to_bool(value):
     return False
 
 
-class ConstraintsFile(UserDict):
-    def __init__(self, file_location):
-        self.file_location = file_location
-        self.path = pathlib.Path(self.file_location).resolve()
-
+class ConstraintsFile(BaseFile):
     @cached_property
     def data(self):
         """Read the constraints."""
@@ -53,14 +49,6 @@ class ConstraintsFile(UserDict):
             constraints[package] = version
         return constraints
 
-    def __contains__(self, package_name):
-        return package_name.lower() in self.data
-
-    def __getitem__(self, package_name):
-        if package_name in self:
-            return self.data.get(package_name.lower())
-        raise KeyError
-
     def __setitem__(self, package_name, new_version):
         contents = self.path.read_text()
         if not contents.endswith("\n"):
@@ -82,16 +70,8 @@ class ConstraintsFile(UserDict):
         if contents != new_contents:
             self.path.write_text(new_contents)
 
-    def get(self, package_name, default=None):
-        if package_name in self:
-            return self.__getitem__(package_name)
-        return default
 
-    def set(self, package_name, new_version):
-        return self.__setitem__(package_name, new_version)
-
-
-class IniFile(UserDict):
+class IniFile(BaseFile):
     """Ini file for mxdev.
 
     What we want to do here is similar to what we have in buildout.py
@@ -129,15 +109,6 @@ class IniFile(UserDict):
             # Map from lower case to actual case, so we can find the package.
             sections[package.lower()] = package
         return sections
-
-    def __contains__(self, package_name):
-        # Is the package defined AND is it used?
-        return package_name.lower() in self.data
-
-    def __getitem__(self, package_name):
-        if package_name in self:
-            return self.data.get(package_name.lower())
-        raise KeyError
 
     def __setitem__(self, package_name, enabled=True):
         """Enable or disable a checkout.
@@ -216,13 +187,3 @@ class IniFile(UserDict):
 
         contents = "\n".join(lines)
         self.path.write_text(contents)
-
-    def __delitem__(self, package_name):
-        return self.__setitem__(package_name, False)
-
-    def add(self, package_name):
-        return self.__setitem__(package_name, True)
-
-    def remove(self, package_name):
-        # Remove from checkouts.
-        return self.__delitem__(package_name)
