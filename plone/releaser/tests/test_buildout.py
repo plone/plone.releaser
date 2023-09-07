@@ -174,7 +174,7 @@ def test_sources_file_get():
 def test_versions_file_versions():
     vf = VersionsFile(VERSIONS_FILE)
     # All versions are reported lowercased.
-    assert vf.versions == {
+    assert vf.data == {
         "annotated": "1.0",
         "camelcase": "1.0",
         "duplicate": "1.0",

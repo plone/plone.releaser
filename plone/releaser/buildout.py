@@ -53,13 +53,13 @@ class Source:
         return repr(self) == repr(other)
 
 
-class VersionsFile:
+class VersionsFile(UserDict):
     def __init__(self, file_location):
         self.file_location = file_location
         self.path = pathlib.Path(self.file_location).resolve()
 
     @property
-    def versions(self):
+    def data(self):
         """Read the versions config.
 
         We use strict=False to avoid a DuplicateOptionError.
@@ -92,11 +92,11 @@ class VersionsFile:
         return versions
 
     def __contains__(self, package_name):
-        return package_name.lower() in self.versions
+        return package_name.lower() in self.data
 
     def __getitem__(self, package_name):
         if package_name in self:
-            return self.versions.get(package_name.lower())
+            return self.data.get(package_name.lower())
         raise KeyError
 
     def __setitem__(self, package_name, new_version):
