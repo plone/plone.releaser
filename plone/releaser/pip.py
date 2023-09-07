@@ -4,7 +4,6 @@ from configparser import ConfigParser
 from configparser import ExtendedInterpolation
 from functools import cached_property
 
-import pathlib
 import re
 
 
@@ -81,13 +80,12 @@ class IniFile(BaseFile):
     """
 
     def __init__(self, file_location):
-        self.file_location = file_location
-        self.path = pathlib.Path(self.file_location).resolve()
+        super().__init__(file_location)
         self.config = ConfigParser(
             default_section="settings",
             interpolation=ExtendedInterpolation(),
         )
-        with open(self.file_location) as f:
+        with self.path.open() as f:
             self.config.read_file(f)
         self.default_use = to_bool(self.config["settings"].get("default-use", True))
 

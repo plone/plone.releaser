@@ -78,7 +78,7 @@ class VersionsFile(BaseFile):
         So we do not want to report or edit anything except the versions section.
         """
         config = ConfigParser(interpolation=ExtendedInterpolation(), strict=False)
-        with open(self.file_location) as f:
+        with self.path.open() as f:
             config.read_file(f)
         # https://github.com/plone/plone.releaser/issues/42
         if config.has_section("buildout"):
@@ -125,7 +125,7 @@ class SourcesFile(BaseFile):
     def data(self):
         config = ConfigParser(interpolation=ExtendedInterpolation())
         config.optionxform = str
-        with open(self.file_location) as f:
+        with self.path.open() as f:
             config.read_file(f)
         # We need to define a few extra variables that are in a different
         # buildout file that we do not parse here.
@@ -146,7 +146,7 @@ class CheckoutsFile(BaseFile):
     @property
     def data(self):
         config = ConfigParser(interpolation=ExtendedInterpolation())
-        with open(self.file_location) as f:
+        with self.path.open() as f:
             config.read_file(f)
         config["buildout"]["directory"] = os.getcwd()
         checkouts = config.get("buildout", "auto-checkout")
