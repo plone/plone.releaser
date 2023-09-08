@@ -54,4 +54,7 @@ def update_contents(contents, line_check, newline, filename, stop_check=None):
     if content_lines:
         lines.extend(content_lines)
 
-    return "\n".join(lines) + "\n"
+    result = "\n".join(lines)
+    if not result.endswith("\n"):
+        result += "\n"
+    return result

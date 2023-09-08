@@ -231,6 +231,28 @@ def set_package_version(package_name, new_version, path=None):
         constraints.set(package_name, new_version)
 
 
+def versions2constraints(path=None):
+    """Take a Buildout versions file and create a pip constraints file out of it.
+
+    If no path is given, we use versions*.cfg.
+    """
+    if path:
+        paths = [path]
+    else:
+        paths = glob.glob("versions*.cfg")
+    for path in paths:
+        versions = VersionsFile(path)
+        constraints_path = path.replace("versions", "constraints").replace(
+            ".cfg", ".txt"
+        )
+        constraints = ConstraintsFile(constraints_path)
+        if not constraints.path.exists():
+            with constraints.path.open("w") as myfile:
+                myfile.write("")
+        for package_name, version in versions.items():
+            constraints[package_name] = version
+
+
 class Manage:
     def __call__(self, **kwargs):
         parser = ArghParser()
@@ -247,6 +269,7 @@ class Manage:
                 set_package_version,
                 get_package_version,
                 jenkins_report,
+                versions2constraints,
             ]
         )
         parser.dispatch()
