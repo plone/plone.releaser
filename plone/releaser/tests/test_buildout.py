@@ -14,6 +14,9 @@ INPUT_DIR = TESTS_DIR / "input"
 CHECKOUTS_FILE = INPUT_DIR / "checkouts.cfg"
 SOURCES_FILE = INPUT_DIR / "sources.cfg"
 VERSIONS_FILE = INPUT_DIR / "versions.cfg"
+VERSIONS_FILE2 = INPUT_DIR / "versions2.cfg"
+VERSIONS_FILE3 = INPUT_DIR / "versions3.cfg"
+VERSIONS_FILE4 = INPUT_DIR / "versions4.cfg"
 
 
 def test_checkouts_file_data():
@@ -185,6 +188,33 @@ def test_versions_file_versions():
     }
 
 
+def test_versions_file_extends():
+    vf = VersionsFile(VERSIONS_FILE)
+    assert vf.extends == [
+        "https://zopefoundation.github.io/Zope/releases/5.8.3/versions.cfg"
+    ]
+    vf = VersionsFile(VERSIONS_FILE2)
+    assert vf.extends == ["versions3.cfg"]
+    vf = VersionsFile(VERSIONS_FILE3)
+    assert vf.extends == ["versions4.cfg"]
+
+
+def test_versions_file_read_extends_without_markers():
+    vf = VersionsFile(VERSIONS_FILE2, read_extends=True)
+    assert vf.data == {"four": "4.0", "one": "1.1", "three": "3.0", "two": "2.0"}
+
+
+def test_versions_file_read_extends_with_markers():
+    vf = VersionsFile(VERSIONS_FILE2, with_markers=True, read_extends=True)
+    assert vf.data == {
+        "five": {"macosx": "5.0"},
+        "four": "4.0",
+        "one": "1.1",
+        "three": {"": "3.0", "python312": "3.2"},
+        "two": "2.0",
+    }
+
+
 def test_versions_file_versions_with_markers():
     vf = VersionsFile(VERSIONS_FILE, with_markers=True)
     # All versions are reported lowercased.
@@ -193,9 +223,9 @@ def test_versions_file_versions_with_markers():
         "camelcase": "1.0",
         "duplicate": "1.0",
         "lowercase": "1.0",
-        "onepython": ("2.1", "python312"),
+        "onepython": {"python312": "2.1"},
         "package": "1.0",
-        "pyspecific": ["1.0", ("2.0", "python312")],
+        "pyspecific": {"": "1.0", "python312": "2.0"},
         "uppercase": "1.0",
     }
 
@@ -252,10 +282,10 @@ def test_versions_file_get_with_markers():
     vf = VersionsFile(VERSIONS_FILE, with_markers=True)
     assert vf.get("package") == "1.0"
     assert vf["package"] == "1.0"
-    assert vf.get("onepython") == ("2.1", "python312")
-    assert vf.get("pyspecific") == ["1.0", ("2.0", "python312")]
-    assert vf["onepython"] == ("2.1", "python312")
-    assert vf["pyspecific"] == ["1.0", ("2.0", "python312")]
+    assert vf.get("onepython") == {"python312": "2.1"}
+    assert vf.get("pyspecific") == {"": "1.0", "python312": "2.0"}
+    assert vf["onepython"] == {"python312": "2.1"}
+    assert vf["pyspecific"] == {"": "1.0", "python312": "2.0"}
 
 
 def test_versions_file_set_normal(tmp_path):
@@ -308,31 +338,31 @@ def test_versions_file_set_with_markers(tmp_path):
     shutil.copyfile(VERSIONS_FILE, copy_path)
     vf = VersionsFile(copy_path, with_markers=True)
     assert "pyspecific = 2.0" in copy_path.read_text()
-    assert vf.get("pyspecific") == ["1.0", ("2.0", "python312")]
+    assert vf.get("pyspecific") == {"": "1.0", "python312": "2.0"}
     vf.set("pyspecific", "1.1")
     # Read it fresh, without markers.
     vf = VersionsFile(copy_path)
     assert vf.get("pyspecific") == "1.1"
     # Read it fresh, with markers.
     vf = VersionsFile(copy_path, with_markers=True)
-    assert vf.get("pyspecific") == ["1.1", ("2.0", "python312")]
+    assert vf.get("pyspecific") == {"": "1.1", "python312": "2.0"}
     # Now edit for a specific python version.
     vf.set("pyspecific", ("2.1", "python312"))
     # Read it fresh, with markers.
     vf = VersionsFile(copy_path, with_markers=True)
-    assert vf.get("pyspecific") == ["1.1", ("2.1", "python312")]
+    assert vf.get("pyspecific") == {"": "1.1", "python312": "2.1"}
     # Add to an unknown marker.
     vf.set("pyspecific", ("3.0", "python313"))
     # Read it fresh, with markers.
     vf = VersionsFile(copy_path, with_markers=True)
     assert "[versions:python313]" in copy_path.read_text()
-    assert vf.get("pyspecific") == ["1.1", ("2.1", "python312"), ("3.0", "python313")]
+    assert vf.get("pyspecific") == {"": "1.1", "python312": "2.1", "python313": "3.0"}
     # Add a new package to a new marker.
     vf.set("maconly", ("1.0", "macosx"))
     # Read it fresh, with markers.
     vf = VersionsFile(copy_path, with_markers=True)
     assert "[versions:macosx]" in copy_path.read_text()
-    assert vf.get("maconly") == ("1.0", "macosx")
+    assert vf.get("maconly") == {"macosx": "1.0"}
     # Read it without markers.
     vf = VersionsFile(copy_path)
     assert vf["pyspecific"] == "1.1"

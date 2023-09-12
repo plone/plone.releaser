@@ -4,6 +4,7 @@ from collections import defaultdict
 from collections import OrderedDict
 from configparser import ConfigParser
 from configparser import ExtendedInterpolation
+from functools import cached_property
 
 import os
 import pathlib
@@ -55,11 +56,25 @@ class Source:
 
 
 class VersionsFile(BaseFile):
-    def __init__(self, file_location, with_markers=False):
+    def __init__(self, file_location, with_markers=False, read_extends=False):
         self.file_location = file_location
         self.path = pathlib.Path(self.file_location).resolve()
         self.with_markers = with_markers
         self.markers = set()
+        self.read_extends = read_extends
+
+    @cached_property
+    def config(self):
+        config = ConfigParser(interpolation=ExtendedInterpolation(), strict=False)
+        with self.path.open() as f:
+            config.read_file(f)
+        return config
+
+    @property
+    def extends(self):
+        if self.config.has_section("buildout"):
+            return self.config["buildout"].get("extends", "").strip().splitlines()
+        return []
 
     @property
     def data(self):
@@ -83,21 +98,31 @@ class VersionsFile(BaseFile):
         Ah, but we *do* need this information when translating to pip.
         For that: set self.with_markers = True.
         """
-        config = ConfigParser(interpolation=ExtendedInterpolation(), strict=False)
-        with self.path.open() as f:
-            config.read_file(f)
-        # https://github.com/plone/plone.releaser/issues/42
-        if config.has_section("buildout"):
-            config["buildout"]["directory"] = os.getcwd()
-        versions = defaultdict(list)
-        for section in config.sections():
+        versions = defaultdict(dict)
+        if self.config.has_section("buildout"):
+            # https://github.com/plone/plone.releaser/issues/42
+            self.config["buildout"]["directory"] = os.getcwd()
+            if self.read_extends:
+                # Recursively read the extended files, and include their versions.
+                for extend in self.extends:
+                    # TODO: support downloading
+                    assert not extend.startswith("http")
+                    extended = VersionsFile(
+                        self.path.parent / extend,
+                        with_markers=self.with_markers,
+                        read_extends=True,
+                    )
+                    for package, version in extended.data.items():
+                        if not isinstance(version, dict):
+                            versions[package][""] = version
+                        else:
+                            versions[package].update(version)
+
+        for section in self.config.sections():
             if section == "versions":
-                for package, version in config[section].items():
+                for package, version in self.config[section].items():
                     # Note: the package names are lower case.
-                    if not self.with_markers:
-                        versions[package] = version
-                    else:
-                        versions[package].append(version)
+                    versions[package][""] = version
             if not self.with_markers:
                 continue
             parts = section.split(":")
@@ -105,15 +130,14 @@ class VersionsFile(BaseFile):
                 continue
             marker = parts[1]
             self.markers.add(marker)
-            for package, version in config[section].items():
-                # Note: the package names are lower case.
-                versions[package].append((version, marker))
+            for package, version in self.config[section].items():
+                versions[package][marker] = version
 
-        if self.with_markers:
-            # simplify
-            for package, version in versions.items():
-                if isinstance(version, list) and len(version) == 1:
-                    versions[package] = version[0]
+        # simplify
+        for package, version in versions.items():
+            if len(version) == 1 and "" in version.keys():
+                versions[package] = version[""]
+                continue
         return versions
 
     def __setitem__(self, package_name, new_version):
