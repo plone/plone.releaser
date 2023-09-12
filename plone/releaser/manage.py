@@ -235,6 +235,24 @@ def versions2constraints(path=None):
     """Take a Buildout versions file and create a pip constraints file out of it.
 
     If no path is given, we use versions*.cfg.
+
+    Notes:
+    * This does not handle 'extends' yet.
+    * This does not handle [versions:pythonX] yet.
+
+    We could parse the file with Buildout.  This incorporates the 'extends',
+    but you lose versions information for other Python versions.
+
+    We could pass an option simple/full.
+    Maybe if a path is passed, we handle only that file in simple mode.
+    Without path, we grab versions.cfg and check 'extends' and other versions.
+
+    'extends = versions-extra.cfg' could be transformed to '-c constraints-extra.txt'
+
+    I think I need some more options in VersionsFile first:
+    - what to do with extends
+    - what to do with [versions:*]
+    - whether to turn it into a single constraints file.
     """
     if path:
         paths = [path]

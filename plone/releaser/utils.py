@@ -1,4 +1,6 @@
-def update_contents(contents, line_check, newline, filename, stop_check=None):
+def update_contents(
+    contents, line_check, newline, filename, start_check=None, stop_check=None
+):
     """Update contents to have a new line if needed.
 
     * contents is some file contents
@@ -6,6 +8,8 @@ def update_contents(contents, line_check, newline, filename, stop_check=None):
     * newline is the line with which we replace the matched line.
       This can be None to signal that the old line should be removed
     * filename is used for reporting.
+    * start_check is an optional function we call to check if we should start
+      trying to match.
     * stop_check is an optional function we call to check if we should stop
       trying to match.
 
@@ -17,6 +21,12 @@ def update_contents(contents, line_check, newline, filename, stop_check=None):
     while content_lines:
         line = content_lines.pop(0)
         line = line.rstrip()
+        if start_check is not None:
+            if start_check(line):
+                # We start searching now.  Disable the start_check.
+                start_check = None
+            lines.append(line)
+            continue
         if stop_check is not None and stop_check(line):
             # Put this line back.  We will handle this line and the other
             # remaining lines outside of this loop.
