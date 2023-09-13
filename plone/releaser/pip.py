@@ -1,10 +1,9 @@
+from .base import BaseFile
 from .utils import update_contents
-from collections import UserDict
 from configparser import ConfigParser
 from configparser import ExtendedInterpolation
 from functools import cached_property
 
-import pathlib
 import re
 
 
@@ -16,13 +15,9 @@ def to_bool(value):
     return False
 
 
-class ConstraintsFile:
-    def __init__(self, file_location):
-        self.file_location = file_location
-        self.path = pathlib.Path(self.file_location).resolve()
-
+class ConstraintsFile(BaseFile):
     @cached_property
-    def constraints(self):
+    def data(self):
         """Read the constraints."""
         contents = self.path.read_text()
         constraints = {}
@@ -53,14 +48,6 @@ class ConstraintsFile:
             constraints[package] = version
         return constraints
 
-    def __contains__(self, package_name):
-        return package_name.lower() in self.constraints
-
-    def __getitem__(self, package_name):
-        if package_name in self:
-            return self.constraints.get(package_name.lower())
-        raise KeyError
-
     def __setitem__(self, package_name, new_version):
         contents = self.path.read_text()
         if not contents.endswith("\n"):
@@ -82,16 +69,8 @@ class ConstraintsFile:
         if contents != new_contents:
             self.path.write_text(new_contents)
 
-    def get(self, package_name, default=None):
-        if package_name in self:
-            return self.__getitem__(package_name)
-        return default
 
-    def set(self, package_name, new_version):
-        return self.__setitem__(package_name, new_version)
-
-
-class IniFile(UserDict):
+class IniFile(BaseFile):
     """Ini file for mxdev.
 
     What we want to do here is similar to what we have in buildout.py
@@ -101,13 +80,12 @@ class IniFile(UserDict):
     """
 
     def __init__(self, file_location):
-        self.file_location = file_location
-        self.path = pathlib.Path(self.file_location).resolve()
+        super().__init__(file_location)
         self.config = ConfigParser(
             default_section="settings",
             interpolation=ExtendedInterpolation(),
         )
-        with open(self.file_location) as f:
+        with self.path.open() as f:
             self.config.read_file(f)
         self.default_use = to_bool(self.config["settings"].get("default-use", True))
 
@@ -121,8 +99,14 @@ class IniFile(UserDict):
                 checkouts[package.lower()] = package
         return checkouts
 
-    def __contains__(self, package_name):
-        return package_name.lower() in self.data
+    @property
+    def sections(self):
+        # If we want to use a package, we must first know that it exists.
+        sections = {}
+        for package in self.config.sections():
+            # Map from lower case to actual case, so we can find the package.
+            sections[package.lower()] = package
+        return sections
 
     def __setitem__(self, package_name, enabled=True):
         """Enable or disable a checkout.
@@ -133,10 +117,19 @@ class IniFile(UserDict):
 
         But let's support the other way around as well:
         when default-use is true, we set 'use = false'.
+
+        Note that in our Buildout setup, we have sources.cfg separately.
+        In mxdev.ini the source definition and 'use = false/true' is combined.
+        So if the package we want to enable is not defined, meaning it has no
+        section, then we should fail loudly.
         """
-        stored_package_name = self.data.get(package_name.lower())
-        if stored_package_name:
-            package_name = stored_package_name
+        stored_package_name = self.sections.get(package_name.lower())
+        if not stored_package_name:
+            raise KeyError(
+                f"{self.file_location}: There is no definition for {package_name}"
+            )
+        package_name = stored_package_name
+        if package_name in self:
             use = to_bool(self.config[package_name].get("use", self.default_use))
         else:
             use = False
@@ -154,7 +147,9 @@ class IniFile(UserDict):
 
         lines = []
         found_package = False
-        for line in contents.splitlines():
+        # Add extra line at the end.  This eases parsing and editing the final section.
+        orig_lines = contents.splitlines() + ["\n"]
+        for line in orig_lines:
             line = line.rstrip()
             if line == f"[{package_name}]":
                 found_package = True
@@ -188,15 +183,5 @@ class IniFile(UserDict):
             # Just a regular line.
             lines.append(line)
 
-        contents = "\n".join(lines) + "\n"
+        contents = "\n".join(lines)
         self.path.write_text(contents)
-
-    def __delitem__(self, package_name):
-        return self.__setitem__(package_name, False)
-
-    def add(self, package_name):
-        return self.__setitem__(package_name, True)
-
-    def remove(self, package_name):
-        # Remove from checkouts.
-        return self.__delitem__(package_name)

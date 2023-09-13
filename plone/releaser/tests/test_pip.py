@@ -1,4 +1,5 @@
 from plone.releaser.pip import ConstraintsFile
+from plone.releaser.pip import IniFile
 
 import pathlib
 import pytest
@@ -8,12 +9,94 @@ import shutil
 TESTS_DIR = pathlib.Path(__file__).parent
 INPUT_DIR = TESTS_DIR / "input"
 CONSTRAINTS_FILE = INPUT_DIR / "constraints.txt"
+MXDEV_FILE = INPUT_DIR / "mxdev.ini"
+
+
+def test_mxdev_file_data():
+    mf = IniFile(MXDEV_FILE)
+    # The data maps lower case to actual case.
+    assert mf.data == {
+        "camelcase": "CamelCase",
+        "package": "package",
+    }
+
+
+def test_mxdev_file_contains():
+    mf = IniFile(MXDEV_FILE)
+    assert "package" in mf
+    assert "unused" not in mf
+    # We compare case insensitively.
+    assert "camelcase" in mf
+    assert "CamelCase" in mf
+    assert "CAMELCASE" in mf
+
+
+def test_mxdev_file_get():
+    mf = IniFile(MXDEV_FILE)
+    # The data maps lower case to actual case.
+    assert mf["package"] == "package"
+    assert mf.get("package") == "package"
+    assert mf["camelcase"] == "CamelCase"
+    assert mf["CAMELCASE"] == "CamelCase"
+    assert mf["CamelCase"] == "CamelCase"
+    with pytest.raises(KeyError):
+        mf["unused"]
+    assert mf.get("unused") is None
+
+
+def test_mxdev_file_add_known(tmp_path):
+    # When we add or remove a checkout, the file changes, so we work on a copy.
+    copy_path = tmp_path / "mxdev.ini"
+    shutil.copyfile(MXDEV_FILE, copy_path)
+    mf = IniFile(copy_path)
+    assert "unused" not in mf
+    mf.add("unused")
+    # Let's read it fresh, for good measure.
+    mf = IniFile(copy_path)
+    assert "unused" in mf
+    assert mf["unused"] == "unused"
+
+
+def test_mxdev_file_add_unknown(tmp_path):
+    # We cannot edit mxdev.ini to use a package when it is not defined.
+    copy_path = tmp_path / "mxdev.ini"
+    shutil.copyfile(MXDEV_FILE, copy_path)
+    mf = IniFile(copy_path)
+    assert "unknown" not in mf
+    with pytest.raises(KeyError):
+        mf.add("unknown")
+
+
+def test_mxdev_file_remove(tmp_path):
+    copy_path = tmp_path / "mxdev.ini"
+    shutil.copyfile(MXDEV_FILE, copy_path)
+    mf = IniFile(copy_path)
+    assert "package" in mf
+    mf.remove("package")
+    # Let's read it fresh, for good measure.
+    mf = IniFile(copy_path)
+    assert "package" not in mf
+    assert "CAMELCASE" in mf
+    mf.remove("CAMELCASE")
+    mf = IniFile(copy_path)
+    assert "CAMELCASE" not in mf
+    assert "CamelCase" not in mf
+    assert "camelcase" not in mf
+    # Check that we can re-enable a package:
+    # editing should not remove the entire section.
+    mf.add("package")
+    mf = IniFile(copy_path)
+    assert "package" in mf
+    # This should work for the last section as well.
+    mf.add("CamelCase")
+    mf = IniFile(copy_path)
+    assert "CamelCase" in mf
 
 
 def test_constraints_file_constraints():
     cf = ConstraintsFile(CONSTRAINTS_FILE)
     # All constraints are reported lowercased.
-    assert cf.constraints == {
+    assert cf.data == {
         "annotated": "1.0",
         "camelcase": "1.0",
         "duplicate": "1.0",
