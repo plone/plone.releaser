@@ -8,6 +8,36 @@ Changelog
 
 .. towncrier release notes start
 
+2.1.0 (2023-09-14)
+------------------
+
+New features:
+
+
+- Enable updating versions in pip constraints files.
+  [maurits] (#53)
+- Enable updating checkouts in mxdex.ini files.
+  [maurits] (#53)
+
+
+Bug fixes:
+
+
+- Check all ``versions*.cfg`` files when updating a pin.
+  [maurits] (#52)
+- Removed no longer working ``pulls`` command that I have never used.
+  Removed ``PyGithub`` and ``keyring`` dependencies that were only used for this.
+  Removed ``Source.path`` property that was only used for this.
+  [maurits] (#56)
+
+
+Internal:
+
+
+- Update configuration files.
+  [plone devs] (a7c2b777)
+
+
 2.0.1 (2023-06-22)
 ------------------
 

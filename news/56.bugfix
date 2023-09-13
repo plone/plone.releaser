@@ -1,4 +1,0 @@
-Removed no longer working ``pulls`` command that I have never used.
-Removed ``PyGithub`` and ``keyring`` dependencies that were only used for this.
-Removed ``Source.path`` property that was only used for this.
-[maurits]
