@@ -99,7 +99,8 @@ class VersionsFile(BaseFile):
             self.path.write_text(contents)
 
         newline = f"{package_name} = {new_version}"
-        line_reg = re.compile(rf"^{package_name.lower()} *=.*")
+        # Search case insensitively.
+        line_reg = re.compile(rf"^{package_name} *=.*", flags=re.I)
 
         def line_check(line):
             # Look for the 'package name = version' on a line of its own,

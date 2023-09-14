@@ -236,6 +236,19 @@ def test_versions_file_set_normal(tmp_path):
     vf["package"] = "3.0"
     vf = VersionsFile(copy_path)
     assert vf.get("package") == "3.0"
+    # How about packages that are not lowercase?
+    # ConfigParser reports all package names as lower case, so we don't know
+    # what their exact spelling is.  So whatever we pass on, should be used.
+    assert "CamelCase = 1.0" in copy_path.read_text()
+    assert copy_path.read_text().lower().count("camelcase") == 1
+    vf["CAMELcase"] = "1.1"
+    vf = VersionsFile(copy_path)
+    assert vf["camelCASE"] == "1.1"
+    assert vf["CaMeLcAsE"] == "1.1"
+    text = copy_path.read_text()
+    assert "CamelCase = 1.0" not in text
+    assert "CAMELcase = 1.1" in text
+    assert copy_path.read_text().lower().count("camelcase") == 1
 
 
 def test_versions_file_set_ignore_markers(tmp_path):

@@ -158,6 +158,20 @@ def test_constraints_file_set_normal(tmp_path):
     cf["package"] = "3.0"
     cf = ConstraintsFile(copy_path)
     assert cf.get("package") == "3.0"
+    # How about packages that are not lowercase?
+    # Currently in ConstraintsFile we report all package names as lower case,
+    # so we don't know what their exact spelling is, which is what ConfigParser
+    # does for the Buildout versions file.  So whatever we pass on, should be used.
+    assert "CamelCase==1.0" in copy_path.read_text()
+    assert copy_path.read_text().lower().count("camelcase") == 1
+    cf["CAMELcase"] = "1.1"
+    cf = ConstraintsFile(copy_path)
+    assert cf["camelCASE"] == "1.1"
+    assert cf["CaMeLcAsE"] == "1.1"
+    text = copy_path.read_text()
+    assert "CamelCase==1.0" not in text
+    assert "CAMELcase==1.1" in text
+    assert copy_path.read_text().lower().count("camelcase") == 1
 
 
 def test_constraints_file_set_ignore_markers(tmp_path):
