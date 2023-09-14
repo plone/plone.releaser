@@ -8,6 +8,17 @@ Changelog
 
 .. towncrier release notes start
 
+2.1.1 (2023-09-14)
+------------------
+
+Bug fixes:
+
+
+- Commit all changed files when updating a package version.
+  We were only adding `versions.cfg` to the commit, but the change can be in `versions-extra.cfg`, or in the future also in `constraints.txt`.
+  [maurits] (#57)
+
+
 2.1.0 (2023-09-14)
 ------------------
 
