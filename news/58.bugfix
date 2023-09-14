@@ -1,0 +1,3 @@
+Fix setting version for non-lowercase package.
+In the previous release this would add a duplicate line.
+[maurits]

@@ -57,7 +57,7 @@ class ConstraintsFile(BaseFile):
         newline = f"{package_name}=={new_version}"
         # Look for 'package name==version' on a line of its own,
         # no whitespace, no environment markers.
-        line_reg = re.compile(rf"^{package_name.lower()}==[^;]*$")
+        line_reg = re.compile(rf"^{package_name}==[^;]*$", flags=re.I)
 
         def line_check(line):
             return line_reg.match(line)
