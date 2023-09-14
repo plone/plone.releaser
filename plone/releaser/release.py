@@ -209,8 +209,8 @@ def update_core(data, branch=None):
             remove_from_checkouts(package_name)
         # git commit
         message = f"{package_name} {new_version}"
-        g.add("versions.cfg")
-        g.add("checkouts.cfg")
+        # add all changed files
+        g.add("--all")
         print("Committing changes.")
         g.commit(message=message)
         # When doing releases of several packages in a row,
