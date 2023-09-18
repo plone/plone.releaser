@@ -1,0 +1,2 @@
+Fix missing changelog entries when running ``bin/manage changelog``.
+[maurits]
