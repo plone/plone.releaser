@@ -149,7 +149,7 @@ class Changelog:
             if x.rawsource in HEADINGS:
                 return x.rawsource
             # Might be an old heading or unknown.
-            return OLD_HEADING_MAPPING.get(x.rawsource, "")
+            return OLD_HEADING_MAPPING.get(x.rawsource, "other")
 
         def is_list_item(x):
             return x.tagname == "list_item"

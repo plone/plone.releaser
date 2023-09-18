@@ -43,7 +43,14 @@ Bug fixes:
 )
 HEADERS = [BREAKING_TEXT, FEATURE_TEXT, BUGFIXES_TEXT]
 # Used by changelog.py:
-HEADINGS = ["Breaking changes:", "New features:", "Bug fixes:"]
+HEADINGS = [
+    "Breaking changes:",
+    "New features:",
+    "Bug fixes:",
+    "Documentation:",
+    "Tests",
+    "Internal:",
+]
 # For compatibility with previous names of the headers.
 INCOMPATIBILITIES_TEXT = """
 Incompatibilities:
