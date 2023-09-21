@@ -8,6 +8,20 @@ Changelog
 
 .. towncrier release notes start
 
+1.8.9 (2023-09-21)
+------------------
+
+Bug fixes:
+
+
+- Allow disabling PyPI rights check, as this does not know how to check organisations.
+  Set env variable ``PLONE_RELEASER_CHECK_PYPI_ACCESS=0`` if you want to disable it.
+  Also, we do not check PyPI if the user is `__token__`, so using an API token.
+  [maurits] (#50)
+- Fix missing changelog entries when running ``bin/manage changelog``.
+  [maurits] (#60)
+
+
 1.8.8 (2022-12-21)
 ------------------
 
