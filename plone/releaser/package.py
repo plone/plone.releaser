@@ -225,7 +225,7 @@ class Package(object):
         except git.exc.GitCommandError:
             print("\nCould not read commits between {0} and {1} for package {2}".format(
                 self.version, self.source.branch, self.name
-                ))
+            ))
 
         return commits
 
