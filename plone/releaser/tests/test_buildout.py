@@ -383,3 +383,142 @@ def test_versions_file_set_cleanup_duplicates(tmp_path):
     assert vf.get("duplicate") == "2.0"
     assert copy_path.read_text().count("duplicate = 2.0") == 1
     assert copy_path.read_text().count("duplicate = 1.0") == 0
+
+
+def test_versions_file_rewrite(tmp_path):
+    copy_path = tmp_path / "versions.cfg"
+    shutil.copyfile(VERSIONS_FILE, copy_path)
+    vf = VersionsFile(copy_path)
+    vf.rewrite()
+    # Read it fresh and compare
+    vf2 = VersionsFile(copy_path)
+    assert vf.extends == vf2.extends
+    assert vf.data == vf2.data
+    # Check the entire text.
+    # Note that there are differences with the original:
+    # - the extends line is on a separate line
+    # - all comments are removed
+    # - the duplicate is removed
+    # - all package names are lowercased
+    assert (
+        copy_path.read_text()
+        == """[buildout]
+extends =
+    https://zopefoundation.github.io/Zope/releases/5.8.3/versions.cfg
+
+[versions]
+annotated = 1.0
+camelcase = 1.0
+duplicate = 1.0
+lowercase = 1.0
+package = 1.0
+pyspecific = 1.0
+uppercase = 1.0
+"""
+    )
+
+
+def test_versions_file_rewrite_2(tmp_path):
+    copy_path = tmp_path / "versions2.cfg"
+    shutil.copyfile(VERSIONS_FILE2, copy_path)
+    vf = VersionsFile(copy_path)
+    vf.rewrite()
+    # Read it fresh and compare
+    vf2 = VersionsFile(copy_path)
+    assert vf.extends == vf2.extends
+    assert vf.data == vf2.data
+    # Check the entire text.
+    assert (
+        copy_path.read_text()
+        == """[buildout]
+extends =
+    versions3.cfg
+
+[versions]
+one = 1.1
+two = 2.0
+"""
+    )
+
+
+def test_versions_file_rewrite_with_markers(tmp_path):
+    copy_path = tmp_path / "versions2.cfg"
+    shutil.copyfile(VERSIONS_FILE2, copy_path)
+    vf = VersionsFile(copy_path, with_markers=True)
+    vf.rewrite()
+    # Read it fresh and compare
+    vf2 = VersionsFile(copy_path, with_markers=True)
+    assert vf.extends == vf2.extends
+    assert vf.data == vf2.data
+    # Check the entire text.
+    assert (
+        copy_path.read_text()
+        == """[buildout]
+extends =
+    versions3.cfg
+
+[versions]
+one = 1.1
+two = 2.0
+
+[versions:python312]
+three = 3.2
+"""
+    )
+
+
+def test_versions_file_rewrite_read_extends_without_markers(tmp_path):
+    # Note: this combination may not make sense.
+    copy_path = tmp_path / "versions2.cfg"
+    shutil.copyfile(VERSIONS_FILE2, copy_path)
+    # We extend some files and use their versions, so we need to copy them.
+    shutil.copyfile(VERSIONS_FILE3, tmp_path / "versions3.cfg")
+    shutil.copyfile(VERSIONS_FILE4, tmp_path / "versions4.cfg")
+    vf = VersionsFile(copy_path, read_extends=True, with_markers=False)
+    vf.rewrite()
+    # Read it fresh and compare
+    vf2 = VersionsFile(copy_path, read_extends=True, with_markers=False)
+    assert vf.extends
+    assert not vf2.extends
+    assert vf.data == vf2.data
+    # Check the entire text.  Note that packages are alphabetically sorted.
+    assert (
+        copy_path.read_text()
+        == """[versions]
+four = 4.0
+one = 1.1
+three = 3.0
+two = 2.0
+"""
+    )
+
+
+def test_versions_file_rewrite_read_extends_with_markers(tmp_path):
+    copy_path = tmp_path / "versions2.cfg"
+    shutil.copyfile(VERSIONS_FILE2, copy_path)
+    # We extend some files and use their versions, so we need to copy them.
+    shutil.copyfile(VERSIONS_FILE3, tmp_path / "versions3.cfg")
+    shutil.copyfile(VERSIONS_FILE4, tmp_path / "versions4.cfg")
+    vf = VersionsFile(copy_path, read_extends=True, with_markers=True)
+    vf.rewrite()
+    # Read it fresh and compare
+    vf2 = VersionsFile(copy_path, read_extends=True, with_markers=True)
+    assert vf.extends
+    assert not vf2.extends
+    assert vf.data == vf2.data
+    # Check the entire text.  Note that packages are alphabetically sorted.
+    assert (
+        copy_path.read_text()
+        == """[versions]
+four = 4.0
+one = 1.1
+three = 3.0
+two = 2.0
+
+[versions:macosx]
+five = 5.0
+
+[versions:python312]
+three = 3.2
+"""
+    )

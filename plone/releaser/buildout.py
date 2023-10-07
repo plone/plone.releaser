@@ -184,6 +184,45 @@ class VersionsFile(BaseFile):
         if contents != new_contents:
             self.path.write_text(new_contents)
 
+    def rewrite(self):
+        """Rewrite the file based on the parsed data.
+
+        This will lose comments, and may change the order.
+        """
+        contents = []
+        if self.extends and not self.read_extends:
+            # With read_extends=True, we incorporate the versions of the
+            # extended files in our own, so we no longer need the extends.
+            contents = ["[buildout]", "extends ="]
+            for extend in self.extends:
+                contents.append(f"    {extend}")
+            contents.append("")
+
+        contents.append("[versions]")
+        markers = defaultdict(list)
+        for package, version in self.data.items():
+            if isinstance(version, str):
+                contents.append(f"{package} = {version}")
+                continue
+            # version is a dict
+            for marker, value in version.items():
+                if not marker:
+                    # add to current [versions]
+                    contents.append(f"{package} = {value}")
+                    continue
+                # add to markers to write at the end
+                markers[marker].append((package, value))
+
+        for marker, entries in markers.items():
+            contents.append("")
+            contents.append(f"[versions:{marker}]")
+            for package, version in entries:
+                contents.append(f"{package} = {version}")
+
+        contents.append("")
+        new_contents = "\n".join(contents)
+        self.path.write_text(new_contents)
+
 
 class SourcesFile(BaseFile):
     @property
