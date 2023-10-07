@@ -197,6 +197,8 @@ def test_versions_file_extends():
     assert vf.extends == ["versions3.cfg"]
     vf = VersionsFile(VERSIONS_FILE3)
     assert vf.extends == ["versions4.cfg"]
+    vf = VersionsFile(VERSIONS_FILE4)
+    assert vf.extends == []
 
 
 def test_versions_file_read_extends_without_markers():

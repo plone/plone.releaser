@@ -1,9 +1,11 @@
 from .base import BaseFile
 from .utils import update_contents
+from collections import defaultdict
 from configparser import ConfigParser
 from configparser import ExtendedInterpolation
 from functools import cached_property
 
+import pathlib
 import re
 
 
@@ -16,36 +18,74 @@ def to_bool(value):
 
 
 class ConstraintsFile(BaseFile):
+    def __init__(self, file_location, with_markers=False, read_extends=False):
+        self.file_location = file_location
+        self.path = pathlib.Path(self.file_location).resolve()
+        self.with_markers = with_markers
+        self.markers = set()
+        self.read_extends = read_extends
+        self._extends = []
+
+    @property
+    def extends(self):
+        # Getting the data fills self._extends.
+        _ignored = self.data  # noqa F841
+        return self._extends
+
     @cached_property
     def data(self):
         """Read the constraints."""
         contents = self.path.read_text()
-        constraints = {}
+        constraints = defaultdict(dict)
         for line in contents.splitlines():
             line = line.strip()
             if line.startswith("#"):
+                continue
+            if line.startswith("-c"):
+                extend = line[len("-c") :].strip()
+                self._extends.append(extend)
+                if self.read_extends:
+                    # TODO: support downloading
+                    assert not extend.startswith("http")
+                    # Recursively read the extended files, and include their versions.
+                    extended = ConstraintsFile(
+                        self.path.parent / extend,
+                        with_markers=self.with_markers,
+                        read_extends=True,
+                    )
+                    for package, version in extended.data.items():
+                        if not isinstance(version, dict):
+                            constraints[package][""] = version
+                        else:
+                            constraints[package].update(version)
                 continue
             if "==" not in line:
                 # We might want to support e.g. '>=', but for now keep it simple.
                 continue
             package = line.split("==")[0].strip().lower()
-            version = line.split("==")[1].strip()
+            version = line.split("==", 1)[1].strip()
             # The line could also contain environment markers like this:
             # "; python_version >= '3.0'"
             # But currently I think we really only need the package name,
             # and not even the version.  Let's use the entire rest of the line.
             # Actually, for our purposes, we should ignore lines that have such
             # markers, just like we do in buildout.py:VersionsFile.
-            if ";" in version:
+            if ";" not in version:
+                constraints[package][""] = version
                 continue
-            if package in constraints:
-                if constraints[package] != version:
-                    print(
-                        f"ERROR: {package} is in {self.file_location} with two "
-                        f"constraints: '{constraints[package]}' and '{version}'."
-                    )
+            if not self.with_markers:
                 continue
-            constraints[package] = version
+            version, marker = version.split(";")
+            version = version.strip()
+            marker = marker.strip()
+            constraints[package][marker] = version
+
+        # simplify
+        for package, version in constraints.items():
+            if len(version) == 1 and "" in version.keys():
+                constraints[package] = version[""]
+                continue
+
         return constraints
 
     def __setitem__(self, package_name, new_version):

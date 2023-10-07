@@ -9,4 +9,5 @@ lowercase==1.0
 package==1.0
 pyspecific==1.0
 pyspecific==2.0; python_version=="3.12"
+onepython==2.1; python_version=="3.12"
 UPPERCASE==1.0

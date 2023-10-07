@@ -9,6 +9,9 @@ import shutil
 TESTS_DIR = pathlib.Path(__file__).parent
 INPUT_DIR = TESTS_DIR / "input"
 CONSTRAINTS_FILE = INPUT_DIR / "constraints.txt"
+CONSTRAINTS_FILE2 = INPUT_DIR / "constraints2.txt"
+CONSTRAINTS_FILE3 = INPUT_DIR / "constraints3.txt"
+CONSTRAINTS_FILE4 = INPUT_DIR / "constraints4.txt"
 MXDEV_FILE = INPUT_DIR / "mxdev.ini"
 
 
@@ -201,3 +204,47 @@ def test_constraints_file_set_cleanup_duplicates(tmp_path):
     assert cf.get("duplicate") == "2.0"
     assert copy_path.read_text().count("duplicate==2.0") == 1
     assert copy_path.read_text().count("duplicate==1.0") == 0
+
+
+def test_constraints_file_extends():
+    cf = ConstraintsFile(CONSTRAINTS_FILE)
+    assert cf.extends == [
+        "https://zopefoundation.github.io/Zope/releases/5.8.3/constraints.txt"
+    ]
+    cf = ConstraintsFile(CONSTRAINTS_FILE2)
+    assert cf.extends == ["constraints3.txt"]
+    cf = ConstraintsFile(CONSTRAINTS_FILE3)
+    assert cf.extends == ["constraints4.txt"]
+    cf = ConstraintsFile(CONSTRAINTS_FILE4)
+    assert cf.extends == []
+
+
+def test_constraints_file_read_extends_without_markers():
+    cf = ConstraintsFile(CONSTRAINTS_FILE2, read_extends=True)
+    assert cf.data == {"four": "4.0", "one": "1.1", "three": "3.0", "two": "2.0"}
+
+
+def test_constraints_file_read_extends_with_markers():
+    cf = ConstraintsFile(CONSTRAINTS_FILE2, with_markers=True, read_extends=True)
+    assert cf.data == {
+        "five": {"platform_system == 'macosx'": "5.0"},
+        "four": "4.0",
+        "one": "1.1",
+        "three": {"": "3.0", 'python_version=="3.12"': "3.2"},
+        "two": "2.0",
+    }
+
+
+def test_constraints_file_constraints_with_markers():
+    cf = ConstraintsFile(CONSTRAINTS_FILE, with_markers=True)
+    # All constraints are reported lowercased.
+    assert cf.data == {
+        "annotated": "1.0",
+        "camelcase": "1.0",
+        "duplicate": "1.0",
+        "lowercase": "1.0",
+        "onepython": {'python_version=="3.12"': "2.1"},
+        "package": "1.0",
+        "pyspecific": {"": "1.0", 'python_version=="3.12"': "2.0"},
+        "uppercase": "1.0",
+    }
