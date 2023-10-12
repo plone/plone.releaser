@@ -164,7 +164,7 @@ def test_constraints_file_set_normal(tmp_path):
     # How about packages that are not lowercase?
     # Currently in ConstraintsFile we report all package names as lower case,
     # so we don't know what their exact spelling is, which is what ConfigParser
-    # does for the Buildout versions file.  So whatever we pass on, should be used.
+    # does for the Buildout files.  So whatever we pass on, should be used.
     assert "CamelCase==1.0" in copy_path.read_text()
     assert copy_path.read_text().lower().count("camelcase") == 1
     cf["CAMELcase"] = "1.1"
@@ -248,3 +248,122 @@ def test_constraints_file_constraints_with_markers():
         "pyspecific": {"": "1.0", 'python_version=="3.12"': "2.0"},
         "uppercase": "1.0",
     }
+
+
+def test_constraints_file_rewrite(tmp_path):
+    copy_path = tmp_path / "constraints.txt"
+    shutil.copyfile(CONSTRAINTS_FILE, copy_path)
+    cf = ConstraintsFile(copy_path)
+    cf.rewrite()
+    # Read it fresh and compare
+    cf2 = ConstraintsFile(copy_path)
+    assert cf.extends == cf2.extends
+    assert cf.data == cf2.data
+    # Check the entire text.
+    # Note that there are differences with the original:
+    # - the extends line is on a separate line
+    # - all comments are removed
+    # - the duplicate is removed
+    # - all package names are lowercased
+    assert (
+        copy_path.read_text()
+        == """-c https://zopefoundation.github.io/Zope/releases/5.8.3/constraints.txt
+annotated==1.0
+camelcase==1.0
+duplicate==1.0
+lowercase==1.0
+package==1.0
+pyspecific==1.0
+uppercase==1.0
+"""
+    )
+
+
+def test_constraints_file_rewrite_2(tmp_path):
+    copy_path = tmp_path / "constraints2.txt"
+    shutil.copyfile(CONSTRAINTS_FILE2, copy_path)
+    cf = ConstraintsFile(copy_path)
+    cf.rewrite()
+    # Read it fresh and compare
+    cf2 = ConstraintsFile(copy_path)
+    assert cf.extends == cf2.extends
+    assert cf.data == cf2.data
+    # Check the entire text.
+    assert (
+        copy_path.read_text()
+        == """-c constraints3.txt
+one==1.1
+two==2.0
+"""
+    )
+
+
+def test_constraints_file_rewrite_with_markers(tmp_path):
+    copy_path = tmp_path / "constraints2.txt"
+    shutil.copyfile(CONSTRAINTS_FILE2, copy_path)
+    cf = ConstraintsFile(copy_path, with_markers=True)
+    cf.rewrite()
+    # Read it fresh and compare
+    cf2 = ConstraintsFile(copy_path, with_markers=True)
+    assert cf.extends == cf2.extends
+    assert cf.data == cf2.data
+    # Check the entire text.
+    assert (
+        copy_path.read_text()
+        == """-c constraints3.txt
+one==1.1
+two==2.0
+three==3.2; python_version=="3.12"
+"""
+    )
+
+
+def test_constraints_file_rewrite_read_extends_without_markers(tmp_path):
+    # Note: this combination may not make sense.
+    copy_path = tmp_path / "constraints2.txt"
+    shutil.copyfile(CONSTRAINTS_FILE2, copy_path)
+    # We extend some files and use their constraints, so we need to copy them.
+    shutil.copyfile(CONSTRAINTS_FILE3, tmp_path / "constraints3.txt")
+    shutil.copyfile(CONSTRAINTS_FILE4, tmp_path / "constraints4.txt")
+    cf = ConstraintsFile(copy_path, read_extends=True, with_markers=False)
+    cf.rewrite()
+    # Read it fresh and compare
+    cf2 = ConstraintsFile(copy_path, read_extends=True, with_markers=False)
+    assert cf.extends
+    assert not cf2.extends
+    assert cf.data == cf2.data
+    # Check the entire text.  Note that packages are alphabetically sorted.
+    assert (
+        copy_path.read_text()
+        == """four==4.0
+one==1.1
+three==3.0
+two==2.0
+"""
+    )
+
+
+def test_constraints_file_rewrite_read_extends_with_markers(tmp_path):
+    copy_path = tmp_path / "constraints2.txt"
+    shutil.copyfile(CONSTRAINTS_FILE2, copy_path)
+    # We extend some files and use their constraints, so we need to copy them.
+    shutil.copyfile(CONSTRAINTS_FILE3, tmp_path / "constraints3.txt")
+    shutil.copyfile(CONSTRAINTS_FILE4, tmp_path / "constraints4.txt")
+    cf = ConstraintsFile(copy_path, read_extends=True, with_markers=True)
+    cf.rewrite()
+    # Read it fresh and compare
+    cf2 = ConstraintsFile(copy_path, read_extends=True, with_markers=True)
+    assert cf.extends
+    assert not cf2.extends
+    assert cf.data == cf2.data
+    # Check the entire text.  Note that packages are alphabetically sorted.
+    assert (
+        copy_path.read_text()
+        == """four==4.0
+five==5.0; platform_system == 'darwin'
+one==1.1
+three==3.0
+three==3.2; python_version=="3.12"
+two==2.0
+"""
+    )

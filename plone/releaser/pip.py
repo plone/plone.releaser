@@ -109,6 +109,33 @@ class ConstraintsFile(BaseFile):
         if contents != new_contents:
             self.path.write_text(new_contents)
 
+    def rewrite(self):
+        """Rewrite the file based on the parsed data.
+
+        This will lose comments, and may change the order.
+        """
+        contents = []
+        if self.extends and not self.read_extends:
+            # With read_extends=True, we incorporate the versions of the
+            # extended files in our own, so we no longer need the extends.
+            for extend in self.extends:
+                contents.append(f"-c {extend}")
+
+        for package, version in self.data.items():
+            if isinstance(version, str):
+                contents.append(f"{package}=={version}")
+                continue
+            # version is a dict
+            for marker, value in version.items():
+                line = f"{package}=={value}"
+                if marker:
+                    line += f"; {marker}"
+                contents.append(line)
+
+        contents.append("")
+        new_contents = "\n".join(contents)
+        self.path.write_text(new_contents)
+
 
 class IniFile(BaseFile):
     """Ini file for mxdev.
