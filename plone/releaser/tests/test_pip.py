@@ -96,6 +96,42 @@ def test_mxdev_file_remove(tmp_path):
     assert "CamelCase" in mf
 
 
+def test_mxdev_file_rewrite(tmp_path):
+    copy_path = tmp_path / "mxdev.ini"
+    shutil.copyfile(MXDEV_FILE, copy_path)
+    mf = IniFile(copy_path)
+    mf.rewrite()
+    # Read it fresh and compare
+    mf2 = IniFile(copy_path)
+    assert mf.data == mf2.data
+    # Check the entire text.  Note that packages are alphabetically sorted.
+    # Currently we get the original case, but we may change this to lowercase.
+    assert (
+        copy_path.read_text()
+        == """[settings]
+requirements-in = requirements.txt
+requirements-out = requirements-mxdev.txt
+contraints-out = constraints-mxdev.txt
+default-use = false
+plone = https://github.com/plone
+
+[package]
+url = ${settings:plone}/package.git
+branch = main
+use = true
+
+[unused]
+url = ${settings:plone}/package.git
+branch = main
+
+[CamelCase]
+url = ${settings:plone}/CamelCase.git
+branch = main
+use = true
+"""
+    )
+
+
 def test_constraints_file_constraints():
     cf = ConstraintsFile(CONSTRAINTS_FILE)
     # All constraints are reported lowercased.

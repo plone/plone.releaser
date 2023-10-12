@@ -2,7 +2,6 @@ from .base import BaseFile
 from .utils import update_contents
 from collections import defaultdict
 from configparser import ConfigParser
-from configparser import ExtendedInterpolation
 from functools import cached_property
 
 import pathlib
@@ -150,8 +149,13 @@ class IniFile(BaseFile):
         super().__init__(file_location)
         self.config = ConfigParser(
             default_section="settings",
-            interpolation=ExtendedInterpolation(),
         )
+        # mxdev itself calls ConfigParser with extra option
+        # interpolation=ExtendedInterpolation().
+        # This turns a line like 'url = ${settings:plone}/package.git'
+        # into 'url = https://github.com/plone/package.git'.
+        # In our case we very much want the original line,
+        # especially when we do a rewrite of the file.
         with self.path.open() as f:
             self.config.read_file(f)
         self.default_use = to_bool(self.config["settings"].get("default-use", True))
@@ -252,3 +256,25 @@ class IniFile(BaseFile):
 
         contents = "\n".join(lines)
         self.path.write_text(contents)
+
+    def rewrite(self):
+        """Rewrite the file based on the parsed data.
+
+        This will lose comments, and may change the order.
+        TODO Can we trust self.config? It won't get updated if we change any data
+        after reading.
+        """
+        contents = ["[settings]"]
+        for key, value in self.config["settings"].items():
+            contents.append(f"{key} = {value}")
+
+        for package in self.sections.values():
+            contents.append("")
+            contents.append(f"[{package}]")
+            for key, value in self.config[package].items():
+                if self.config["settings"].get(key) != value:
+                    contents.append(f"{key} = {value}")
+
+        contents.append("")
+        new_contents = "\n".join(contents)
+        self.path.write_text(new_contents)
