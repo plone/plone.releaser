@@ -80,6 +80,27 @@ def test_checkouts_file_remove(tmp_path):
     assert "camelcase" not in cf
 
 
+def test_checkouts_file_rewrite(tmp_path):
+    copy_path = tmp_path / "checkouts.cfg"
+    shutil.copyfile(CHECKOUTS_FILE, copy_path)
+    cf = CheckoutsFile(copy_path)
+    cf.rewrite()
+    # Read it fresh and compare
+    cf2 = CheckoutsFile(copy_path)
+    assert cf.data == cf2.data
+    # Check the entire text.  Note that packages are alphabetically sorted.
+    # Currently we get the original case, but we may change this to lowercase.
+    assert (
+        copy_path.read_text()
+        == """[buildout]
+always-checkout = force
+auto-checkout =
+    CamelCase
+    package
+"""
+    )
+
+
 def test_source_standard():
     src = Source.create_from_string(
         "git https://github.com/plone/Plone.git pushurl=git@github.com:plone/Plone.git branch=6.0.x"

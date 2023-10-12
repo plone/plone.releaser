@@ -248,14 +248,22 @@ class SourcesFile(BaseFile):
 
 
 class CheckoutsFile(BaseFile):
-    @property
-    def data(self):
+    @cached_property
+    def config(self):
         config = ConfigParser(interpolation=ExtendedInterpolation())
         with self.path.open() as f:
             config.read_file(f)
         config["buildout"]["directory"] = os.getcwd()
+        return config
+
+    @property
+    def always_checkout(self):
+        return self.config.get("buildout", "always-checkout")
+
+    @property
+    def data(self):
         # I don't think we need to support [buildout:marker].
-        checkouts = config.get("buildout", "auto-checkout")
+        checkouts = self.config.get("buildout", "auto-checkout")
         # Map from lower case to actual case, so we can find the package.
         mapping = {}
         for package in checkouts.splitlines():
@@ -287,6 +295,25 @@ class CheckoutsFile(BaseFile):
     def set(self, package_name, new_version):
         # This method makes no sense for this class.
         raise NotImplementedError
+
+    def rewrite(self):
+        """Rewrite the file based on the parsed data.
+
+        This will lose comments, and may change the order.
+        """
+        contents = ["[buildout]"]
+        if self.always_checkout:
+            contents.append(f"always-checkout = {self.always_checkout}"),
+        contents.append("auto-checkout =")
+        # self.values has the original case.
+        # We could iterate over 'self' to get lowercase,
+        # which is what we get in most other places.
+        # But for now let's use the info we have.
+        for package in self.values():
+            contents.append(f"    {package}")
+        contents.append("")
+        new_contents = "\n".join(contents)
+        self.path.write_text(new_contents)
 
 
 class Buildout:
