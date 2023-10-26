@@ -51,6 +51,18 @@ class Source:
     def __repr__(self):
         return f"<Source {self.protocol} url={self.url} pushurl={self.pushurl} branch={self.branch} path={self.path} egg={self.egg}>"
 
+    def __str__(self):
+        line = f"{self.protocol} {self.url}"
+        if self.pushurl:
+            line += f" pushurl={self.pushurl}"
+        if self.branch:
+            line += f" branch={self.branch}"
+        if self.path:
+            line += f" path={self.path}"
+        if not self.egg:
+            line += " egg=false"
+        return line
+
     def __eq__(self, other):
         return repr(self) == repr(other)
 
@@ -225,8 +237,8 @@ class VersionsFile(BaseFile):
 
 
 class SourcesFile(BaseFile):
-    @property
-    def data(self):
+    @cached_property
+    def config(self):
         config = ConfigParser(interpolation=ExtendedInterpolation())
         config.optionxform = str
         with self.path.open() as f:
@@ -236,15 +248,64 @@ class SourcesFile(BaseFile):
         # See this similar issue in mr.roboto:
         # https://github.com/plone/mr.roboto/issues/89
         config["buildout"]["directory"] = os.getcwd()
+        return config
+
+    @cached_property
+    def raw_config(self):
+        # Read the same data, but without interpolation.
+        # So keep a url like '${settings:plone}/package.git'
+        config = ConfigParser()
+        config.optionxform = str
+        with self.path.open() as f:
+            config.read_file(f)
+        return config
+
+    @property
+    def extends(self):
+        if self.config.has_section("buildout"):
+            return self.config["buildout"].get("extends", "").strip().splitlines()
+        return []
+
+    @property
+    def data(self):
         sources_dict = OrderedDict()
         # I don't think we need to support [sources:marker].
-        for name, value in config["sources"].items():
+        for name, value in self.config["sources"].items():
+            source = Source.create_from_string(value)
+            sources_dict[name.lower()] = source
+        return sources_dict
+
+    @property
+    def raw_data(self):
+        sources_dict = OrderedDict()
+        # I don't think we need to support [sources:marker].
+        for name, value in self.raw_config["sources"].items():
             source = Source.create_from_string(value)
             sources_dict[name.lower()] = source
         return sources_dict
 
     def __setitem__(self, package_name, value):
         raise NotImplementedError
+
+    def rewrite(self):
+        """Rewrite the file based on the parsed data.
+
+        This will lose comments, and may change the order.
+        """
+        contents = []
+        # TODO add [buildout], extends, docs-directory.
+        # Definitions of remotes could be good.
+        # But we might skip this all, as it is a one-off exercise.
+        # Or keep all existing text until [sources].
+        contents.append("[buildout]")
+        contents.append("")
+        contents.append("[sources]")
+        for name, source in self.raw_data.items():
+            contents.append(f"{name} = {str(source)}")
+
+        contents.append("")
+        new_contents = "\n".join(contents)
+        self.path.write_text(new_contents)
 
 
 class CheckoutsFile(BaseFile):

@@ -195,6 +195,32 @@ def test_sources_file_get():
     assert base.egg
 
 
+def test_sources_file_rewrite(tmp_path):
+    copy_path = tmp_path / "sources.cfg"
+    shutil.copyfile(SOURCES_FILE, copy_path)
+    sf = SourcesFile(copy_path)
+    sf.rewrite()
+    # Read it fresh and compare
+    sf2 = SourcesFile(copy_path)
+    assert sf.raw_data == sf2.raw_data
+    # TODO re-enable this test after including the remotes:
+    # assert sf.data == sf2.data
+    # Some differences compared with the original:
+    # - We always specify the branch.
+    # - The order of the options may be different.
+    assert (
+        copy_path.read_text()
+        == """[buildout]
+
+[sources]
+docs = git ${remotes:plone}/documentation.git branch=6.0 path=${buildout:docs-directory} egg=false
+plone = git ${remotes:plone}/Plone.git pushurl=${remotes:plone_push}/Plone.git branch=6.0.x
+plone.alterego = git ${remotes:plone}/plone.alterego.git branch=master
+plone.base = git ${remotes:plone}/plone.base.git branch=main
+"""
+    )
+
+
 def test_versions_file_versions():
     vf = VersionsFile(VERSIONS_FILE)
     # All versions are reported lowercased.
