@@ -112,7 +112,7 @@ def _get_checkouts(path=None):
         yield checkouts
 
 
-def check_checkout(package_name, path=None):
+def check_checkout(package_name, *, path=None):
     """Check if package is in the checkouts.
 
     If no path is given, we try several paths:
@@ -126,7 +126,7 @@ def check_checkout(package_name, path=None):
             print(f"YES, your package {package_name} is on auto checkout in {loc}.")
 
 
-def remove_checkout(package_name, path=None):
+def remove_checkout(package_name, *, path=None):
     """Remove package from auto checkouts.
 
     If no path is given, we try several paths:
@@ -136,7 +136,7 @@ def remove_checkout(package_name, path=None):
         checkouts.remove(package_name)
 
 
-def add_checkout(package_name, path=None):
+def add_checkout(package_name, *, path=None):
     """Add package to auto checkouts.
 
     If no path is given, we try several paths:
@@ -175,7 +175,7 @@ def _get_constraints(path=None):
         yield constraints
 
 
-def get_package_version(package_name, path=None):
+def get_package_version(package_name, *, path=None):
     """Get package version from constraints/versions file.
 
     If no path is given, we try several paths.
@@ -206,7 +206,7 @@ def get_package_version(package_name, path=None):
         print(f"{constraints.file_location}: {package_name} {version}.")
 
 
-def set_package_version(package_name, new_version, path=None):
+def set_package_version(package_name, new_version, *, path=None):
     """Pin package to new version in a versions file.
 
     This can also be a pip constraints file.
@@ -231,7 +231,7 @@ def set_package_version(package_name, new_version, path=None):
         constraints.set(package_name, new_version)
 
 
-def versions2constraints(path=None):
+def versions2constraints(*, path=None):
     """Take a Buildout versions file and create a pip constraints file out of it.
 
     If no path is given, we use versions*.cfg.
