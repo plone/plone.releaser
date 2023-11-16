@@ -203,14 +203,20 @@ def test_sources_file_rewrite(tmp_path):
     # Read it fresh and compare
     sf2 = SourcesFile(copy_path)
     assert sf.raw_data == sf2.raw_data
-    # TODO re-enable this test after including the remotes:
-    # assert sf.data == sf2.data
+    assert sf.data == sf2.data
     # Some differences compared with the original:
     # - We always specify the branch.
     # - The order of the options may be different.
     assert (
         copy_path.read_text()
         == """[buildout]
+extends =
+    https://raw.githubusercontent.com/zopefoundation/Zope/master/sources.cfg
+docs-directory = ${buildout:directory}/documentation
+
+[remotes]
+plone = https://github.com/plone
+plone_push = git@github.com:plone
 
 [sources]
 docs = git ${remotes:plone}/documentation.git branch=6.0 path=${buildout:docs-directory} egg=false

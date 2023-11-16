@@ -5,6 +5,7 @@ from collections import OrderedDict
 from configparser import ConfigParser
 from configparser import ExtendedInterpolation
 from functools import cached_property
+from textwrap import indent
 
 import os
 import pathlib
@@ -293,12 +294,21 @@ class SourcesFile(BaseFile):
         This will lose comments, and may change the order.
         """
         contents = []
-        # TODO add [buildout], extends, docs-directory.
-        # Definitions of remotes could be good.
-        # But we might skip this all, as it is a one-off exercise.
-        # Or keep all existing text until [sources].
-        contents.append("[buildout]")
-        contents.append("")
+        # First rewrite all existing sections except [sources].
+        for part, section in self.raw_config.items():
+            if part in ("sources", "DEFAULT"):
+                continue
+            contents.append(f"[{part}]")
+            for key, value in section.items():
+                if value.startswith("\n"):
+                    contents.append(f"{key} =")
+                    value = indent(value.strip(), "    ")
+                    contents.append(value)
+                else:
+                    contents.append(f"{key} = {value}")
+            contents.append("")
+
+        # Now handle the sources.
         contents.append("[sources]")
         for name, source in self.raw_data.items():
             contents.append(f"{name} = {str(source)}")
