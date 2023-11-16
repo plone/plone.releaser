@@ -260,13 +260,15 @@ def versions2constraints(*, path=None):
         paths = glob.glob("versions*.cfg")
     for path in paths:
         versions = VersionsFile(path)
-        constraints_path = path.replace("versions", "constraints").replace(
+        # Create path to constraints*.txt instead of versions*.cfg.
+        filename = str(path)[len(str(path.parent)) + 1:]
+        filename = filename.replace("versions", "constraints").replace(
             ".cfg", ".txt"
         )
+        constraints_path = path.parent / filename
         constraints = ConstraintsFile(constraints_path)
         if not constraints.path.exists():
-            with constraints.path.open("w") as myfile:
-                myfile.write("")
+            constraints.path.touch()
         for package_name, version in versions.items():
             constraints[package_name] = version
 
