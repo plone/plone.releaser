@@ -259,18 +259,13 @@ def versions2constraints(*, path=None):
     else:
         paths = glob.glob("versions*.cfg")
     for path in paths:
-        versions = VersionsFile(path)
+        versions = VersionsFile(path, with_markers=True)
         # Create path to constraints*.txt instead of versions*.cfg.
-        filename = str(path)[len(str(path.parent)) + 1:]
-        filename = filename.replace("versions", "constraints").replace(
-            ".cfg", ".txt"
-        )
-        constraints_path = path.parent / filename
-        constraints = ConstraintsFile(constraints_path)
-        if not constraints.path.exists():
-            constraints.path.touch()
-        for package_name, version in versions.items():
-            constraints[package_name] = version
+        filepath = versions.path
+        filename = str(filepath)[len(str(filepath.parent)) + 1 :]
+        filename = filename.replace("versions", "constraints").replace(".cfg", ".txt")
+        constraints_path = filepath.parent / filename
+        versions.to_constraints(constraints_path)
 
 
 class Manage:

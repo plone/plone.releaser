@@ -1,6 +1,6 @@
 from plone.releaser.manage import versions2constraints
+from plone.releaser.pip import ConstraintsFile
 
-import os
 import pathlib
 import pytest
 import shutil
@@ -14,6 +14,7 @@ VERSIONS_FILE3 = INPUT_DIR / "versions3.cfg"
 VERSIONS_FILE4 = INPUT_DIR / "versions4.cfg"
 
 
+@pytest.mark.current
 def test_versions2constraints(tmp_path):
     copy_path = tmp_path / "versions.cfg"
     constraints_file = tmp_path / "constraints.txt"
@@ -21,16 +22,19 @@ def test_versions2constraints(tmp_path):
     assert not constraints_file.exists()
     versions2constraints(path=copy_path)
     assert constraints_file.exists()
-    # TODO: we should include versions with markers:
-    # pyspecific==2.0; python_version=="3.12"
-    # onepython==2.1; python_version=="3.12"
+    cf = ConstraintsFile(constraints_file, with_markers=True)
+    print(cf.data)
     assert (
         constraints_file.read_text()
-        == """annotated==1.0
+        == """-c https://zopefoundation.github.io/Zope/releases/5.8.3/constraints.txt
+annotated==1.0
 camelcase==1.0
 duplicate==1.0
 lowercase==1.0
 package==1.0
 pyspecific==1.0
+pyspecific==2.0; python_version == "3.12"
 uppercase==1.0
-""")
+onepython==2.1; python_version == "3.12"
+"""
+    )

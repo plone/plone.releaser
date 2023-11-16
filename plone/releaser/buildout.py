@@ -1,4 +1,5 @@
 from .base import BaseFile
+from .utils import buildout_marker_to_pip_marker
 from .utils import update_contents
 from collections import defaultdict
 from collections import OrderedDict
@@ -261,6 +262,88 @@ class VersionsFile(BaseBuildoutFile):
         contents.append("")
         new_contents = "\n".join(contents)
         self.path.write_text(new_contents)
+
+    def extends_to_pip(self):
+        """Translate our extends data to pip.
+
+        We assume that all 'extends' lines are files with versions,
+        and that a constraints file is at the same place.
+        """
+        if not self.extends:
+            return []
+        if self.read_extends:
+            # We incorporate the versions of the extended files in our own,
+            # so we do not need the extends.
+            return []
+
+        new_extends = []
+        for extend in self.extends:
+            parts = extend.split("/")
+            parent = "/".join(parts[:-1])
+            extend = parts[-1]
+            extend = extend.replace("versions", "constraints").replace(".cfg", ".txt")
+            if parent:
+                extend = "/".join([parent, extend])
+            new_extends.append(extend)
+
+        return new_extends
+
+    def pins_to_pip(self):
+        """Translate our version pins to pip.
+
+        There is just one thing to do: translate buildout-specific markers
+        to ones that pip understands.
+        Note that the other way around is no problem: Buildout can meanwhile
+        understand the pip markers.
+
+        An option would be to always do this for Buildout as well.
+        Or have a command to normalize a buildout file, with this and other
+        small changes like making all package named lower case.
+        """
+        new_data = {}
+        for package, version in self.data.items():
+            if isinstance(version, str):
+                new_data[package] = version
+                continue
+            # version is a dict
+            new_version = {}
+            for marker, value in version.items():
+                if not marker:
+                    new_version[marker] = value
+                    continue
+                # If this is a Buildout-specific marker, we need to translate it.
+                new_marker = buildout_marker_to_pip_marker(marker)
+                new_version[new_marker] = value
+            new_data[package] = new_version
+        return new_data
+
+    def to_constraints(self, constraints_path):
+        """Overwrite constraints file with our data.
+
+        The strategy is:
+
+        1. Translate our data to constraints data.
+        2. Ask the constraints file to rewrite itself.
+        """
+        # Import here to avoid circular imports.
+        from plone.releaser.pip import ConstraintsFile
+
+        constraints = ConstraintsFile(
+            constraints_path,
+            with_markers=self.with_markers,
+            read_extends=self.read_extends,
+        )
+        # Create or empty the constraints file.
+        constraints.path.write_text("")
+
+        # Translate our extends to pip.
+        constraints.extends = self.extends_to_pip()
+
+        # Translate our version pins to pip.
+        constraints.data = self.pins_to_pip()
+
+        # Rewrite the file.
+        constraints.rewrite()
 
 
 class SourcesFile(BaseBuildoutFile):

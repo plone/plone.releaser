@@ -21,11 +21,10 @@ class ConstraintsFile(BaseFile):
         self.file_location = file_location
         self.path = pathlib.Path(self.file_location).resolve()
         self.with_markers = with_markers
-        self.markers = set()
         self.read_extends = read_extends
         self._extends = []
 
-    @property
+    @cached_property
     def extends(self):
         # Getting the data fills self._extends.
         _ignored = self.data  # noqa F841
