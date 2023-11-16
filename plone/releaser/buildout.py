@@ -68,7 +68,7 @@ class Source:
         return repr(self) == repr(other)
 
 
-class VersionsFile(BaseFile):
+class BaseBuildoutFile(BaseFile):
     def __init__(self, file_location, with_markers=False, read_extends=False):
         self.file_location = file_location
         self.path = pathlib.Path(self.file_location).resolve()
@@ -78,7 +78,31 @@ class VersionsFile(BaseFile):
 
     @cached_property
     def config(self):
+        # For versions.cfg we had strict=False, for the others not.
+        # Let's use it always.
         config = ConfigParser(interpolation=ExtendedInterpolation(), strict=False)
+        # In SourcesFile we had this:
+        # config.optionxform = str
+        # This seems to make everything lowercase, and makes tests fail.
+        # TODO: we could use it if we choose.
+        with self.path.open() as f:
+            config.read_file(f)
+        # Especially in sources.cfg we may need to define a few extra variables
+        # that are in a different buildout file that we do not parse here.
+        # See this similar issue in mr.roboto:
+        # https://github.com/plone/mr.roboto/issues/89
+        if not config.has_section("buildout"):
+            config.add_section("buildout")
+        if not config.has_option("buildout", "directory"):
+            config["buildout"]["directory"] = os.getcwd()
+        return config
+
+    @cached_property
+    def raw_config(self):
+        # Read the same data, but without interpolation.
+        # So keep a url like '${settings:plone}/package.git'
+        config = ConfigParser(strict=False)
+        # config.optionxform = str
         with self.path.open() as f:
             config.read_file(f)
         return config
@@ -89,6 +113,8 @@ class VersionsFile(BaseFile):
             return self.config["buildout"].get("extends", "").strip().splitlines()
         return []
 
+
+class VersionsFile(BaseBuildoutFile):
     @property
     def data(self):
         """Read the versions config.
@@ -237,36 +263,7 @@ class VersionsFile(BaseFile):
         self.path.write_text(new_contents)
 
 
-class SourcesFile(BaseFile):
-    @cached_property
-    def config(self):
-        config = ConfigParser(interpolation=ExtendedInterpolation())
-        config.optionxform = str
-        with self.path.open() as f:
-            config.read_file(f)
-        # We need to define a few extra variables that are in a different
-        # buildout file that we do not parse here.
-        # See this similar issue in mr.roboto:
-        # https://github.com/plone/mr.roboto/issues/89
-        config["buildout"]["directory"] = os.getcwd()
-        return config
-
-    @cached_property
-    def raw_config(self):
-        # Read the same data, but without interpolation.
-        # So keep a url like '${settings:plone}/package.git'
-        config = ConfigParser()
-        config.optionxform = str
-        with self.path.open() as f:
-            config.read_file(f)
-        return config
-
-    @property
-    def extends(self):
-        if self.config.has_section("buildout"):
-            return self.config["buildout"].get("extends", "").strip().splitlines()
-        return []
-
+class SourcesFile(BaseBuildoutFile):
     @property
     def data(self):
         sources_dict = OrderedDict()
@@ -318,15 +315,7 @@ class SourcesFile(BaseFile):
         self.path.write_text(new_contents)
 
 
-class CheckoutsFile(BaseFile):
-    @cached_property
-    def config(self):
-        config = ConfigParser(interpolation=ExtendedInterpolation())
-        with self.path.open() as f:
-            config.read_file(f)
-        config["buildout"]["directory"] = os.getcwd()
-        return config
-
+class CheckoutsFile(BaseBuildoutFile):
     @property
     def always_checkout(self):
         return self.config.get("buildout", "always-checkout")
