@@ -9,6 +9,24 @@ INPUT_DIR = TESTS_DIR / "input"
 VERSIONS = (INPUT_DIR / "versions.cfg").read_text()
 
 
+def test_buildout_marker_to_pip_marker():
+    from plone.releaser.utils import buildout_marker_to_pip_marker as trans
+
+    assert trans("") == ""
+    assert trans("unknown") == "unknown"
+    assert trans('python_version == "3.8"') == 'python_version == "3.8"'
+    assert trans('platform_system == "Linux"') == 'platform_system == "Linux"'
+    assert trans("python2") == 'python_version < "3"'
+    assert trans("python3") == 'python_version >= "3"'
+    assert trans("python27") == 'python_version == "2.7"'
+    assert trans("python38") == 'python_version == "3.8"'
+    assert trans("python313") == 'python_version == "3.13"'
+    assert trans("pypy") == 'implementation_name == "pypy"'
+    assert trans("linux") == 'platform_system == "Linux"'
+    assert trans("macosx") == 'platform_system == "Darwin"'
+    assert trans("windows") == 'platform_system == "Windows"'
+
+
 def test_update_contents_empty():
     assert update_contents("\n", lambda x: True, "", "") == "\n"
 

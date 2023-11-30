@@ -1,9 +1,10 @@
 from .base import BaseFile
 from .utils import update_contents
+from collections import defaultdict
 from configparser import ConfigParser
-from configparser import ExtendedInterpolation
 from functools import cached_property
 
+import pathlib
 import re
 
 
@@ -16,36 +17,73 @@ def to_bool(value):
 
 
 class ConstraintsFile(BaseFile):
+    def __init__(self, file_location, with_markers=False, read_extends=False):
+        self.file_location = file_location
+        self.path = pathlib.Path(self.file_location).resolve()
+        self.with_markers = with_markers
+        self.read_extends = read_extends
+        self._extends = []
+
+    @cached_property
+    def extends(self):
+        # Getting the data fills self._extends.
+        _ignored = self.data  # noqa F841
+        return self._extends
+
     @cached_property
     def data(self):
         """Read the constraints."""
         contents = self.path.read_text()
-        constraints = {}
+        constraints = defaultdict(dict)
         for line in contents.splitlines():
             line = line.strip()
             if line.startswith("#"):
+                continue
+            if line.startswith("-c"):
+                extend = line[len("-c") :].strip()
+                self._extends.append(extend)
+                if self.read_extends:
+                    # TODO: support downloading
+                    assert not extend.startswith("http")
+                    # Recursively read the extended files, and include their versions.
+                    extended = ConstraintsFile(
+                        self.path.parent / extend,
+                        with_markers=self.with_markers,
+                        read_extends=True,
+                    )
+                    for package, version in extended.data.items():
+                        if not isinstance(version, dict):
+                            constraints[package][""] = version
+                        else:
+                            constraints[package].update(version)
                 continue
             if "==" not in line:
                 # We might want to support e.g. '>=', but for now keep it simple.
                 continue
             package = line.split("==")[0].strip().lower()
-            version = line.split("==")[1].strip()
+            version = line.split("==", 1)[1].strip()
             # The line could also contain environment markers like this:
             # "; python_version >= '3.0'"
             # But currently I think we really only need the package name,
             # and not even the version.  Let's use the entire rest of the line.
             # Actually, for our purposes, we should ignore lines that have such
             # markers, just like we do in buildout.py:VersionsFile.
-            if ";" in version:
+            if ";" not in version:
+                constraints[package][""] = version
                 continue
-            if package in constraints:
-                if constraints[package] != version:
-                    print(
-                        f"ERROR: {package} is in {self.file_location} with two "
-                        f"constraints: '{constraints[package]}' and '{version}'."
-                    )
+            if not self.with_markers:
                 continue
-            constraints[package] = version
+            version, marker = version.split(";")
+            version = version.strip()
+            marker = marker.strip()
+            constraints[package][marker] = version
+
+        # simplify
+        for package, version in constraints.items():
+            if len(version) == 1 and "" in version.keys():
+                constraints[package] = version[""]
+                continue
+
         return constraints
 
     def __setitem__(self, package_name, new_version):
@@ -69,6 +107,33 @@ class ConstraintsFile(BaseFile):
         if contents != new_contents:
             self.path.write_text(new_contents)
 
+    def rewrite(self):
+        """Rewrite the file based on the parsed data.
+
+        This will lose comments, and may change the order.
+        """
+        contents = []
+        if self.extends and not self.read_extends:
+            # With read_extends=True, we incorporate the versions of the
+            # extended files in our own, so we no longer need the extends.
+            for extend in self.extends:
+                contents.append(f"-c {extend}")
+
+        for package, version in self.data.items():
+            if isinstance(version, str):
+                contents.append(f"{package}=={version}")
+                continue
+            # version is a dict
+            for marker, value in version.items():
+                line = f"{package}=={value}"
+                if marker:
+                    line += f"; {marker}"
+                contents.append(line)
+
+        contents.append("")
+        new_contents = "\n".join(contents)
+        self.path.write_text(new_contents)
+
 
 class IniFile(BaseFile):
     """Ini file for mxdev.
@@ -83,8 +148,13 @@ class IniFile(BaseFile):
         super().__init__(file_location)
         self.config = ConfigParser(
             default_section="settings",
-            interpolation=ExtendedInterpolation(),
         )
+        # mxdev itself calls ConfigParser with extra option
+        # interpolation=ExtendedInterpolation().
+        # This turns a line like 'url = ${settings:plone}/package.git'
+        # into 'url = https://github.com/plone/package.git'.
+        # In our case we very much want the original line,
+        # especially when we do a rewrite of the file.
         with self.path.open() as f:
             self.config.read_file(f)
         self.default_use = to_bool(self.config["settings"].get("default-use", True))
@@ -185,3 +255,25 @@ class IniFile(BaseFile):
 
         contents = "\n".join(lines)
         self.path.write_text(contents)
+
+    def rewrite(self):
+        """Rewrite the file based on the parsed data.
+
+        This will lose comments, and may change the order.
+        TODO Can we trust self.config? It won't get updated if we change any data
+        after reading.
+        """
+        contents = ["[settings]"]
+        for key, value in self.config["settings"].items():
+            contents.append(f"{key} = {value}")
+
+        for package in self.sections.values():
+            contents.append("")
+            contents.append(f"[{package}]")
+            for key, value in self.config[package].items():
+                if self.config["settings"].get(key) != value:
+                    contents.append(f"{key} = {value}")
+
+        contents.append("")
+        new_contents = "\n".join(contents)
+        self.path.write_text(new_contents)

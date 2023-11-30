@@ -112,7 +112,7 @@ def _get_checkouts(path=None):
         yield checkouts
 
 
-def check_checkout(package_name, path=None):
+def check_checkout(package_name, *, path=None):
     """Check if package is in the checkouts.
 
     If no path is given, we try several paths:
@@ -126,7 +126,7 @@ def check_checkout(package_name, path=None):
             print(f"YES, your package {package_name} is on auto checkout in {loc}.")
 
 
-def remove_checkout(package_name, path=None):
+def remove_checkout(package_name, *, path=None):
     """Remove package from auto checkouts.
 
     If no path is given, we try several paths:
@@ -136,7 +136,7 @@ def remove_checkout(package_name, path=None):
         checkouts.remove(package_name)
 
 
-def add_checkout(package_name, path=None):
+def add_checkout(package_name, *, path=None):
     """Add package to auto checkouts.
 
     If no path is given, we try several paths:
@@ -175,7 +175,7 @@ def _get_constraints(path=None):
         yield constraints
 
 
-def get_package_version(package_name, path=None):
+def get_package_version(package_name, *, path=None):
     """Get package version from constraints/versions file.
 
     If no path is given, we try several paths.
@@ -206,7 +206,7 @@ def get_package_version(package_name, path=None):
         print(f"{constraints.file_location}: {package_name} {version}.")
 
 
-def set_package_version(package_name, new_version, path=None):
+def set_package_version(package_name, new_version, *, path=None):
     """Pin package to new version in a versions file.
 
     This can also be a pip constraints file.
@@ -231,6 +231,43 @@ def set_package_version(package_name, new_version, path=None):
         constraints.set(package_name, new_version)
 
 
+def versions2constraints(*, path=None):
+    """Take a Buildout versions file and create a pip constraints file out of it.
+
+    If no path is given, we use versions*.cfg.
+
+    Notes:
+    * This does not handle 'extends' yet.
+    * This does not handle [versions:pythonX] yet.
+
+    We could parse the file with Buildout.  This incorporates the 'extends',
+    but you lose versions information for other Python versions.
+
+    We could pass an option simple/full.
+    Maybe if a path is passed, we handle only that file in simple mode.
+    Without path, we grab versions.cfg and check 'extends' and other versions.
+
+    'extends = versions-extra.cfg' could be transformed to '-c constraints-extra.txt'
+
+    I think I need some more options in VersionsFile first:
+    - what to do with extends
+    - what to do with [versions:*]
+    - whether to turn it into a single constraints file.
+    """
+    if path:
+        paths = [path]
+    else:
+        paths = glob.glob("versions*.cfg")
+    for path in paths:
+        versions = VersionsFile(path, with_markers=True)
+        # Create path to constraints*.txt instead of versions*.cfg.
+        filepath = versions.path
+        filename = str(filepath)[len(str(filepath.parent)) + 1 :]
+        filename = filename.replace("versions", "constraints").replace(".cfg", ".txt")
+        constraints_path = filepath.parent / filename
+        versions.to_constraints(constraints_path)
+
+
 class Manage:
     def __call__(self, **kwargs):
         parser = ArghParser()
@@ -247,6 +284,7 @@ class Manage:
                 set_package_version,
                 get_package_version,
                 jenkins_report,
+                versions2constraints,
             ]
         )
         parser.dispatch()

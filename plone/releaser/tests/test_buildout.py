@@ -14,6 +14,9 @@ INPUT_DIR = TESTS_DIR / "input"
 CHECKOUTS_FILE = INPUT_DIR / "checkouts.cfg"
 SOURCES_FILE = INPUT_DIR / "sources.cfg"
 VERSIONS_FILE = INPUT_DIR / "versions.cfg"
+VERSIONS_FILE2 = INPUT_DIR / "versions2.cfg"
+VERSIONS_FILE3 = INPUT_DIR / "versions3.cfg"
+VERSIONS_FILE4 = INPUT_DIR / "versions4.cfg"
 
 
 def test_checkouts_file_data():
@@ -75,6 +78,27 @@ def test_checkouts_file_remove(tmp_path):
     assert "CAMELCASE" not in cf
     assert "CamelCase" not in cf
     assert "camelcase" not in cf
+
+
+def test_checkouts_file_rewrite(tmp_path):
+    copy_path = tmp_path / "checkouts.cfg"
+    shutil.copyfile(CHECKOUTS_FILE, copy_path)
+    cf = CheckoutsFile(copy_path)
+    cf.rewrite()
+    # Read it fresh and compare
+    cf2 = CheckoutsFile(copy_path)
+    assert cf.data == cf2.data
+    # Check the entire text.  Note that packages are alphabetically sorted.
+    # Currently we get the original case, but we may change this to lowercase.
+    assert (
+        copy_path.read_text()
+        == """[buildout]
+always-checkout = force
+auto-checkout =
+    CamelCase
+    package
+"""
+    )
 
 
 def test_source_standard():
@@ -171,6 +195,38 @@ def test_sources_file_get():
     assert base.egg
 
 
+def test_sources_file_rewrite(tmp_path):
+    copy_path = tmp_path / "sources.cfg"
+    shutil.copyfile(SOURCES_FILE, copy_path)
+    sf = SourcesFile(copy_path)
+    sf.rewrite()
+    # Read it fresh and compare
+    sf2 = SourcesFile(copy_path)
+    assert sf.raw_data == sf2.raw_data
+    assert sf.data == sf2.data
+    # Some differences compared with the original:
+    # - We always specify the branch.
+    # - The order of the options may be different.
+    assert (
+        copy_path.read_text()
+        == """[buildout]
+extends =
+    https://raw.githubusercontent.com/zopefoundation/Zope/master/sources.cfg
+docs-directory = ${buildout:directory}/documentation
+
+[remotes]
+plone = https://github.com/plone
+plone_push = git@github.com:plone
+
+[sources]
+docs = git ${remotes:plone}/documentation.git branch=6.0 path=${buildout:docs-directory} egg=false
+plone = git ${remotes:plone}/Plone.git pushurl=${remotes:plone_push}/Plone.git branch=6.0.x
+plone.alterego = git ${remotes:plone}/plone.alterego.git branch=master
+plone.base = git ${remotes:plone}/plone.base.git branch=main
+"""
+    )
+
+
 def test_versions_file_versions():
     vf = VersionsFile(VERSIONS_FILE)
     # All versions are reported lowercased.
@@ -181,6 +237,50 @@ def test_versions_file_versions():
         "lowercase": "1.0",
         "package": "1.0",
         "pyspecific": "1.0",
+        "uppercase": "1.0",
+    }
+
+
+def test_versions_file_extends():
+    vf = VersionsFile(VERSIONS_FILE)
+    assert vf.extends == [
+        "https://zopefoundation.github.io/Zope/releases/5.8.3/versions.cfg"
+    ]
+    vf = VersionsFile(VERSIONS_FILE2)
+    assert vf.extends == ["versions3.cfg"]
+    vf = VersionsFile(VERSIONS_FILE3)
+    assert vf.extends == ["versions4.cfg"]
+    vf = VersionsFile(VERSIONS_FILE4)
+    assert vf.extends == []
+
+
+def test_versions_file_read_extends_without_markers():
+    vf = VersionsFile(VERSIONS_FILE2, read_extends=True)
+    assert vf.data == {"four": "4.0", "one": "1.1", "three": "3.0", "two": "2.0"}
+
+
+def test_versions_file_read_extends_with_markers():
+    vf = VersionsFile(VERSIONS_FILE2, with_markers=True, read_extends=True)
+    assert vf.data == {
+        "five": {"macosx": "5.0"},
+        "four": "4.0",
+        "one": "1.1",
+        "three": {"": "3.0", "python312": "3.2"},
+        "two": "2.0",
+    }
+
+
+def test_versions_file_versions_with_markers():
+    vf = VersionsFile(VERSIONS_FILE, with_markers=True)
+    # All versions are reported lowercased.
+    assert vf.data == {
+        "annotated": "1.0",
+        "camelcase": "1.0",
+        "duplicate": "1.0",
+        "lowercase": "1.0",
+        "onepython": {"python312": "2.1"},
+        "package": "1.0",
+        "pyspecific": {"": "1.0", "python312": "2.0"},
         "uppercase": "1.0",
     }
 
@@ -202,6 +302,16 @@ def test_versions_file_contains():
     assert "UPPERCASE" in vf
 
 
+def test_versions_file_contains_with_markers():
+    vf = VersionsFile(VERSIONS_FILE, with_markers=True)
+    assert "package" in vf
+    assert "nope" not in vf
+    assert "onepython" in vf
+    assert "pyspecific" in vf
+    assert "ONEpython" in vf
+    assert "pySPECIFIC" in vf
+
+
 def test_versions_file_get():
     vf = VersionsFile(VERSIONS_FILE)
     assert vf.get("package") == "1.0"
@@ -221,6 +331,16 @@ def test_versions_file_get():
     assert vf["uppercase"] == "1.0"
     assert vf["UpperCase"] == "1.0"
     assert vf["UPPERCASE"] == "1.0"
+
+
+def test_versions_file_get_with_markers():
+    vf = VersionsFile(VERSIONS_FILE, with_markers=True)
+    assert vf.get("package") == "1.0"
+    assert vf["package"] == "1.0"
+    assert vf.get("onepython") == {"python312": "2.1"}
+    assert vf.get("pyspecific") == {"": "1.0", "python312": "2.0"}
+    assert vf["onepython"] == {"python312": "2.1"}
+    assert vf["pyspecific"] == {"": "1.0", "python312": "2.0"}
 
 
 def test_versions_file_set_normal(tmp_path):
@@ -266,6 +386,44 @@ def test_versions_file_set_ignore_markers(tmp_path):
     assert "pyspecific = 2.0" in copy_path.read_text()
 
 
+def test_versions_file_set_with_markers(tmp_path):
+    # [versions:python312] pins 'pyspecific = 2.0'.
+    # We do not report or change this section.
+    copy_path = tmp_path / "versions.cfg"
+    shutil.copyfile(VERSIONS_FILE, copy_path)
+    vf = VersionsFile(copy_path, with_markers=True)
+    assert "pyspecific = 2.0" in copy_path.read_text()
+    assert vf.get("pyspecific") == {"": "1.0", "python312": "2.0"}
+    vf.set("pyspecific", "1.1")
+    # Read it fresh, without markers.
+    vf = VersionsFile(copy_path)
+    assert vf.get("pyspecific") == "1.1"
+    # Read it fresh, with markers.
+    vf = VersionsFile(copy_path, with_markers=True)
+    assert vf.get("pyspecific") == {"": "1.1", "python312": "2.0"}
+    # Now edit for a specific python version.
+    vf.set("pyspecific", ("2.1", "python312"))
+    # Read it fresh, with markers.
+    vf = VersionsFile(copy_path, with_markers=True)
+    assert vf.get("pyspecific") == {"": "1.1", "python312": "2.1"}
+    # Add to an unknown marker.
+    vf.set("pyspecific", ("3.0", "python313"))
+    # Read it fresh, with markers.
+    vf = VersionsFile(copy_path, with_markers=True)
+    assert "[versions:python313]" in copy_path.read_text()
+    assert vf.get("pyspecific") == {"": "1.1", "python312": "2.1", "python313": "3.0"}
+    # Add a new package to a new marker.
+    vf.set("maconly", ("1.0", "macosx"))
+    # Read it fresh, with markers.
+    vf = VersionsFile(copy_path, with_markers=True)
+    assert "[versions:macosx]" in copy_path.read_text()
+    assert vf.get("maconly") == {"macosx": "1.0"}
+    # Read it without markers.
+    vf = VersionsFile(copy_path)
+    assert vf["pyspecific"] == "1.1"
+    assert not vf.get("maconly")
+
+
 def test_versions_file_set_cleanup_duplicates(tmp_path):
     copy_path = tmp_path / "versions.cfg"
     shutil.copyfile(VERSIONS_FILE, copy_path)
@@ -278,3 +436,142 @@ def test_versions_file_set_cleanup_duplicates(tmp_path):
     assert vf.get("duplicate") == "2.0"
     assert copy_path.read_text().count("duplicate = 2.0") == 1
     assert copy_path.read_text().count("duplicate = 1.0") == 0
+
+
+def test_versions_file_rewrite(tmp_path):
+    copy_path = tmp_path / "versions.cfg"
+    shutil.copyfile(VERSIONS_FILE, copy_path)
+    vf = VersionsFile(copy_path)
+    vf.rewrite()
+    # Read it fresh and compare
+    vf2 = VersionsFile(copy_path)
+    assert vf.extends == vf2.extends
+    assert vf.data == vf2.data
+    # Check the entire text.
+    # Note that there are differences with the original:
+    # - the extends line is on a separate line
+    # - all comments are removed
+    # - the duplicate is removed
+    # - all package names are lowercased
+    assert (
+        copy_path.read_text()
+        == """[buildout]
+extends =
+    https://zopefoundation.github.io/Zope/releases/5.8.3/versions.cfg
+
+[versions]
+annotated = 1.0
+camelcase = 1.0
+duplicate = 1.0
+lowercase = 1.0
+package = 1.0
+pyspecific = 1.0
+uppercase = 1.0
+"""
+    )
+
+
+def test_versions_file_rewrite_2(tmp_path):
+    copy_path = tmp_path / "versions2.cfg"
+    shutil.copyfile(VERSIONS_FILE2, copy_path)
+    vf = VersionsFile(copy_path)
+    vf.rewrite()
+    # Read it fresh and compare
+    vf2 = VersionsFile(copy_path)
+    assert vf.extends == vf2.extends
+    assert vf.data == vf2.data
+    # Check the entire text.
+    assert (
+        copy_path.read_text()
+        == """[buildout]
+extends =
+    versions3.cfg
+
+[versions]
+one = 1.1
+two = 2.0
+"""
+    )
+
+
+def test_versions_file_rewrite_with_markers(tmp_path):
+    copy_path = tmp_path / "versions2.cfg"
+    shutil.copyfile(VERSIONS_FILE2, copy_path)
+    vf = VersionsFile(copy_path, with_markers=True)
+    vf.rewrite()
+    # Read it fresh and compare
+    vf2 = VersionsFile(copy_path, with_markers=True)
+    assert vf.extends == vf2.extends
+    assert vf.data == vf2.data
+    # Check the entire text.
+    assert (
+        copy_path.read_text()
+        == """[buildout]
+extends =
+    versions3.cfg
+
+[versions]
+one = 1.1
+two = 2.0
+
+[versions:python312]
+three = 3.2
+"""
+    )
+
+
+def test_versions_file_rewrite_read_extends_without_markers(tmp_path):
+    # Note: this combination may not make sense.
+    copy_path = tmp_path / "versions2.cfg"
+    shutil.copyfile(VERSIONS_FILE2, copy_path)
+    # We extend some files and use their versions, so we need to copy them.
+    shutil.copyfile(VERSIONS_FILE3, tmp_path / "versions3.cfg")
+    shutil.copyfile(VERSIONS_FILE4, tmp_path / "versions4.cfg")
+    vf = VersionsFile(copy_path, read_extends=True, with_markers=False)
+    vf.rewrite()
+    # Read it fresh and compare
+    vf2 = VersionsFile(copy_path, read_extends=True, with_markers=False)
+    assert vf.extends
+    assert not vf2.extends
+    assert vf.data == vf2.data
+    # Check the entire text.  Note that packages are alphabetically sorted.
+    assert (
+        copy_path.read_text()
+        == """[versions]
+four = 4.0
+one = 1.1
+three = 3.0
+two = 2.0
+"""
+    )
+
+
+def test_versions_file_rewrite_read_extends_with_markers(tmp_path):
+    copy_path = tmp_path / "versions2.cfg"
+    shutil.copyfile(VERSIONS_FILE2, copy_path)
+    # We extend some files and use their versions, so we need to copy them.
+    shutil.copyfile(VERSIONS_FILE3, tmp_path / "versions3.cfg")
+    shutil.copyfile(VERSIONS_FILE4, tmp_path / "versions4.cfg")
+    vf = VersionsFile(copy_path, read_extends=True, with_markers=True)
+    vf.rewrite()
+    # Read it fresh and compare
+    vf2 = VersionsFile(copy_path, read_extends=True, with_markers=True)
+    assert vf.extends
+    assert not vf2.extends
+    assert vf.data == vf2.data
+    # Check the entire text.  Note that packages are alphabetically sorted.
+    assert (
+        copy_path.read_text()
+        == """[versions]
+four = 4.0
+one = 1.1
+three = 3.0
+two = 2.0
+
+[versions:macosx]
+five = 5.0
+
+[versions:python312]
+three = 3.2
+"""
+    )
