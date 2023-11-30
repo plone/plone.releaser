@@ -8,9 +8,12 @@ from plone.releaser.release import HEADINGS
 from plone.releaser.release import OLD_HEADING_MAPPING
 from urllib.request import urlopen
 
+import re
+
 
 DIST_URL = "https://dist.plone.org/release/{0}/versions.cfg"
-
+MD_HEADING_RE = re.compile(r"## (\S*).*")
+MD_SUB_HEADING_RE = re.compile(r"### (.*)")
 buildout = Buildout()
 
 
@@ -62,7 +65,7 @@ def get_changelog(package_name):
     if not source_url:
         return ""
     file_names = ["CHANGES", "HISTORY"]
-    file_extensions = [".rst", ".txt"]
+    file_extensions = [".rst", ".md", ".txt"]
     if "github" in source_url:
         paths = [f"{branch}/", f"{branch}/docs/"]
     else:
@@ -130,7 +133,7 @@ class Changelog:
             return list(self.data.items())[0]
         return None
 
-    def _parse(self, content):
+    def _parse_rst(self, content):
         tree = publish_doctree(content)
 
         def is_valid_version_section(x):
@@ -172,6 +175,74 @@ class Changelog:
                 list_items = child.traverse(condition=is_list_item)
                 entries[current] = [a.rawsource.strip() for a in list_items]
             self.data[version] = entries
+
+    def _parse_md(self, content):
+        # Parse as markdown.
+        # I thought of using markdown-it-py, but I don't find it intuitive
+        # enough for our use case.  So try it "by hand".
+
+        def heading(text):
+            if text in HEADINGS:
+                return text
+            # Might be an old heading or unknown.
+            return OLD_HEADING_MAPPING.get(text, "other")
+
+        version = None
+        current = "other"
+        entries = defaultdict(list)
+        list_item = None
+        for line in content.splitlines():
+            if not line.strip():
+                continue
+            match = MD_HEADING_RE.match(line)
+            if match:
+                if list_item:
+                    # add previous list item
+                    entries[current].append(list_item)
+                if version:
+                    # Store the previous version
+                    self.data[version] = entries
+                list_item = None
+                entries = defaultdict(list)
+                current = "other"
+                version = match.groups()[0]
+                continue
+            if not version:
+                continue
+            match = MD_SUB_HEADING_RE.match(line)
+            if match:
+                if list_item:
+                    # add previous list item
+                    entries[current].append(list_item)
+                list_item = None
+                text = match.groups()[0]
+                child_heading = heading(text)
+                if child_heading:
+                    current = child_heading
+                continue
+            # Now look for the real entries: list items.
+            if line.startswith("- ") or line.startswith("* "):
+                if list_item:
+                    # add previous list item
+                    entries[current].append(list_item)
+                # start new list item
+                list_item = line[2:]
+                continue
+            if list_item:
+                list_item += "\n" + line.strip()
+        if list_item:
+            # Store the last list item.
+            entries[current].append(list_item)
+        if version:
+            # Store the last version.
+            self.data[version] = entries
+
+    def _parse(self, content):
+        # Try to parse as restructuredtext.
+        self._parse_rst(content)
+        if not self.data:
+            # Try to parse as markdown.
+            self._parse_md(content)
 
 
 def build_unified_changelog(start_version, end_version):
