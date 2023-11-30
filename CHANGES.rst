@@ -8,6 +8,26 @@ Changelog
 
 .. towncrier release notes start
 
+2.2.0 (2023-11-30)
+------------------
+
+New features:
+
+
+- Add bin/manage versions2constraints command.
+  [maurits] (#3670)
+
+
+Bug fixes:
+
+
+- Fix setting version for non-lowercase package.
+  In the previous release this would add a duplicate line.
+  [maurits] (#58)
+- Fix missing changelog entries when running ``bin/manage changelog``.
+  [maurits] (#60)
+
+
 2.1.1 (2023-09-14)
 ------------------
 
