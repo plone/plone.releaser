@@ -87,6 +87,8 @@ class Changelog:
     def __init__(self, file_location=None, content=None):
         self.data = OrderedDict()
         if content is not None:
+            if isinstance(content, bytes):
+                content = content.decode("utf-8")
             self._parse(content)
         elif file_location is not None:
             with open(file_location) as f:
@@ -94,6 +96,9 @@ class Changelog:
 
     def __iter__(self):
         return self.data.__iter__()
+
+    def __eq__(self, other):
+        return self.data == other.data
 
     def iteritems(self):
         return self.data.items()

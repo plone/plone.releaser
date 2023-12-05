@@ -41,3 +41,14 @@ def test_get_changes_md():
         "Internal:",
         "Update configuration files.\n[plone devs] 2a5f5557",
     ]
+
+
+def test_get_changes_content():
+    from_file = Changelog(CHANGES_RST)
+    from_string = Changelog(content=CHANGES_RST.read_bytes())
+    from_bytes = Changelog(content=CHANGES_RST.read_bytes())
+    assert "3.0.2" in from_file
+    assert "3.0.2" in from_string
+    assert "3.0.2" in from_bytes
+    assert from_file == from_string
+    assert from_string == from_bytes
