@@ -85,6 +85,8 @@ def get_changelog(package_name):
 
 class Changelog:
     def __init__(self, file_location=None, content=None):
+        self.file_location = file_location
+        self.content = content
         self.data = OrderedDict()
         if content is not None:
             if isinstance(content, bytes):
@@ -114,11 +116,15 @@ class Changelog:
             try:
                 end_version_index = versions.index(str(end_version))
             except ValueError:
-                raise ValueError(f"Unknown version {end_version}")
+                raise ValueError(
+                    f"End version {end_version} not found in changelog contents."
+                )
         try:
             start_version_index = versions.index(str(start_version))
         except ValueError:
-            raise ValueError(f"Unknown version {start_version}")
+            raise ValueError(
+                f"Start version {start_version} not found in changelog contents."
+            )
 
         newer_releases = versions[end_version_index:start_version_index]
         changes = defaultdict(list)
@@ -250,7 +256,7 @@ class Changelog:
             self._parse_md(content)
 
 
-def build_unified_changelog(start_version, end_version):
+def build_unified_changelog(start_version, end_version, packages=None):
     try:
         prior_versions = pull_versions(start_version)
         current_versions = pull_versions(end_version)
@@ -258,9 +264,15 @@ def build_unified_changelog(start_version, end_version):
         print(e)
         return
 
+    if isinstance(packages, str):
+        packages = packages.split(",")
+
     output_str = ""
     try:
         for package, version in current_versions.items():
+            if packages is not None and package not in packages:
+                # We are not interested in this package.
+                continue
             if package in prior_versions:
                 prior_version = prior_versions[package]
                 try:
@@ -279,13 +291,13 @@ def build_unified_changelog(start_version, end_version):
 
                         logtext = get_changelog(package)
                         if not logtext:
-                            print("No changelog found.")
+                            print("WARNING: No changelog found.")
                             continue
                         changelog = Changelog(content=logtext)
                         try:
                             changes = changelog.get_changes(prior_version, version)
                         except ValueError as e:
-                            print(e)
+                            print(f"ERROR: {e}")
                         else:
                             bullet = "- "
                             for change in changes:

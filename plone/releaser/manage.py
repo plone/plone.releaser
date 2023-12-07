@@ -88,10 +88,47 @@ def checkAllPackagesForUpdates(**kwargs):
 @named("changelog")
 @arg("--start")
 @arg("--end", default="here")
+@arg("--package", default=None)
 def changelog(**kwargs):
+    """Build a unified changelog.
+
+    For each package we get the changes between the start and end version,
+    and unify them, so the changes of all intermediate versions get combined:
+    all bug fixes together, all new features, etcetera.
+
+    - 'start' is for example 6.0.7.
+      This is used to get versions.cfg from dist.plone.org.
+    - Same for 'end', where the default is 'here', meaning we take
+      versions.cfg from the current directory.
+    - With 'package' you can restrict to a single package.]
+      This is mostly useful when debugging this command.
+      You can separate packages with a comma:
+      --package=plone.restapi,Products.CMFPlone
+
+    We get the changes from the repository for this package,
+    as defined in sources.cfg, and try a few locations, for example:
+    https://raw.githubusercontent.com/plone/plone.restapi/main/CHANGES.rst
+
+    Sample output in a problematic case:
+
+        $ bin/manage changelog --start=6.0.7 --end=6.0.8 --package=plone.restapi
+        Parsed https://dist.plone.org/release/6.0.7/versions.cfg
+        Parsed https://dist.plone.org/release/6.0.8/versions.cfg
+        plone.restapi has a newer version
+        ERROR: Start version 8.43.3 not found in changelog contents.
+
+        plone.restapi: 8.43.3 → 9.1.2
+        -----------------------------
+
+    The problem here is we get the CHANGES.rst file from the main plone.restapi branch,
+    and this does not include a header for version 8.43.3: this header is only on the
+    8.x branch.
+    When we run the same command with `--start=6.0.6`, it does work, and you get the
+    unified changes between version 8.40.0 and 9.1.2.
+    """
     from plone.releaser.changelog import build_unified_changelog
 
-    build_unified_changelog(kwargs["start"], kwargs["end"])
+    build_unified_changelog(kwargs["start"], kwargs["end"], packages=kwargs["package"])
 
 
 def _get_checkouts(path=None):
