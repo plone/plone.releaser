@@ -8,6 +8,16 @@ Changelog
 
 .. towncrier release notes start
 
+2.2.1 (2023-12-14)
+------------------
+
+Bug fixes:
+
+
+- Manage changelog: read markdown files as well.
+  [maurits] (#48)
+
+
 2.2.0 (2023-11-30)
 ------------------
 
