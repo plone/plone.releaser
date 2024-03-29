@@ -60,7 +60,7 @@ class ConstraintsFile(BaseFile):
             if "==" not in line:
                 # We might want to support e.g. '>=', but for now keep it simple.
                 continue
-            package = line.split("==")[0].strip().lower()
+            package = line.split("==")[0].strip()
             version = line.split("==", 1)[1].strip()
             # The line could also contain environment markers like this:
             # "; python_version >= '3.0'"
@@ -165,8 +165,7 @@ class IniFile(BaseFile):
         for package in self.config.sections():
             use = to_bool(self.config[package].get("use", self.default_use))
             if use:
-                # Map from lower case to actual case, so we can find the package.
-                checkouts[package.lower()] = package
+                checkouts[package] = True
         return checkouts
 
     @property
@@ -174,9 +173,13 @@ class IniFile(BaseFile):
         # If we want to use a package, we must first know that it exists.
         sections = {}
         for package in self.config.sections():
-            # Map from lower case to actual case, so we can find the package.
-            sections[package.lower()] = package
+            sections[package] = True
         return sections
+
+    @property
+    def lowerkeys_section(self):
+        # Map from lower case key to actual key in the sections.
+        return {key.lower(): key for key in self.sections}
 
     def __setitem__(self, package_name, enabled=True):
         """Enable or disable a checkout.
@@ -193,7 +196,7 @@ class IniFile(BaseFile):
         So if the package we want to enable is not defined, meaning it has no
         section, then we should fail loudly.
         """
-        stored_package_name = self.sections.get(package_name.lower())
+        stored_package_name = self.lowerkeys_section.get(package_name.lower())
         if not stored_package_name:
             raise KeyError(
                 f"{self.file_location}: There is no definition for {package_name}"
@@ -267,7 +270,7 @@ class IniFile(BaseFile):
         for key, value in self.config["settings"].items():
             contents.append(f"{key} = {value}")
 
-        for package in self.sections.values():
+        for package in self.sections:
             contents.append("")
             contents.append(f"[{package}]")
             for key, value in self.config[package].items():

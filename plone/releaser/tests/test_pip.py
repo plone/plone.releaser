@@ -17,10 +17,11 @@ MXDEV_FILE = INPUT_DIR / "mxdev.ini"
 
 def test_mxdev_file_data():
     mf = IniFile(MXDEV_FILE)
-    # The data maps lower case to actual case.
+    # The data used to map lower case to actual case,
+    # but now actual case to True.
     assert mf.data == {
-        "camelcase": "CamelCase",
-        "package": "package",
+        "CamelCase": True,
+        "package": True,
     }
 
 
@@ -36,12 +37,11 @@ def test_mxdev_file_contains():
 
 def test_mxdev_file_get():
     mf = IniFile(MXDEV_FILE)
-    # The data maps lower case to actual case.
-    assert mf["package"] == "package"
-    assert mf.get("package") == "package"
-    assert mf["camelcase"] == "CamelCase"
-    assert mf["CAMELCASE"] == "CamelCase"
-    assert mf["CamelCase"] == "CamelCase"
+    assert mf["package"] is True
+    assert mf.get("package") is True
+    assert mf["camelcase"] is True
+    assert mf["CAMELCASE"] is True
+    assert mf["CamelCase"] is True
     with pytest.raises(KeyError):
         mf["unused"]
     assert mf.get("unused") is None
@@ -57,7 +57,7 @@ def test_mxdev_file_add_known(tmp_path):
     # Let's read it fresh, for good measure.
     mf = IniFile(copy_path)
     assert "unused" in mf
-    assert mf["unused"] == "unused"
+    assert mf["unused"] is True
 
 
 def test_mxdev_file_add_unknown(tmp_path):
@@ -137,12 +137,12 @@ def test_constraints_file_constraints():
     # All constraints are reported lowercased.
     assert cf.data == {
         "annotated": "1.0",
-        "camelcase": "1.0",
+        "CamelCase": "1.0",
         "duplicate": "1.0",
         "lowercase": "1.0",
         "package": "1.0",
         "pyspecific": "1.0",
-        "uppercase": "1.0",
+        "UPPERCASE": "1.0",
     }
 
 
@@ -276,13 +276,13 @@ def test_constraints_file_constraints_with_markers():
     # All constraints are reported lowercased.
     assert cf.data == {
         "annotated": "1.0",
-        "camelcase": "1.0",
+        "CamelCase": "1.0",
         "duplicate": "1.0",
         "lowercase": "1.0",
         "onepython": {'python_version=="3.12"': "2.1"},
         "package": "1.0",
         "pyspecific": {"": "1.0", 'python_version=="3.12"': "2.0"},
-        "uppercase": "1.0",
+        "UPPERCASE": "1.0",
     }
 
 
@@ -300,17 +300,16 @@ def test_constraints_file_rewrite(tmp_path):
     # - the extends line is on a separate line
     # - all comments are removed
     # - the duplicate is removed
-    # - all package names are lowercased
     assert (
         copy_path.read_text()
         == """-c https://zopefoundation.github.io/Zope/releases/5.8.3/constraints.txt
 annotated==1.0
-camelcase==1.0
+CamelCase==1.0
 duplicate==1.0
 lowercase==1.0
 package==1.0
 pyspecific==1.0
-uppercase==1.0
+UPPERCASE==1.0
 """
     )
 

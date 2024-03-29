@@ -28,13 +28,13 @@ def test_versions2constraints(tmp_path):
         constraints_file.read_text()
         == """-c https://zopefoundation.github.io/Zope/releases/5.8.3/constraints.txt
 annotated==1.0
-camelcase==1.0
+CamelCase==1.0
 duplicate==1.0
 lowercase==1.0
 package==1.0
 pyspecific==1.0
 pyspecific==2.0; python_version == "3.12"
-uppercase==1.0
+UPPERCASE==1.0
 onepython==2.1; python_version == "3.12"
 """
     )

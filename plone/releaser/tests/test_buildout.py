@@ -21,10 +21,11 @@ VERSIONS_FILE4 = INPUT_DIR / "versions4.cfg"
 
 def test_checkouts_file_data():
     cf = CheckoutsFile(CHECKOUTS_FILE)
-    # The data maps lower case to actual case.
+    # The data used to map lower case to actual case,
+    # but now actual case to True.
     assert cf.data == {
-        "camelcase": "CamelCase",
-        "package": "package",
+        "CamelCase": True,
+        "package": True,
     }
 
 
@@ -40,12 +41,11 @@ def test_checkouts_file_contains():
 
 def test_checkouts_file_get():
     cf = CheckoutsFile(CHECKOUTS_FILE)
-    # The data maps lower case to actual case.
-    assert cf["package"] == "package"
-    assert cf.get("package") == "package"
-    assert cf["camelcase"] == "CamelCase"
-    assert cf["CAMELCASE"] == "CamelCase"
-    assert cf["CamelCase"] == "CamelCase"
+    assert cf["package"] is True
+    assert cf.get("package") is True
+    assert cf["camelcase"] is True
+    assert cf["CAMELCASE"] is True
+    assert cf["CamelCase"] is True
     with pytest.raises(KeyError):
         cf["nope"]
 
@@ -60,7 +60,7 @@ def test_checkouts_file_add(tmp_path):
     # Let's read it fresh, for good measure.
     cf = CheckoutsFile(copy_path)
     assert "Extra" in cf
-    assert cf.get("extra") == "Extra"
+    assert cf.get("extra") is True
 
 
 def test_checkouts_file_remove(tmp_path):
@@ -146,8 +146,7 @@ def test_source_docs():
 
 def test_sources_file_data():
     sf = SourcesFile(SOURCES_FILE)
-    # Note that the keys are lowercase.
-    assert sorted(sf.data.keys()) == ["docs", "plone", "plone.alterego", "plone.base"]
+    assert sorted(sf.data.keys()) == ["Plone", "docs", "plone.alterego", "plone.base"]
 
 
 def test_sources_file_contains():
@@ -220,7 +219,7 @@ plone_push = git@github.com:plone
 
 [sources]
 docs = git ${remotes:plone}/documentation.git branch=6.0 path=${buildout:docs-directory} egg=false
-plone = git ${remotes:plone}/Plone.git pushurl=${remotes:plone_push}/Plone.git branch=6.0.x
+Plone = git ${remotes:plone}/Plone.git pushurl=${remotes:plone_push}/Plone.git branch=6.0.x
 plone.alterego = git ${remotes:plone}/plone.alterego.git branch=master
 plone.base = git ${remotes:plone}/plone.base.git branch=main
 """
@@ -229,15 +228,14 @@ plone.base = git ${remotes:plone}/plone.base.git branch=main
 
 def test_versions_file_versions():
     vf = VersionsFile(VERSIONS_FILE)
-    # All versions are reported lowercased.
     assert vf.data == {
         "annotated": "1.0",
-        "camelcase": "1.0",
+        "CamelCase": "1.0",
         "duplicate": "1.0",
         "lowercase": "1.0",
         "package": "1.0",
         "pyspecific": "1.0",
-        "uppercase": "1.0",
+        "UPPERCASE": "1.0",
     }
 
 
@@ -275,13 +273,13 @@ def test_versions_file_versions_with_markers():
     # All versions are reported lowercased.
     assert vf.data == {
         "annotated": "1.0",
-        "camelcase": "1.0",
+        "CamelCase": "1.0",
         "duplicate": "1.0",
         "lowercase": "1.0",
         "onepython": {"python312": "2.1"},
         "package": "1.0",
         "pyspecific": {"": "1.0", "python312": "2.0"},
-        "uppercase": "1.0",
+        "UPPERCASE": "1.0",
     }
 
 
@@ -452,7 +450,6 @@ def test_versions_file_rewrite(tmp_path):
     # - the extends line is on a separate line
     # - all comments are removed
     # - the duplicate is removed
-    # - all package names are lowercased
     assert (
         copy_path.read_text()
         == """[buildout]
@@ -461,12 +458,12 @@ extends =
 
 [versions]
 annotated = 1.0
-camelcase = 1.0
+CamelCase = 1.0
 duplicate = 1.0
 lowercase = 1.0
 package = 1.0
 pyspecific = 1.0
-uppercase = 1.0
+UPPERCASE = 1.0
 """
     )
 
