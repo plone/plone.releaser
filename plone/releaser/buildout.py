@@ -82,10 +82,8 @@ class BaseBuildoutFile(BaseFile):
         # For versions.cfg we had strict=False, for the others not.
         # Let's use it always.
         config = ConfigParser(interpolation=ExtendedInterpolation(), strict=False)
-        # In SourcesFile we had this:
-        # config.optionxform = str
-        # This seems to make everything lowercase, and makes tests fail.
-        # TODO: we could use it if we choose.
+        # Preserve the case instead of the default lowercase transform:
+        config.optionxform = str
         with self.path.open() as f:
             config.read_file(f)
         # Especially in sources.cfg we may need to define a few extra variables
@@ -103,7 +101,8 @@ class BaseBuildoutFile(BaseFile):
         # Read the same data, but without interpolation.
         # So keep a url like '${settings:plone}/package.git'
         config = ConfigParser(strict=False)
-        # config.optionxform = str
+        # Preserve the case instead of the default lowercase transform:
+        config.optionxform = str
         with self.path.open() as f:
             config.read_file(f)
         return config
@@ -161,7 +160,7 @@ class VersionsFile(BaseBuildoutFile):
         for section in self.config.sections():
             if section == "versions":
                 for package, version in self.config[section].items():
-                    # Note: the package names are lower case.
+                    # Note: the package names used to be lower case, but not anymore.
                     versions[package][""] = version
             if not self.with_markers:
                 continue
@@ -298,7 +297,7 @@ class VersionsFile(BaseBuildoutFile):
 
         An option would be to always do this for Buildout as well.
         Or have a command to normalize a buildout file, with this and other
-        small changes like making all package named lower case.
+        small changes.
         """
         new_data = {}
         for package, version in self.data.items():
@@ -353,7 +352,7 @@ class SourcesFile(BaseBuildoutFile):
         # I don't think we need to support [sources:marker].
         for name, value in self.config["sources"].items():
             source = Source.create_from_string(value)
-            sources_dict[name.lower()] = source
+            sources_dict[name] = source
         return sources_dict
 
     @property
@@ -362,7 +361,7 @@ class SourcesFile(BaseBuildoutFile):
         # I don't think we need to support [sources:marker].
         for name, value in self.raw_config["sources"].items():
             source = Source.create_from_string(value)
-            sources_dict[name.lower()] = source
+            sources_dict[name] = source
         return sources_dict
 
     def __setitem__(self, package_name, value):
@@ -407,12 +406,13 @@ class CheckoutsFile(BaseBuildoutFile):
     def data(self):
         # I don't think we need to support [buildout:marker].
         checkouts = self.config.get("buildout", "auto-checkout")
-        # Map from lower case to actual case, so we can find the package.
+        # In this case a set or list would be fine, but in all other
+        # cases the data is a dictionary, so let's use that.
         mapping = {}
         for package in checkouts.splitlines():
             if not package:
                 continue
-            mapping[package.lower()] = package
+            mapping[package] = True
         return mapping
 
     def __setitem__(self, package_name, enabled=True):
@@ -448,11 +448,7 @@ class CheckoutsFile(BaseBuildoutFile):
         if self.always_checkout:
             contents.append(f"always-checkout = {self.always_checkout}"),
         contents.append("auto-checkout =")
-        # self.values has the original case.
-        # We could iterate over 'self' to get lowercase,
-        # which is what we get in most other places.
-        # But for now let's use the info we have.
-        for package in self.values():
+        for package in self:
             contents.append(f"    {package}")
         contents.append("")
         new_contents = "\n".join(contents)

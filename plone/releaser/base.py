@@ -12,16 +12,27 @@ class BaseFile(UserDict):
     def data(self):
         raise NotImplementedError
 
+    @property
+    def lowerkeys(self):
+        # Map from lower case key to actual key in the data.
+        return {key.lower(): key for key in self.data}
+
     def __iter__(self):
         return self.data.__iter__()
 
     def __contains__(self, package_name):
-        return package_name.lower() in self.data
+        return package_name.lower() in self.lowerkeys
 
     def __getitem__(self, package_name):
-        if package_name in self:
-            return self.data.get(package_name.lower())
-        raise KeyError
+        # self.data may be a defaultdict, so we cannot use
+        # 'return self.data[package_name]'
+        if package_name not in self:
+            raise KeyError(package_name)
+        # The package_name is in the data, but the case might differ.
+        if package_name in self.data:
+            return self.data[package_name]
+        actual_key = self.lowerkeys[package_name.lower()]
+        return self.data[actual_key]
 
     def __setitem__(self, package_name, value):
         raise NotImplementedError
