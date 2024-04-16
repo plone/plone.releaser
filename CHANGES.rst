@@ -8,6 +8,16 @@ Changelog
 
 .. towncrier release notes start
 
+2.2.2 (2024-04-16)
+------------------
+
+Bug fixes:
+
+
+- Preserve the case of package names in versions2constraints and friends.
+  [maurits] (#65)
+
+
 2.2.1 (2023-12-14)
 ------------------
 
