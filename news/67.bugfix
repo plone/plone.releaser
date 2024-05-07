@@ -1,0 +1,2 @@
+Catch error when trying to change coredev branches.
+Not everyone may have the branches available, or there may be some problem with it.

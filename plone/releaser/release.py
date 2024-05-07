@@ -271,7 +271,15 @@ def update_other_core_branches(data):
 
     g = git.Git(root_path)
     for branch_name in CORE_BRANCHES:
-        g.checkout(branch_name)
+        try:
+            g.checkout(branch_name)
+        except git.exc.GitCommandError:
+            print(
+                f"WARNING: There was an error checking out coredev branch "
+                f"{branch_name}. This means we cannot check if this branch needs an "
+                f"update for {package_name}. Please check manually."
+            )
+            continue
 
         package_branch = _get_package_branch(package_name=package_name)
         if package_branch == reference_package_branch:
