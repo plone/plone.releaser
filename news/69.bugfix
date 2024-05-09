@@ -1,0 +1,4 @@
+No longer offer to push changes to buildout.coredev.
+This is no longer what we ever want: the newly uploaded package will not yet be available on all PyPI mirrors.
+Fixes `issue 69 <https://github.com/plone/plone.releaser/issues/69>`_.
+[maurits]
