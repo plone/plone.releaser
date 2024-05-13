@@ -1,4 +1,5 @@
 from .base import BaseFile
+from .base import Source
 from .utils import buildout_marker_to_pip_marker
 from .utils import update_contents
 from collections import defaultdict
@@ -11,62 +12,6 @@ from textwrap import indent
 import os
 import pathlib
 import re
-
-
-class Source:
-    """Source definition for mr.developer"""
-
-    def __init__(
-        self, protocol=None, url=None, pushurl=None, branch=None, path=None, egg=True
-    ):
-        # I think mxdev only supports git as protocol.
-        self.protocol = protocol
-        self.url = url
-        self.pushurl = pushurl
-        self.branch = branch
-        # mxdev has target (default: sources) instead of path (default: src).
-        self.path = path
-        # egg=True: mxdev install-mode="direct"
-        # egg=False: mxdev install-mode="skip"
-        self.egg = egg
-
-    @classmethod
-    def create_from_string(cls, source_string):
-        line_options = source_string.split()
-        protocol = line_options.pop(0)
-        url = line_options.pop(0)
-        # September 2023: mr.developer defaults to master, mxdev to main.
-        options = {"protocol": protocol, "url": url, "branch": "master"}
-
-        # The rest of the line options are key/value pairs.
-        for param in line_options:
-            if param is not None:
-                key, value = param.split("=")
-                if key == "egg":
-                    if value.lower() in ("true", "yes", "on"):
-                        value = True
-                    elif value.lower() in ("false", "no", "off"):
-                        value = False
-                options[key] = value
-        return cls(**options)
-
-    def __repr__(self):
-        return f"<Source {self.protocol} url={self.url} pushurl={self.pushurl} branch={self.branch} path={self.path} egg={self.egg}>"
-
-    def __str__(self):
-        line = f"{self.protocol} {self.url}"
-        if self.pushurl:
-            line += f" pushurl={self.pushurl}"
-        if self.branch:
-            line += f" branch={self.branch}"
-        if self.path:
-            line += f" path={self.path}"
-        if not self.egg:
-            line += " egg=false"
-        return line
-
-    def __eq__(self, other):
-        return repr(self) == repr(other)
 
 
 class BaseBuildoutFile(BaseFile):
