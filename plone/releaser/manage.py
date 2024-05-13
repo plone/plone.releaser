@@ -11,7 +11,7 @@ from plone.releaser.buildout import CheckoutsFile
 from plone.releaser.buildout import VersionsFile
 from plone.releaser.package import Package
 from plone.releaser.pip import ConstraintsFile
-from plone.releaser.pip import IniFile
+from plone.releaser.pip import MxSourcesFile
 from progress.bar import Bar
 
 import glob
@@ -143,7 +143,7 @@ def _get_checkouts(path=None):
         paths = glob.glob("mxdev.ini") + glob.glob("checkouts.cfg")
     for path in paths:
         if path.endswith(".ini"):
-            checkouts = IniFile(path)
+            checkouts = MxSourcesFile(path)
         else:
             checkouts = CheckoutsFile(path)
         yield checkouts

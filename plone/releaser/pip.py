@@ -135,13 +135,11 @@ class ConstraintsFile(BaseFile):
         self.path.write_text(new_contents)
 
 
-class IniFile(BaseFile):
+class MxSourcesFile(BaseFile):
     """Ini file for mxdev.
 
     What we want to do here is similar to what we have in buildout.py
-    in the CheckoutsFile: remove a package from auto-checkouts.
-    For mxdev: set 'use = false'.
-    The default is in 'settings': 'default-use'.
+    in the SourcesFile.
     """
 
     def __init__(self, file_location):
@@ -157,120 +155,27 @@ class IniFile(BaseFile):
         # especially when we do a rewrite of the file.
         with self.path.open() as f:
             self.config.read_file(f)
-        self.default_use = to_bool(self.config["settings"].get("default-use", True))
 
     @property
     def data(self):
         checkouts = {}
         for package in self.config.sections():
-            use = to_bool(self.config[package].get("use", self.default_use))
-            if use:
-                checkouts[package] = True
+            checkouts[package] = self.config[package]
         return checkouts
 
-    @property
-    def sections(self):
-        # If we want to use a package, we must first know that it exists.
-        sections = {}
-        for package in self.config.sections():
-            sections[package] = True
-        return sections
-
-    @property
-    def lowerkeys_section(self):
-        # Map from lower case key to actual key in the sections.
-        return {key.lower(): key for key in self.sections}
-
     def __setitem__(self, package_name, enabled=True):
-        """Enable or disable a checkout.
-
-        Mostly this will be called to disable a checkout.
-        Expected is that default-use is false.
-        This means we can remove 'use = true' from the package.
-
-        But let's support the other way around as well:
-        when default-use is true, we set 'use = false'.
-
-        Note that in our Buildout setup, we have sources.cfg separately.
-        In mxdev.ini the source definition and 'use = false/true' is combined.
-        So if the package we want to enable is not defined, meaning it has no
-        section, then we should fail loudly.
-        """
-        stored_package_name = self.lowerkeys_section.get(package_name.lower())
-        if not stored_package_name:
-            raise KeyError(
-                f"{self.file_location}: There is no definition for {package_name}"
-            )
-        package_name = stored_package_name
-        if package_name in self:
-            use = to_bool(self.config[package_name].get("use", self.default_use))
-        else:
-            use = False
-        if use and enabled:
-            print(f"{self.file_location}: {package_name} already in checkouts.")
-            return
-        if not use and not enabled:
-            print(f"{self.file_location}: {package_name} not in checkouts.")
-            return
-
-        contents = self.path.read_text()
-        if not contents.endswith("\n"):
-            contents += "\n"
-            self.path.write_text(contents)
-
-        lines = []
-        found_package = False
-        # Add extra line at the end.  This eases parsing and editing the final section.
-        orig_lines = contents.splitlines() + ["\n"]
-        for line in orig_lines:
-            line = line.rstrip()
-            if line == f"[{package_name}]":
-                found_package = True
-                lines.append(line)
-                continue
-            if not found_package:
-                lines.append(line)
-                continue
-            if line.startswith("use =") or line.startswith("use="):
-                # Ignore this line.  We may add a new one a bit further.
-                continue
-            if line == "" or line.startswith("["):
-                # A new section is starting.
-                if not enabled:
-                    if self.default_use:
-                        # We need to explicitly disable it.
-                        lines.append("use = false")
-                    print(
-                        f"{self.file_location}: {package_name} removed from checkouts."
-                    )
-                else:
-                    if not self.default_use:
-                        # We need to explicitly enable it.
-                        lines.append("use = true")
-                    print(f"{self.file_location}: {package_name} added to checkouts.")
-                # We are done with the section for this package name.
-                found_package = False
-                # We still need to append the original line.
-                lines.append(line)
-                continue
-            # Just a regular line.
-            lines.append(line)
-
-        contents = "\n".join(lines)
-        self.path.write_text(contents)
+        raise NotImplementedError
 
     def rewrite(self):
         """Rewrite the file based on the parsed data.
 
         This will lose comments, and may change the order.
-        TODO Can we trust self.config? It won't get updated if we change any data
-        after reading.
         """
         contents = ["[settings]"]
         for key, value in self.config["settings"].items():
             contents.append(f"{key} = {value}")
 
-        for package in self.sections:
+        for package in self:
             contents.append("")
             contents.append(f"[{package}]")
             for key, value in self.config[package].items():
