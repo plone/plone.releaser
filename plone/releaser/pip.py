@@ -1,6 +1,8 @@
 from .base import BaseFile
+from .base import Source
 from .utils import update_contents
 from collections import defaultdict
+from collections import OrderedDict
 from configparser import ConfigParser
 from functools import cached_property
 
@@ -158,10 +160,12 @@ class MxSourcesFile(BaseFile):
 
     @property
     def data(self):
-        checkouts = {}
+        sources_dict = OrderedDict()
+        # I don't think we need to support [sources:marker].
         for package in self.config.sections():
-            checkouts[package] = self.config[package]
-        return checkouts
+            section = self.config[package]
+            sources_dict[package] = Source.create_from_section(section)
+        return sources_dict
 
     def __setitem__(self, package_name, enabled=True):
         raise NotImplementedError
