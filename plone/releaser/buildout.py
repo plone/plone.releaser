@@ -261,7 +261,7 @@ class VersionsFile(BaseBuildoutFile):
             new_data[package] = new_version
         return new_data
 
-    def to_constraints(self, constraints_path):
+    def to_pip(self, constraints_path):
         """Overwrite constraints file with our data.
 
         The strategy is:
