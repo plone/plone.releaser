@@ -341,6 +341,36 @@ class SourcesFile(BaseBuildoutFile):
         new_contents = "\n".join(contents)
         self.path.write_text(new_contents)
 
+    def to_pip(self, pip_path):
+        """Overwrite mxdev/pip sources file with our data.
+
+        The strategy is:
+
+        1. Translate our data to mxdev sources data.
+        2. Ask the msdev sources file to rewrite itself.
+        """
+        # Import here to avoid circular imports.
+        from plone.releaser.pip import MxSourcesFile
+
+        sources = MxSourcesFile(pip_path)
+        # Create or empty the sources file.
+        sources.path.write_text("")
+
+        # Translate our data to pip.
+        sources.data = self.raw_data
+        sources.settings = {"docs-directory": "documentation"}
+        if "remotes" in self.config:
+            remotes = self.config["remotes"]
+            for key, value in remotes.items():
+                sources.settings[key] = value
+            for source in sources.data.values():
+                source.url = source.url.replace("{remotes:", "{settings:")
+                if source.pushurl:
+                    source.pushurl = source.pushurl.replace("{remotes:", "{settings:")
+
+        # Rewrite the file.
+        sources.rewrite()
+
 
 class CheckoutsFile(BaseBuildoutFile):
     @property
@@ -398,6 +428,30 @@ class CheckoutsFile(BaseBuildoutFile):
         contents.append("")
         new_contents = "\n".join(contents)
         self.path.write_text(new_contents)
+
+    def to_pip(self, pip_path):
+        """Overwrite mxdev/pip checkouts file with our data.
+
+        The strategy is:
+
+        1. Translate our data to mxdev checkouts data.
+        2. Ask the msdev checkouts file to rewrite itself.
+        """
+        # Import here to avoid circular imports.
+        from plone.releaser.pip import MxCheckoutsFile
+
+        checkouts = MxCheckoutsFile(pip_path)
+        # Create or empty the checkouts file.
+        checkouts.path.write_text("")
+
+        # Translate our data to pip.
+        # XXX does not do anything
+        checkouts.data = self.data
+        # This is the only setting that makes sense for Plone coredev:
+        checkouts.settings = {"default-use": "false"}
+
+        # Rewrite the file.
+        checkouts.rewrite()
 
 
 class Buildout:

@@ -158,7 +158,7 @@ class MxSourcesFile(BaseFile):
         with self.path.open() as f:
             self.config.read_file(f)
 
-    @property
+    @cached_property
     def data(self):
         sources_dict = OrderedDict()
         # I don't think we need to support [sources:marker].
@@ -166,6 +166,10 @@ class MxSourcesFile(BaseFile):
             section = self.config[package]
             sources_dict[package] = Source.create_from_section(section)
         return sources_dict
+
+    @cached_property
+    def settings(self):
+        return self.config["settings"]
 
     def __setitem__(self, package_name, enabled=True):
         raise NotImplementedError
@@ -176,7 +180,7 @@ class MxSourcesFile(BaseFile):
         This will lose comments, and may change the order.
         """
         contents = ["[settings]"]
-        for key, value in self.config["settings"].items():
+        for key, value in self.settings.items():
             contents.append(f"{key} = {value}")
 
         for package in self:
@@ -212,7 +216,7 @@ class MxCheckoutsFile(BaseFile):
             self.config.read_file(f)
         self.default_use = to_bool(self.config["settings"].get("default-use", True))
 
-    @property
+    @cached_property
     def data(self):
         checkouts = {}
         for package in self.config.sections():
@@ -221,13 +225,17 @@ class MxCheckoutsFile(BaseFile):
                 checkouts[package] = True
         return checkouts
 
-    @property
+    @cached_property
     def sections(self):
         # If we want to use a package, we must first know that it exists.
         sections = {}
         for package in self.config.sections():
             sections[package] = True
         return sections
+
+    @cached_property
+    def settings(self):
+        return self.config["settings"]
 
     @property
     def lowerkeys_section(self):
@@ -327,19 +335,15 @@ class MxCheckoutsFile(BaseFile):
         """Rewrite the file based on the parsed data.
 
         This will lose comments, and may change the order.
-        TODO Can we trust self.config? It won't get updated if we change any data
-        after reading.
         """
         contents = ["[settings]"]
-        for key, value in self.config["settings"].items():
+        for key, value in self.settings.items():
             contents.append(f"{key} = {value}")
 
-        for package in self.sections:
+        for package in self.data:
             contents.append("")
             contents.append(f"[{package}]")
-            for key, value in self.config[package].items():
-                if self.config["settings"].get(key) != value:
-                    contents.append(f"{key} = {value}")
+            contents.append("use = true")
 
         contents.append("")
         new_contents = "\n".join(contents)
