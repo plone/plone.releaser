@@ -181,7 +181,7 @@ class MxSourcesFile(BaseFile):
 
         for package in self:
             contents.append("")
-            contents.append(self[package].to_section(package))
+            contents.append(self[package].to_section())
 
         contents.append("")
         new_contents = "\n".join(contents)

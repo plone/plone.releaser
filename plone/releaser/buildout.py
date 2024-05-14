@@ -296,7 +296,7 @@ class SourcesFile(BaseBuildoutFile):
         sources_dict = OrderedDict()
         # I don't think we need to support [sources:marker].
         for name, value in self.config["sources"].items():
-            source = Source.create_from_string(value)
+            source = Source.create_from_string(name, value)
             sources_dict[name] = source
         return sources_dict
 
@@ -305,7 +305,7 @@ class SourcesFile(BaseBuildoutFile):
         sources_dict = OrderedDict()
         # I don't think we need to support [sources:marker].
         for name, value in self.raw_config["sources"].items():
-            source = Source.create_from_string(value)
+            source = Source.create_from_string(name, value)
             sources_dict[name] = source
         return sources_dict
 
