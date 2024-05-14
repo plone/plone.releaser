@@ -90,8 +90,8 @@ branch = main
 
 [docs]
 url = ${setting:plone}/documentation.git
-install-mode = skip
 branch = 6.0
+install-mode = skip
 target = extra/documentation
 """
     )

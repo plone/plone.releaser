@@ -109,6 +109,22 @@ class Source:
     def __repr__(self):
         return f"<Source {self.protocol} url={self.url} pushurl={self.pushurl} branch={self.branch} path={self.path} egg={self.egg}>"
 
+    def to_section(self, package_name):
+        contents = [f"[{package_name}]"]
+        # { 'branch': '6.0', 'path': 'extra/documentation', 'egg': False}
+        if self.protocol != "git":
+            contents.append(f"protocol = {self.protocol}")
+        contents.append(f"url = {self.url}")
+        if self.pushurl:
+            contents.append(f"pushurl = {self.pushurl}")
+        if self.branch:
+            contents.append(f"branch = {self.branch}")
+        if not self.egg:
+            contents.append("install-mode = skip")
+        if self.path:
+            contents.append(f"target = {self.path}")
+        return "\n".join(contents)
+
     def __str__(self):
         line = f"{self.protocol} {self.url}"
         if self.pushurl:

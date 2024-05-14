@@ -181,10 +181,7 @@ class MxSourcesFile(BaseFile):
 
         for package in self:
             contents.append("")
-            contents.append(f"[{package}]")
-            for key, value in self.config[package].items():
-                if self.config["settings"].get(key) != value:
-                    contents.append(f"{key} = {value}")
+            contents.append(self[package].to_section(package))
 
         contents.append("")
         new_contents = "\n".join(contents)
