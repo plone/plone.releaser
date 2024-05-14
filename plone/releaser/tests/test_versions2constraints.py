@@ -2,7 +2,6 @@ from plone.releaser.manage import versions2constraints
 from plone.releaser.pip import ConstraintsFile
 
 import pathlib
-import pytest
 import shutil
 
 
@@ -14,7 +13,6 @@ VERSIONS_FILE3 = INPUT_DIR / "versions3.cfg"
 VERSIONS_FILE4 = INPUT_DIR / "versions4.cfg"
 
 
-@pytest.mark.current
 def test_versions2constraints(tmp_path):
     copy_path = tmp_path / "versions.cfg"
     constraints_file = tmp_path / "constraints.txt"

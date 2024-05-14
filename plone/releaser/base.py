@@ -101,9 +101,8 @@ class Source:
             "pushurl": section.get("pushurl"),
             # September 2023: mr.developer defaults to master, mxdev to main.
             "branch": section.get("branch", "main"),
-            # XXX are the next two correct?
             "path": section.get("target"),
-            "egg": section.get("install-mode", "").lower() == "skip",
+            "egg": section.get("install-mode", "") != "skip",
         }
         return cls(**options)
 

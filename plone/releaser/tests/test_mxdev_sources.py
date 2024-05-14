@@ -1,3 +1,4 @@
+from plone.releaser.base import Source
 from plone.releaser.pip import MxSourcesFile
 
 import pathlib
@@ -12,12 +13,9 @@ MX_SOURCES_FILE = INPUT_DIR / "mxsources.ini"
 
 def test_mx_sources_file_data():
     mf = MxSourcesFile(MX_SOURCES_FILE)
-    # The data used to map lower case to actual case,
-    # but now actual case to True.
-    assert mf.data == {
-        "CamelCase": True,
-        "package": True,
-    }
+    assert list(mf.data.keys()) == ["package", "unused", "CamelCase", "docs"]
+    for key, value in mf.data.items():
+        assert isinstance(value, Source)
 
 
 def test_mx_sources_file_contains():
@@ -32,14 +30,33 @@ def test_mx_sources_file_contains():
 
 def test_mx_sources_file_get():
     mf = MxSourcesFile(MX_SOURCES_FILE)
-    assert mf["package"] is True
-    assert mf.get("package") is True
-    assert mf["camelcase"] is True
-    assert mf["CAMELCASE"] is True
-    assert mf["CamelCase"] is True
-    assert mf.get("unused") is None
+    package = mf["package"]
+    assert package
+    assert mf.get("package") == package
+    assert isinstance(package, Source)
+    assert package.protocol == "git"
+    assert package.url == "${settings:plone}/package.git"
+    assert package.branch == "main"
+    assert package.pushurl is None
+    assert package.path is None
+    assert package.egg is True
+    lowercase = mf["camelcase"]
+    uppercase = mf["CAMELCASE"]
+    camelcase = mf["CamelCase"]
+    assert lowercase
+    assert isinstance(lowercase, Source)
+    assert uppercase
+    assert camelcase
+    assert lowercase == uppercase
+    assert lowercase == camelcase
+    # The 'unused' package is not used (checked out), but we do not know that.
+    assert isinstance(mf.get("unused"), Source)
     with pytest.raises(KeyError):
         mf["no-such-package"]
+    docs = mf["docs"]
+    assert docs.branch == "6.0"
+    assert docs.egg is False
+    assert docs.path == "extra/documentation"
 
 
 def test_mx_sources_file_rewrite(tmp_path):
@@ -50,8 +67,7 @@ def test_mx_sources_file_rewrite(tmp_path):
     # Read it fresh and compare
     mf2 = MxSourcesFile(copy_path)
     assert mf.data == mf2.data
-    # Check the entire text.  Note that packages are alphabetically sorted.
-    # Currently we get the original case, but we may change this to lowercase.
+    # Check the entire text.
     assert (
         copy_path.read_text()
         == """[settings]
@@ -71,5 +87,11 @@ branch = main
 [CamelCase]
 url = ${settings:plone}/CamelCase.git
 branch = main
+
+[docs]
+url = ${setting:plone}/documentation.git
+install-mode = skip
+branch = 6.0
+target = extra/documentation
 """
     )
