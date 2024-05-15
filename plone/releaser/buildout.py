@@ -367,6 +367,8 @@ class SourcesFile(BaseBuildoutFile):
                 source.url = source.url.replace("{remotes:", "{settings:")
                 if source.pushurl:
                     source.pushurl = source.pushurl.replace("{remotes:", "{settings:")
+                if source.path:
+                    source.path = source.path.replace("{buildout:", "{settings:")
 
         # Rewrite the file.
         sources.rewrite()
