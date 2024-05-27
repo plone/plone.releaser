@@ -270,24 +270,35 @@ def set_package_version(package_name, new_version, *, path=None):
         constraints.set(package_name, new_version)
 
 
+def _get_paths(path, patterns):
+    paths = []
+    if path:
+        if not isinstance(path, Path):
+            path = Path(path)
+        if path.is_dir():
+            for pat in patterns:
+                paths.extend(glob.glob(str(path / pat)))
+        else:
+            paths = [path]
+    else:
+        for pat in patterns:
+            paths.extend(glob.glob(pat))
+    all_paths = []
+    for path in paths:
+        if not isinstance(path, Path):
+            path = Path(path)
+        all_paths.append(path)
+    return all_paths
+
+
 def versions2constraints(*, path=None):
     """Take a Buildout versions file and create a pip constraints file out of it.
 
     If a path is given, we handle only that file.
     If no path is given, we use versions*.cfg.
     """
-    if path:
-        if not isinstance(path, Path):
-            path = Path(path)
-        if path.is_dir():
-            paths = glob.glob(str(path / "versions*.cfg"))
-        else:
-            paths = [path]
-    else:
-        paths = glob.glob("versions*.cfg")
+    paths = _get_paths(path, ["versions*.cfg"])
     for path in paths:
-        if not isinstance(path, Path):
-            path = Path(path)
         versions = VersionsFile(path, with_markers=True)
         # Create path to constraints*.txt instead of versions*.cfg.
         filepath = versions.path
@@ -304,17 +315,8 @@ def buildout2pip(*, path=None):
     with versions or sources or checkouts.
     If no path is given, we use versions*.cfg, sources*.cfg and checkouts*.cfg.
     """
-    if path:
-        paths = [path]
-    else:
-        paths = (
-            glob.glob("versions*.cfg")
-            + glob.glob("sources*.cfg")
-            + glob.glob("checkouts*.cfg")
-        )
+    paths = _get_paths(path, ["versions*.cfg", "sources*.cfg", "checkouts*.cfg"])
     for path in paths:
-        if not isinstance(path, Path):
-            path = Path(path)
         if path.name.startswith("versions"):
             buildout_file = VersionsFile(path, with_markers=True)
         elif path.name.startswith("sources"):
