@@ -1,6 +1,7 @@
 from argh import arg
 from argh import ArghParser
 from argh.decorators import named
+from pathlib import Path
 from plone.releaser import ACTION_BATCH
 from plone.releaser import ACTION_INTERACTIVE
 from plone.releaser import ACTION_REPORT
@@ -276,10 +277,17 @@ def versions2constraints(*, path=None):
     If no path is given, we use versions*.cfg.
     """
     if path:
-        paths = [path]
+        if not isinstance(path, Path):
+            path = Path(path)
+        if path.is_dir():
+            paths = glob.glob(str(path / "versions*.cfg"))
+        else:
+            paths = [path]
     else:
         paths = glob.glob("versions*.cfg")
     for path in paths:
+        if not isinstance(path, Path):
+            path = Path(path)
         versions = VersionsFile(path, with_markers=True)
         # Create path to constraints*.txt instead of versions*.cfg.
         filepath = versions.path
@@ -305,11 +313,13 @@ def buildout2pip(*, path=None):
             + glob.glob("checkouts*.cfg")
         )
     for path in paths:
-        if path.startswith("versions"):
+        if not isinstance(path, Path):
+            path = Path(path)
+        if path.name.startswith("versions"):
             buildout_file = VersionsFile(path, with_markers=True)
-        elif path.startswith("sources"):
+        elif path.name.startswith("sources"):
             buildout_file = SourcesFile(path)
-        elif path.startswith("checkouts"):
+        elif path.name.startswith("checkouts"):
             buildout_file = CheckoutsFile(path)
         # Create path to constraints*.txt instead of versions*.cfg, etc.
         filepath = buildout_file.path
