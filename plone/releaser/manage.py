@@ -314,12 +314,15 @@ def buildout2pip(*, path=None):
         # Create path to constraints*.txt instead of versions*.cfg, etc.
         filepath = buildout_file.path
         filename = str(filepath)[len(str(filepath.parent)) + 1 :]
-        filename = (
-            filename.replace("versions", "constraints")
-            .replace("checkouts", "mxcheckouts")
-            .replace("sources", "mxsources")
-            .replace(".cfg", ".txt")
-        )
+        filename = filename.replace("versions", "constraints")
+        if "checkouts" in filename or "sources" in filename:
+            filename = (
+                filename.replace("checkouts", "mxcheckouts")
+                .replace("sources", "mxsources")
+                .replace(".cfg", ".ini")
+            )
+        else:
+            filename = filename.replace(".cfg", ".txt")
         pip_path = filepath.parent / filename
         if not pip_path.exists():
             pip_path.write_text("")
