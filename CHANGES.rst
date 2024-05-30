@@ -8,6 +8,34 @@ Changelog
 
 .. towncrier release notes start
 
+2.3.0 (2024-05-30)
+------------------
+
+New features:
+
+
+- Add buildout2pip manage command.
+  [maurits] (#72)
+
+
+Bug fixes:
+
+
+- Catch error when trying to change coredev branches.
+  Not everyone may have the branches available, or there may be some problem with it. (#67)
+- No longer offer to push changes to buildout.coredev.
+  This is no longer what we ever want: the newly uploaded package will not yet be available on all PyPI mirrors.
+  Fixes `issue 69 <https://github.com/plone/plone.releaser/issues/69>`_.
+  [maurits] (#69)
+
+
+Internal:
+
+
+- Update configuration files.
+  [plone devs]
+
+
 2.2.2 (2024-04-16)
 ------------------
 
