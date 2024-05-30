@@ -1,6 +1,8 @@
 from .base import BaseFile
+from .base import Source
 from .utils import update_contents
 from collections import defaultdict
+from collections import OrderedDict
 from configparser import ConfigParser
 from functools import cached_property
 
@@ -135,8 +137,63 @@ class ConstraintsFile(BaseFile):
         self.path.write_text(new_contents)
 
 
-class IniFile(BaseFile):
+class MxSourcesFile(BaseFile):
     """Ini file for mxdev.
+
+    What we want to do here is similar to what we have in buildout.py
+    in the SourcesFile.
+    """
+
+    def __init__(self, file_location):
+        super().__init__(file_location)
+        self.config = ConfigParser(
+            default_section="settings",
+        )
+        # mxdev itself calls ConfigParser with extra option
+        # interpolation=ExtendedInterpolation().
+        # This turns a line like 'url = ${settings:plone}/package.git'
+        # into 'url = https://github.com/plone/package.git'.
+        # In our case we very much want the original line,
+        # especially when we do a rewrite of the file.
+        with self.path.open() as f:
+            self.config.read_file(f)
+
+    @cached_property
+    def data(self):
+        sources_dict = OrderedDict()
+        # I don't think we need to support [sources:marker].
+        for package in self.config.sections():
+            section = self.config[package]
+            sources_dict[package] = Source.create_from_section(section)
+        return sources_dict
+
+    @cached_property
+    def settings(self):
+        return self.config["settings"]
+
+    def __setitem__(self, package_name, enabled=True):
+        raise NotImplementedError
+
+    def rewrite(self):
+        """Rewrite the file based on the parsed data.
+
+        This will lose comments, and may change the order.
+        """
+        contents = ["[settings]"]
+        for key, value in self.settings.items():
+            contents.append(f"{key} = {value}")
+
+        for package in self:
+            contents.append("")
+            contents.append(self[package].to_section())
+
+        contents.append("")
+        new_contents = "\n".join(contents)
+        self.path.write_text(new_contents)
+
+
+class MxCheckoutsFile(BaseFile):
+    """Checkouts file for mxdev.
 
     What we want to do here is similar to what we have in buildout.py
     in the CheckoutsFile: remove a package from auto-checkouts.
@@ -159,7 +216,7 @@ class IniFile(BaseFile):
             self.config.read_file(f)
         self.default_use = to_bool(self.config["settings"].get("default-use", True))
 
-    @property
+    @cached_property
     def data(self):
         checkouts = {}
         for package in self.config.sections():
@@ -168,7 +225,7 @@ class IniFile(BaseFile):
                 checkouts[package] = True
         return checkouts
 
-    @property
+    @cached_property
     def sections(self):
         # If we want to use a package, we must first know that it exists.
         sections = {}
@@ -176,10 +233,27 @@ class IniFile(BaseFile):
             sections[package] = True
         return sections
 
+    @cached_property
+    def settings(self):
+        return self.config["settings"]
+
     @property
     def lowerkeys_section(self):
         # Map from lower case key to actual key in the sections.
         return {key.lower(): key for key in self.sections}
+
+    def append_package(self, package_name, enabled=True):
+        """Append a package to the checkouts.
+
+        The caller should have made sure this package is currently
+        not in the file.
+        """
+        contents = self.path.read_text()
+        if not contents.endswith("\n"):
+            contents += "\n"
+        use = "true" if enabled else "false"
+        contents += f"\n[{package_name}]\nuse = {use}\n"
+        self.path.write_text(contents)
 
     def __setitem__(self, package_name, enabled=True):
         """Enable or disable a checkout.
@@ -190,17 +264,15 @@ class IniFile(BaseFile):
 
         But let's support the other way around as well:
         when default-use is true, we set 'use = false'.
-
-        Note that in our Buildout setup, we have sources.cfg separately.
-        In mxdev.ini the source definition and 'use = false/true' is combined.
-        So if the package we want to enable is not defined, meaning it has no
-        section, then we should fail loudly.
         """
         stored_package_name = self.lowerkeys_section.get(package_name.lower())
         if not stored_package_name:
-            raise KeyError(
-                f"{self.file_location}: There is no definition for {package_name}"
-            )
+            # Package is not known to us.
+            if self.default_use == enabled:
+                # The wanted state is the default state, so do nothing.
+                return
+            self.append_package(package_name, enabled=enabled)
+            return
         package_name = stored_package_name
         if package_name in self:
             use = to_bool(self.config[package_name].get("use", self.default_use))
@@ -263,19 +335,15 @@ class IniFile(BaseFile):
         """Rewrite the file based on the parsed data.
 
         This will lose comments, and may change the order.
-        TODO Can we trust self.config? It won't get updated if we change any data
-        after reading.
         """
         contents = ["[settings]"]
-        for key, value in self.config["settings"].items():
+        for key, value in self.settings.items():
             contents.append(f"{key} = {value}")
 
-        for package in self.sections:
+        for package in self.data:
             contents.append("")
             contents.append(f"[{package}]")
-            for key, value in self.config[package].items():
-                if self.config["settings"].get(key) != value:
-                    contents.append(f"{key} = {value}")
+            contents.append("use = true")
 
         contents.append("")
         new_contents = "\n".join(contents)

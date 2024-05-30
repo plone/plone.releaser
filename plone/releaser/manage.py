@@ -1,6 +1,7 @@
 from argh import arg
 from argh import ArghParser
 from argh.decorators import named
+from pathlib import Path
 from plone.releaser import ACTION_BATCH
 from plone.releaser import ACTION_INTERACTIVE
 from plone.releaser import ACTION_REPORT
@@ -8,10 +9,11 @@ from plone.releaser import pypi
 from plone.releaser import THIRD_PARTY_PACKAGES
 from plone.releaser.buildout import Buildout
 from plone.releaser.buildout import CheckoutsFile
+from plone.releaser.buildout import SourcesFile
 from plone.releaser.buildout import VersionsFile
 from plone.releaser.package import Package
 from plone.releaser.pip import ConstraintsFile
-from plone.releaser.pip import IniFile
+from plone.releaser.pip import MxCheckoutsFile
 from progress.bar import Bar
 
 import glob
@@ -143,7 +145,7 @@ def _get_checkouts(path=None):
         paths = glob.glob("mxdev.ini") + glob.glob("checkouts.cfg")
     for path in paths:
         if path.endswith(".ini"):
-            checkouts = IniFile(path)
+            checkouts = MxCheckoutsFile(path)
         else:
             checkouts = CheckoutsFile(path)
         yield checkouts
@@ -268,33 +270,34 @@ def set_package_version(package_name, new_version, *, path=None):
         constraints.set(package_name, new_version)
 
 
+def _get_paths(path, patterns):
+    paths = []
+    if path:
+        if not isinstance(path, Path):
+            path = Path(path)
+        if path.is_dir():
+            for pat in patterns:
+                paths.extend(glob.glob(str(path / pat)))
+        else:
+            paths = [path]
+    else:
+        for pat in patterns:
+            paths.extend(glob.glob(pat))
+    all_paths = []
+    for path in paths:
+        if not isinstance(path, Path):
+            path = Path(path)
+        all_paths.append(path)
+    return all_paths
+
+
 def versions2constraints(*, path=None):
     """Take a Buildout versions file and create a pip constraints file out of it.
 
+    If a path is given, we handle only that file.
     If no path is given, we use versions*.cfg.
-
-    Notes:
-    * This does not handle 'extends' yet.
-    * This does not handle [versions:pythonX] yet.
-
-    We could parse the file with Buildout.  This incorporates the 'extends',
-    but you lose versions information for other Python versions.
-
-    We could pass an option simple/full.
-    Maybe if a path is passed, we handle only that file in simple mode.
-    Without path, we grab versions.cfg and check 'extends' and other versions.
-
-    'extends = versions-extra.cfg' could be transformed to '-c constraints-extra.txt'
-
-    I think I need some more options in VersionsFile first:
-    - what to do with extends
-    - what to do with [versions:*]
-    - whether to turn it into a single constraints file.
     """
-    if path:
-        paths = [path]
-    else:
-        paths = glob.glob("versions*.cfg")
+    paths = _get_paths(path, ["versions*.cfg"])
     for path in paths:
         versions = VersionsFile(path, with_markers=True)
         # Create path to constraints*.txt instead of versions*.cfg.
@@ -302,7 +305,40 @@ def versions2constraints(*, path=None):
         filename = str(filepath)[len(str(filepath.parent)) + 1 :]
         filename = filename.replace("versions", "constraints").replace(".cfg", ".txt")
         constraints_path = filepath.parent / filename
-        versions.to_constraints(constraints_path)
+        versions.to_pip(constraints_path)
+
+
+def buildout2pip(*, path=None):
+    """Take a Buildout file and create a pip/mxdev file out of it.
+
+    If a path is given, we handle only that file, guessing whether it is a file
+    with versions or sources or checkouts.
+    If no path is given, we use versions*.cfg, sources*.cfg and checkouts*.cfg.
+    """
+    paths = _get_paths(path, ["versions*.cfg", "sources*.cfg", "checkouts*.cfg"])
+    for path in paths:
+        if path.name.startswith("versions"):
+            buildout_file = VersionsFile(path, with_markers=True)
+        elif path.name.startswith("sources"):
+            buildout_file = SourcesFile(path)
+        elif path.name.startswith("checkouts"):
+            buildout_file = CheckoutsFile(path)
+        # Create path to constraints*.txt instead of versions*.cfg, etc.
+        filepath = buildout_file.path
+        filename = str(filepath)[len(str(filepath.parent)) + 1 :]
+        filename = filename.replace("versions", "constraints")
+        if "checkouts" in filename or "sources" in filename:
+            filename = (
+                filename.replace("checkouts", "mxcheckouts")
+                .replace("sources", "mxsources")
+                .replace(".cfg", ".ini")
+            )
+        else:
+            filename = filename.replace(".cfg", ".txt")
+        pip_path = filepath.parent / filename
+        if not pip_path.exists():
+            pip_path.write_text("")
+        buildout_file.to_pip(pip_path)
 
 
 class Manage:
@@ -322,6 +358,7 @@ class Manage:
                 get_package_version,
                 jenkins_report,
                 versions2constraints,
+                buildout2pip,
             ]
         )
         parser.dispatch()

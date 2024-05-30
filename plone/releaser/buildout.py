@@ -1,4 +1,5 @@
 from .base import BaseFile
+from .base import Source
 from .utils import buildout_marker_to_pip_marker
 from .utils import update_contents
 from collections import defaultdict
@@ -11,62 +12,6 @@ from textwrap import indent
 import os
 import pathlib
 import re
-
-
-class Source:
-    """Source definition for mr.developer"""
-
-    def __init__(
-        self, protocol=None, url=None, pushurl=None, branch=None, path=None, egg=True
-    ):
-        # I think mxdev only supports git as protocol.
-        self.protocol = protocol
-        self.url = url
-        self.pushurl = pushurl
-        self.branch = branch
-        # mxdev has target (default: sources) instead of path (default: src).
-        self.path = path
-        # egg=True: mxdev install-mode="direct"
-        # egg=False: mxdev install-mode="skip"
-        self.egg = egg
-
-    @classmethod
-    def create_from_string(cls, source_string):
-        line_options = source_string.split()
-        protocol = line_options.pop(0)
-        url = line_options.pop(0)
-        # September 2023: mr.developer defaults to master, mxdev to main.
-        options = {"protocol": protocol, "url": url, "branch": "master"}
-
-        # The rest of the line options are key/value pairs.
-        for param in line_options:
-            if param is not None:
-                key, value = param.split("=")
-                if key == "egg":
-                    if value.lower() in ("true", "yes", "on"):
-                        value = True
-                    elif value.lower() in ("false", "no", "off"):
-                        value = False
-                options[key] = value
-        return cls(**options)
-
-    def __repr__(self):
-        return f"<Source {self.protocol} url={self.url} pushurl={self.pushurl} branch={self.branch} path={self.path} egg={self.egg}>"
-
-    def __str__(self):
-        line = f"{self.protocol} {self.url}"
-        if self.pushurl:
-            line += f" pushurl={self.pushurl}"
-        if self.branch:
-            line += f" branch={self.branch}"
-        if self.path:
-            line += f" path={self.path}"
-        if not self.egg:
-            line += " egg=false"
-        return line
-
-    def __eq__(self, other):
-        return repr(self) == repr(other)
 
 
 class BaseBuildoutFile(BaseFile):
@@ -316,7 +261,7 @@ class VersionsFile(BaseBuildoutFile):
             new_data[package] = new_version
         return new_data
 
-    def to_constraints(self, constraints_path):
+    def to_pip(self, constraints_path):
         """Overwrite constraints file with our data.
 
         The strategy is:
@@ -351,7 +296,7 @@ class SourcesFile(BaseBuildoutFile):
         sources_dict = OrderedDict()
         # I don't think we need to support [sources:marker].
         for name, value in self.config["sources"].items():
-            source = Source.create_from_string(value)
+            source = Source.create_from_string(name, value)
             sources_dict[name] = source
         return sources_dict
 
@@ -360,7 +305,7 @@ class SourcesFile(BaseBuildoutFile):
         sources_dict = OrderedDict()
         # I don't think we need to support [sources:marker].
         for name, value in self.raw_config["sources"].items():
-            source = Source.create_from_string(value)
+            source = Source.create_from_string(name, value)
             sources_dict[name] = source
         return sources_dict
 
@@ -395,6 +340,38 @@ class SourcesFile(BaseBuildoutFile):
         contents.append("")
         new_contents = "\n".join(contents)
         self.path.write_text(new_contents)
+
+    def to_pip(self, pip_path):
+        """Overwrite mxdev/pip sources file with our data.
+
+        The strategy is:
+
+        1. Translate our data to mxdev sources data.
+        2. Ask the msdev sources file to rewrite itself.
+        """
+        # Import here to avoid circular imports.
+        from plone.releaser.pip import MxSourcesFile
+
+        sources = MxSourcesFile(pip_path)
+        # Create or empty the sources file.
+        sources.path.write_text("")
+
+        # Translate our data to pip.
+        sources.data = self.raw_data
+        sources.settings = {"docs-directory": "documentation"}
+        if "remotes" in self.config:
+            remotes = self.config["remotes"]
+            for key, value in remotes.items():
+                sources.settings[key] = value
+            for source in sources.data.values():
+                source.url = source.url.replace("{remotes:", "{settings:")
+                if source.pushurl:
+                    source.pushurl = source.pushurl.replace("{remotes:", "{settings:")
+                if source.path:
+                    source.path = source.path.replace("{buildout:", "{settings:")
+
+        # Rewrite the file.
+        sources.rewrite()
 
 
 class CheckoutsFile(BaseBuildoutFile):
@@ -453,6 +430,30 @@ class CheckoutsFile(BaseBuildoutFile):
         contents.append("")
         new_contents = "\n".join(contents)
         self.path.write_text(new_contents)
+
+    def to_pip(self, pip_path):
+        """Overwrite mxdev/pip checkouts file with our data.
+
+        The strategy is:
+
+        1. Translate our data to mxdev checkouts data.
+        2. Ask the msdev checkouts file to rewrite itself.
+        """
+        # Import here to avoid circular imports.
+        from plone.releaser.pip import MxCheckoutsFile
+
+        checkouts = MxCheckoutsFile(pip_path)
+        # Create or empty the checkouts file.
+        checkouts.path.write_text("")
+
+        # Translate our data to pip.
+        # XXX does not do anything
+        checkouts.data = self.data
+        # This is the only setting that makes sense for Plone coredev:
+        checkouts.settings = {"default-use": "false"}
+
+        # Rewrite the file.
+        checkouts.rewrite()
 
 
 class Buildout:
