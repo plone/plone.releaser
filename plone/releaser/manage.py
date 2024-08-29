@@ -137,12 +137,12 @@ def _get_checkouts(path=None):
     """Get the parsed checkouts file at the given path.
 
     If no path is given, we use several paths:
-    both checkouts.cfg and mxdev.ini.
+    both checkouts.cfg and mxcheckouts.ini.
     """
     if path:
         paths = [path]
     else:
-        paths = glob.glob("mxdev.ini") + glob.glob("checkouts.cfg")
+        paths = glob.glob("mxcheckouts.ini") + glob.glob("checkouts.cfg")
     for path in paths:
         if path.endswith(".ini"):
             checkouts = MxCheckoutsFile(path)
@@ -155,7 +155,7 @@ def check_checkout(package_name, *, path=None):
     """Check if package is in the checkouts.
 
     If no path is given, we try several paths:
-    both checkouts.cfg and mxdev.ini.
+    both checkouts.cfg and mxcheckouts.ini.
     """
     for checkouts in _get_checkouts(path=path):
         loc = checkouts.file_location
@@ -169,7 +169,7 @@ def remove_checkout(package_name, *, path=None):
     """Remove package from auto checkouts.
 
     If no path is given, we try several paths:
-    both checkouts.cfg and mxdev.ini.
+    both checkouts.cfg and mxcheckouts.ini.
     """
     for checkouts in _get_checkouts(path=path):
         checkouts.remove(package_name)
@@ -179,7 +179,7 @@ def add_checkout(package_name, *, path=None):
     """Add package to auto checkouts.
 
     If no path is given, we try several paths:
-    both checkouts.cfg and mxdev.ini.
+    both checkouts.cfg and mxcheckouts.ini.
     """
     for checkouts in _get_checkouts(path=path):
         checkouts.add(package_name)
