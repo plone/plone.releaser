@@ -254,6 +254,7 @@ class MxCheckoutsFile(BaseFile):
         use = "true" if enabled else "false"
         contents += f"\n[{package_name}]\nuse = {use}\n"
         self.path.write_text(contents)
+        print(f"{self.file_location}: {package_name} added to checkouts.")
 
     def __setitem__(self, package_name, enabled=True):
         """Enable or disable a checkout.

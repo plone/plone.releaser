@@ -1,0 +1,2 @@
+Fix checking/adding/removing checkouts: search in `mxsources.ini`.
+[maurits]
