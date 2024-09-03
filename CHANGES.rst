@@ -8,6 +8,23 @@ Changelog
 
 .. towncrier release notes start
 
+2.3.1 (2024-09-03)
+------------------
+
+Bug fixes:
+
+
+- Fix checking/adding/removing checkouts: search in `mxsources.ini`.
+  [maurits] (#945)
+
+
+Internal:
+
+
+- Update configuration files.
+  [plone devs]
+
+
 2.3.0 (2024-05-30)
 ------------------
 
