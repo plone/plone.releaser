@@ -199,6 +199,7 @@ class MxCheckoutsFile(BaseFile):
     in the CheckoutsFile: remove a package from auto-checkouts.
     For mxdev: set 'use = false'.
     The default is in 'settings': 'default-use'.
+    In fact, we only support 'default-use = false'.
     """
 
     def __init__(self, file_location):
@@ -214,13 +215,18 @@ class MxCheckoutsFile(BaseFile):
         # especially when we do a rewrite of the file.
         with self.path.open() as f:
             self.config.read_file(f)
-        self.default_use = to_bool(self.config["settings"].get("default-use", True))
+        _marker = object()
+        default_use = self.config["settings"].get("default-use", _marker)
+        if default_use is not _marker and to_bool(default_use):
+            raise ValueError(
+                f"ERROR: {self.file_location}: you must set 'default-use = false'."
+            )
 
     @cached_property
     def data(self):
         checkouts = {}
         for package in self.config.sections():
-            use = to_bool(self.config[package].get("use", self.default_use))
+            use = to_bool(self.config[package].get("use", False))
             if use:
                 checkouts[package] = True
         return checkouts
@@ -269,16 +275,14 @@ class MxCheckoutsFile(BaseFile):
         stored_package_name = self.lowerkeys_section.get(package_name.lower())
         if not stored_package_name:
             # Package is not known to us.
-            if self.default_use == enabled:
+            if not enabled:
                 # The wanted state is the default state, so do nothing.
+                print(f"{self.file_location}: {package_name} not in checkouts.")
                 return
             self.append_package(package_name, enabled=enabled)
             return
         package_name = stored_package_name
-        if package_name in self:
-            use = to_bool(self.config[package_name].get("use", self.default_use))
-        else:
-            use = False
+        use = package_name in self
         if use and enabled:
             print(f"{self.file_location}: {package_name} already in checkouts.")
             return
@@ -299,7 +303,6 @@ class MxCheckoutsFile(BaseFile):
             line = line.rstrip()
             if line == f"[{package_name}]":
                 found_package = True
-                lines.append(line)
                 continue
             if not found_package:
                 lines.append(line)
@@ -310,21 +313,20 @@ class MxCheckoutsFile(BaseFile):
             if line == "" or line.startswith("["):
                 # A new section is starting.
                 if not enabled:
-                    if self.default_use:
-                        # We need to explicitly disable it.
-                        lines.append("use = false")
+                    # We do not keep any lines of this section.
                     print(
                         f"{self.file_location}: {package_name} removed from checkouts."
                     )
                 else:
-                    if not self.default_use:
-                        # We need to explicitly enable it.
-                        lines.append("use = true")
+                    # We need to explicitly enable it.
+                    lines.append("use = true")
                     print(f"{self.file_location}: {package_name} added to checkouts.")
                 # We are done with the section for this package name.
                 found_package = False
                 # We still need to append the original line.
-                lines.append(line)
+                # But avoid adding multiple empty lines.
+                if line or lines[-1]:
+                    lines.append(line)
                 continue
             # Just a regular line.
             lines.append(line)

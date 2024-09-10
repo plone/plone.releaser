@@ -1,0 +1,5 @@
+Remove empty section from mxcheckouts.ini.
+This is when calling `bin/manage remove-checkout`: when disabling a checkout, we can remove the entire section.
+You must have `default-use = false` in the settings of this file.
+The code is simplified to not support the default value of `default-use = true`: the Plone coredev buildout does not want this.
+[maurits]
