@@ -8,6 +8,19 @@ Changelog
 
 .. towncrier release notes start
 
+2.3.2 (2024-09-24)
+------------------
+
+Bug fixes:
+
+
+- Remove empty section from mxcheckouts.ini.
+  This is when calling `bin/manage remove-checkout`: when disabling a checkout, we can remove the entire section.
+  You must have `default-use = false` in the settings of this file.
+  The code is simplified to not support the default value of `default-use = true`: the Plone coredev buildout does not want this.
+  [maurits] (#75)
+
+
 2.3.1 (2024-09-03)
 ------------------
 
