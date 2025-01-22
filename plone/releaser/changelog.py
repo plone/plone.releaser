@@ -1,8 +1,9 @@
 from collections import defaultdict
 from collections import OrderedDict
-from distutils.version import LooseVersion
 from docutils.core import publish_doctree
 from itertools import product
+from packaging.version import InvalidVersion
+from packaging.version import parse
 from plone.releaser.buildout import Buildout
 from plone.releaser.release import HEADINGS
 from plone.releaser.release import OLD_HEADING_MAPPING
@@ -39,7 +40,10 @@ def pull_versions(version_number):
             if not version:
                 # May be a line from versionannotation
                 continue
-            version = LooseVersion(version)
+            try:
+                version = parse(version)
+            except InvalidVersion:
+                pass
             package_versions[package] = version
     print(f"Parsed {url}")
     return package_versions
@@ -150,8 +154,8 @@ class Changelog:
         def is_valid_version_section(x):
             if x.tagname == "section":
                 try:
-                    LooseVersion(x["names"][0].split()[0])
-                except (ValueError, IndexError):
+                    parse(x["names"][0].split()[0])
+                except (InvalidVersion, ValueError, IndexError):
                     pass
                 else:
                     return True
