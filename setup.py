@@ -40,6 +40,7 @@ setup(
         "argh",
         "gitpython>=3.0.0",
         "configparser",
+        "packaging",
         "progress",
         "zest.releaser[recommended]>=7.2.0",
         "zestreleaser.towncrier>=1.3.0",
