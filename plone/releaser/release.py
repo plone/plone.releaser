@@ -309,7 +309,7 @@ def remove_from_checkouts(package_name):
     if checkouts_file.exists():
         checkouts = CheckoutsFile(checkouts_file)
         checkouts.remove(package_name)
-    checkouts_file = coredev_dir / "mxdev.ini"
+    checkouts_file = coredev_dir / "mxcheckouts.ini"
     if checkouts_file.exists():
         checkouts = MxSourcesFile(checkouts_file)
         checkouts.remove(package_name)
