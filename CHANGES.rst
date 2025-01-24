@@ -8,6 +8,22 @@ Changelog
 
 .. towncrier release notes start
 
+2.3.3 (2025-01-24)
+------------------
+
+Bug fixes:
+
+
+- Update `mxcheckouts.ini` when releasing a package.  [maurits] (#77)
+
+
+Internal:
+
+
+- Update configuration files.
+  [plone devs]
+
+
 2.3.2 (2024-09-24)
 ------------------
 
