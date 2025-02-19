@@ -232,7 +232,7 @@ def update_core(data, branch=None):
 
 
 def update_other_core_branches(data):
-    CORE_BRANCHES = ["5.2", "6.0", "6.1"]
+    CORE_BRANCHES = ["6.0", "6.1", "6.2"]
     package_name = data["name"]
     root_path = os.path.join(os.getcwd(), "../../")
 
