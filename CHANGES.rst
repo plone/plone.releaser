@@ -8,6 +8,17 @@ Changelog
 
 .. towncrier release notes start
 
+2.4.0 (2025-02-21)
+------------------
+
+New features:
+
+
+- When releasing, check coredev branches 6.0, 6.1, and 6.2.
+  No longer check 5.2.
+  [maurits] (#62)
+
+
 2.3.3 (2025-01-24)
 ------------------
 
