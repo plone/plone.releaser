@@ -8,6 +8,17 @@ Changelog
 
 .. towncrier release notes start
 
+2.4.1 (2025-03-17)
+------------------
+
+Bug fixes:
+
+
+- Fix ``TypeError``: ``glob()`` got an unexpected keyword argument ``root_dir``.
+  This keyword argument is only available on Python 3.10+.
+  [maurits] (#81)
+
+
 2.4.0 (2025-02-21)
 ------------------
 
