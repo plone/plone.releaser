@@ -284,21 +284,29 @@ def update_versions(package_name, new_version):
     print("Updating buildout versions")
     cwd = pathlib.Path.cwd()
     coredev_dir = (cwd / os.pardir / os.pardir).resolve()
-    # In coredev 6.0 we have versions.cfg, versions-ecosystem.cfg, versions-extra.cfg.
-    for filename in glob.glob("versions*.cfg", root_dir=coredev_dir):
-        path = coredev_dir / filename
-        versions = VersionsFile(path)
-        if package_name in versions:
-            print(f"Updating {filename}")
-            versions.set(package_name, new_version)
+    # In Python 3.10+ we could use `glob.glob("versions*.cfg", root_dir=coredev_dir),
+    # but not in 3.9.  So we change directory.
+    try:
+        os.chdir(coredev_dir)
+        # In coredev 6.0 we have versions.cfg, versions-ecosystem.cfg,
+        # versions-extra.cfg.
+        for filename in glob.glob("versions*.cfg"):
+            path = coredev_dir / filename
+            versions = VersionsFile(path)
+            if package_name in versions:
+                print(f"Updating {filename}")
+                versions.set(package_name, new_version)
 
-    # We may have pip constraints files to update.
-    for filename in glob.glob("constraints*.txt", root_dir=coredev_dir):
-        path = coredev_dir / filename
-        versions = ConstraintsFile(path)
-        if package_name in versions:
-            print(f"Updating {filename}")
-            versions.set(package_name, new_version)
+        # We may have pip constraints files to update.
+        for filename in glob.glob("constraints*.txt"):
+            path = coredev_dir / filename
+            versions = ConstraintsFile(path)
+            if package_name in versions:
+                print(f"Updating {filename}")
+                versions.set(package_name, new_version)
+
+    finally:
+        os.chdir(cwd)
 
 
 def remove_from_checkouts(package_name):
