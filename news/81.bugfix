@@ -1,0 +1,3 @@
+Fix ``TypeError``: ``glob()`` got an unexpected keyword argument ``root_dir``.
+This keyword argument is only available on Python 3.10+.
+[maurits]
