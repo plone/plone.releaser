@@ -54,9 +54,16 @@ class BaseBuildoutFile(BaseFile):
 
     @property
     def extends(self):
+        if hasattr(self, "_extends"):
+            # Our setter has been called, presumably in preparation for a rewrite.
+            return self._extends
         if self.config.has_section("buildout"):
             return self.config["buildout"].get("extends", "").strip().splitlines()
         return []
+
+    @extends.setter
+    def extends(self, values):
+        self._extends = values
 
 
 class VersionsFile(BaseBuildoutFile):
@@ -82,6 +89,9 @@ class VersionsFile(BaseBuildoutFile):
         Ah, but we *do* need this information when translating to pip.
         For that: set self.with_markers = True.
         """
+        if hasattr(self, "_data"):
+            # Our setter has been called, presumably in preparation for a rewrite.
+            return self._data
         versions = defaultdict(dict)
         if self.config.has_section("buildout"):
             # https://github.com/plone/plone.releaser/issues/42
@@ -123,6 +133,10 @@ class VersionsFile(BaseBuildoutFile):
                 versions[package] = version[""]
                 continue
         return versions
+
+    @data.setter
+    def data(self, versions):
+        self._data = versions
 
     def __setitem__(self, package_name, new_version):
         contents = self.path.read_text()
@@ -177,9 +191,13 @@ class VersionsFile(BaseBuildoutFile):
         if self.extends and not self.read_extends:
             # With read_extends=True, we incorporate the versions of the
             # extended files in our own, so we no longer need the extends.
-            contents = ["[buildout]", "extends ="]
-            for extend in self.extends:
-                contents.append(f"    {extend}")
+            contents = ["[buildout]"]
+            if len(self.extends) == 1:
+                contents.append(f"extends = {self.extends[0]}")
+            else:
+                contents.append("extends =")
+                for extend in self.extends:
+                    contents.append(f"    {extend}")
             contents.append("")
 
         contents.append("[versions]")
