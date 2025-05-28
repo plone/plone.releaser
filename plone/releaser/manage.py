@@ -308,6 +308,23 @@ def versions2constraints(*, path=None):
         versions.to_pip(constraints_path)
 
 
+def constraints2versions(*, path=None):
+    """Take a pip constraints file and create a Buildout versions file out of it.
+
+    If a path is given, we handle only that file.
+    If no path is given, we use constraints*.txt.
+    """
+    paths = _get_paths(path, ["constraints*.txt"])
+    for path in paths:
+        constraints = ConstraintsFile(path, with_markers=True)
+        # Create path to versions*.cfg instead of constraints*.txt.
+        filepath = constraints.path
+        filename = str(filepath)[len(str(filepath.parent)) + 1 :]
+        filename = filename.replace("constraints", "versions").replace(".txt", ".cfg")
+        versions_path = filepath.parent / filename
+        constraints.to_buildout(versions_path)
+
+
 def buildout2pip(*, path=None):
     """Take a Buildout file and create a pip/mxdev file out of it.
 
@@ -357,6 +374,7 @@ class Manage:
                 set_package_version,
                 get_package_version,
                 jenkins_report,
+                constraints2versions,
                 versions2constraints,
                 buildout2pip,
             ]

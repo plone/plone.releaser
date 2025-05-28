@@ -136,6 +136,61 @@ class ConstraintsFile(BaseFile):
         new_contents = "\n".join(contents)
         self.path.write_text(new_contents)
 
+    def extends_to_buildout(self):
+        """Translate our extends data to buildout.
+
+        We assume that all 'extends' lines are files with constraints,
+        and that a versions file is at the same place.
+        """
+        if not self.extends:
+            return []
+        if self.read_extends:
+            # We incorporate the versions of the extended files in our own,
+            # so we do not need the extends.
+            return []
+
+        new_extends = []
+        for extend in self.extends:
+            parts = extend.split("/")
+            parent = "/".join(parts[:-1])
+            extend = parts[-1]
+            extend = extend.replace("constraints", "versions").replace(".txt", ".cfg")
+            if parent:
+                extend = "/".join([parent, extend])
+            new_extends.append(extend)
+
+        return new_extends
+
+    def to_buildout(self, versions_path):
+        """Overwrite versions file with our data.
+
+        The strategy is:
+
+        1. Translate our data to versions data.
+        2. Ask the versions file to rewrite itself.
+        """
+        # Import here to avoid circular imports.
+        from plone.releaser.buildout import VersionsFile
+
+        versions = VersionsFile(
+            versions_path,
+            with_markers=self.with_markers,
+            read_extends=self.read_extends,
+        )
+        # Create or empty the versions file.
+        versions.path.write_text("")
+
+        # Translate our extends to Buildout.
+        versions.extends = self.extends_to_buildout()
+
+        # Translate our version pins to Buildout.
+        # Actually nothing specialneeds to happen:
+        # Buildout understand the pip markers.
+        versions.data = self.data
+
+        # Rewrite the file.
+        versions.rewrite()
+
 
 class MxSourcesFile(BaseFile):
     """Ini file for mxdev.
