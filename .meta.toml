@@ -14,3 +14,4 @@ dependencies_mappings = [
 
 [tox]
 test_runner = "pytest"
+constraints_file = "https://dist.plone.org/release/6.2-dev/constraints.txt"
