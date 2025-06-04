@@ -1,2 +1,2 @@
 four==4.0
-five==5.0; platform_system == 'darwin'
+five==5.0; platform_system == 'Darwin'

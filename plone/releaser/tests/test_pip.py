@@ -144,7 +144,7 @@ def test_constraints_file_read_extends_without_markers():
 def test_constraints_file_read_extends_with_markers():
     cf = ConstraintsFile(CONSTRAINTS_FILE2, with_markers=True, read_extends=True)
     assert cf.data == {
-        "five": {"platform_system == 'darwin'": "5.0"},
+        "five": {"platform_system == 'Darwin'": "5.0"},
         "four": "4.0",
         "one": "1.1",
         "three": {"": "3.0", 'python_version=="3.12"': "3.2"},
@@ -276,7 +276,7 @@ def test_constraints_file_rewrite_read_extends_with_markers(tmp_path):
     assert (
         copy_path.read_text()
         == """four==4.0
-five==5.0; platform_system == 'darwin'
+five==5.0; platform_system == 'Darwin'
 one==1.1
 three==3.0
 three==3.2; python_version=="3.12"

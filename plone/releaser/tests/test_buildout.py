@@ -403,14 +403,12 @@ def test_versions_file_rewrite(tmp_path):
     assert vf.data == vf2.data
     # Check the entire text.
     # Note that there are differences with the original:
-    # - the extends line is on a separate line
     # - all comments are removed
     # - the duplicate is removed
     assert (
         copy_path.read_text()
         == """[buildout]
-extends =
-    https://zopefoundation.github.io/Zope/releases/5.8.3/versions.cfg
+extends = https://zopefoundation.github.io/Zope/releases/5.8.3/versions.cfg
 
 [versions]
 annotated = 1.0
@@ -437,8 +435,7 @@ def test_versions_file_rewrite_2(tmp_path):
     assert (
         copy_path.read_text()
         == """[buildout]
-extends =
-    versions3.cfg
+extends = versions3.cfg
 
 [versions]
 one = 1.1
@@ -460,8 +457,7 @@ def test_versions_file_rewrite_with_markers(tmp_path):
     assert (
         copy_path.read_text()
         == """[buildout]
-extends =
-    versions3.cfg
+extends = versions3.cfg
 
 [versions]
 one = 1.1
