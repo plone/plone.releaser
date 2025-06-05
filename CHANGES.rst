@@ -8,6 +8,23 @@ Changelog
 
 .. towncrier release notes start
 
+2.5.0 (2025-06-05)
+------------------
+
+New features:
+
+
+- Add ``constraints2versions`` manage command.
+  [maurits] (#85)
+
+
+Internal:
+
+
+- Update configuration files.
+  [plone devs]
+
+
 2.4.1 (2025-03-17)
 ------------------
 
