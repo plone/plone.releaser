@@ -376,7 +376,6 @@ class SourcesFile(BaseBuildoutFile):
 
         # Translate our data to pip.
         sources.data = self.raw_data
-        sources.settings = {"docs-directory": "documentation"}
         if "remotes" in self.config:
             remotes = self.config["remotes"]
             for key, value in remotes.items():
