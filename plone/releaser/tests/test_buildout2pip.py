@@ -77,7 +77,6 @@ onepython==2.1; python_version == "3.12"
     assert (
         mxsources_file.read_text()
         == """[settings]
-docs-directory = documentation
 plone = https://github.com/plone
 plone_push = git@github.com:plone
 
@@ -85,7 +84,7 @@ plone_push = git@github.com:plone
 url = ${settings:plone}/documentation.git
 branch = 6.0
 install-mode = skip
-target = ${settings:docs-directory}
+target = extra/documentation
 
 [Plone]
 url = ${settings:plone}/Plone.git

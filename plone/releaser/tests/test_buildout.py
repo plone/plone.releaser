@@ -2,7 +2,6 @@ from plone.releaser.buildout import CheckoutsFile
 from plone.releaser.buildout import SourcesFile
 from plone.releaser.buildout import VersionsFile
 
-import os
 import pathlib
 import pytest
 import shutil
@@ -134,7 +133,7 @@ def test_sources_file_get():
     assert docs.url == "https://github.com/plone/documentation.git"
     assert docs.pushurl is None
     assert docs.branch == "6.0"
-    assert docs.path == f"{os.getcwd()}/documentation"
+    assert docs.path == "extra/documentation"
     assert not docs.egg
     alterego = sf["plone.alterego"]
     assert alterego.url == "https://github.com/plone/plone.alterego.git"
@@ -167,14 +166,13 @@ def test_sources_file_rewrite(tmp_path):
         == """[buildout]
 extends =
     https://raw.githubusercontent.com/zopefoundation/Zope/master/sources.cfg
-docs-directory = ${buildout:directory}/documentation
 
 [remotes]
 plone = https://github.com/plone
 plone_push = git@github.com:plone
 
 [sources]
-docs = git ${remotes:plone}/documentation.git branch=6.0 path=${buildout:docs-directory} egg=false
+docs = git ${remotes:plone}/documentation.git branch=6.0 path=extra/documentation egg=false
 Plone = git ${remotes:plone}/Plone.git pushurl=${remotes:plone_push}/Plone.git branch=6.0.x
 plone.alterego = git ${remotes:plone}/plone.alterego.git branch=master
 plone.base = git ${remotes:plone}/plone.base.git branch=main
