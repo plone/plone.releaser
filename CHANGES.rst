@@ -8,6 +8,17 @@ Changelog
 
 .. towncrier release notes start
 
+2.5.1 (2025-06-18)
+------------------
+
+Bug fixes:
+
+
+- No longer insert ``buildout:docs-directory`` when reading sources.
+  The Plone core dev buildout no longer uses this.
+  [maurits]
+
+
 2.5.0 (2025-06-05)
 ------------------
 

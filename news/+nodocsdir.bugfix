@@ -1,3 +1,0 @@
-No longer insert ``buildout:docs-directory`` when reading sources.
-The Plone core dev buildout no longer uses this.
-[maurits]
