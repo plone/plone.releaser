@@ -1,11 +1,12 @@
+from pathlib import Path
 from setuptools import find_packages
 from setuptools import setup
 
 
 version = "2.5.2.dev0"
 
-long_description = "{}\n{}".format(
-    open("README.rst").read(), open("CHANGES.rst").read()
+long_description = (
+    f"{Path('README.rst').read_text()}\n{Path('CHANGES.rst').read_text()}\n"
 )
 
 setup(
@@ -31,8 +32,9 @@ setup(
     author_email="eric@esteele.net",
     url="https://github.com/plone/plone.releaser",
     license="GPL",
-    packages=find_packages(),
+    packages=find_packages("src"),
     namespace_packages=["plone"],
+    package_dir={"": "src"},
     include_package_data=True,
     zip_safe=False,
     python_requires=">=3.8",
