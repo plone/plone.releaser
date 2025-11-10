@@ -3,7 +3,7 @@
 # See the inline comments on how to expand/tweak this configuration file
 [meta]
 template = "default"
-commit-id = "2.2.1"
+commit-id = "2.1.1.dev0"
 
 [pyproject]
 dependencies_ignores = "['zestreleaser.towncrier']"
@@ -15,3 +15,4 @@ dependencies_mappings = [
 [tox]
 test_runner = "pytest"
 constraints_file = "https://dist.plone.org/release/6.2-dev/constraints.txt"
+test_matrix = {"6.2" = ["*"]}
