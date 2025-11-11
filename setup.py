@@ -33,7 +33,6 @@ setup(
     zip_safe=False,
     python_requires=">=3.10",
     install_requires=[
-        "setuptools",
         "argh",
         "gitpython>=3.0.0",
         "configparser",
