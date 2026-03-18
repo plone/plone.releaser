@@ -4,7 +4,6 @@ from plone.releaser.pip import ConstraintsFile
 import pathlib
 import shutil
 
-
 TESTS_DIR = pathlib.Path(__file__).parent
 INPUT_DIR = TESTS_DIR / "input"
 VERSIONS_FILE = INPUT_DIR / "versions.cfg"
@@ -74,9 +73,7 @@ UPPERCASE==1.0
 onepython==2.1; python_version == "3.12"
 """
     )
-    assert (
-        mxsources_file.read_text()
-        == """[settings]
+    assert mxsources_file.read_text() == """[settings]
 plone = https://github.com/plone
 plone_push = git@github.com:plone
 
@@ -99,10 +96,7 @@ branch = master
 url = ${settings:plone}/plone.base.git
 branch = main
 """
-    )
-    assert (
-        mxcheckouts_file.read_text()
-        == """[settings]
+    assert mxcheckouts_file.read_text() == """[settings]
 default-use = false
 
 [CamelCase]
@@ -111,4 +105,3 @@ use = true
 [package]
 use = true
 """
-    )

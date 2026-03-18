@@ -2,7 +2,6 @@ from plone.releaser.changelog import Changelog
 
 import pathlib
 
-
 TESTS_DIR = pathlib.Path(__file__).parent
 INPUT_DIR = TESTS_DIR / "input"
 CHANGES_RST = INPUT_DIR / "changes.rst"

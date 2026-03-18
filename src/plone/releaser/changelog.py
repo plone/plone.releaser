@@ -11,7 +11,6 @@ from urllib.request import urlopen
 
 import re
 
-
 DIST_URL = "https://dist.plone.org/release/{0}/versions.cfg"
 MD_HEADING_RE = re.compile(r"## (\S*).*")
 MD_SUB_HEADING_RE = re.compile(r"### (.*)")

@@ -4,7 +4,6 @@ from plone.releaser.pip import ConstraintsFile
 import pathlib
 import shutil
 
-
 TESTS_DIR = pathlib.Path(__file__).parent
 INPUT_DIR = TESTS_DIR / "input"
 VERSIONS_FILE = INPUT_DIR / "versions.cfg"
@@ -100,32 +99,23 @@ onepython==2.1; python_version == "3.12"
         "three": {'python_version == "3.12"': "3.2"},
         "two": "2.0",
     }
-    assert (
-        constraints2_file.read_text()
-        == """-c constraints3.txt
+    assert constraints2_file.read_text() == """-c constraints3.txt
 one==1.1
 two==2.0
 three==3.2; python_version == "3.12"
 """
-    )
     cf3 = ConstraintsFile(constraints3_file, with_markers=True)
     assert cf3.data == {
         "one": "1.0",
         "three": {"": "3.0", 'python_version == "3.12"': "3.1"},
     }
-    assert (
-        constraints3_file.read_text()
-        == """-c constraints4.txt
+    assert constraints3_file.read_text() == """-c constraints4.txt
 one==1.0
 three==3.0
 three==3.1; python_version == "3.12"
 """
-    )
     cf4 = ConstraintsFile(constraints4_file, with_markers=True)
     assert cf4.data == {"four": "4.0", "five": {'platform_system == "Darwin"': "5.0"}}
-    assert (
-        constraints4_file.read_text()
-        == """four==4.0
+    assert constraints4_file.read_text() == """four==4.0
 five==5.0; platform_system == "Darwin"
 """
-    )

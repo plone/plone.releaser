@@ -19,7 +19,6 @@ from progress.bar import Bar
 import glob
 import time
 
-
 # TODO
 buildout = Buildout()
 

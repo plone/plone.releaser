@@ -5,7 +5,6 @@ import pathlib
 import pytest
 import shutil
 
-
 TESTS_DIR = pathlib.Path(__file__).parent
 INPUT_DIR = TESTS_DIR / "input"
 MX_SOURCES_FILE = INPUT_DIR / "mxsources.ini"
@@ -68,9 +67,7 @@ def test_mx_sources_file_rewrite(tmp_path):
     mf2 = MxSourcesFile(copy_path)
     assert mf.data == mf2.data
     # Check the entire text.
-    assert (
-        copy_path.read_text()
-        == """[settings]
+    assert copy_path.read_text() == """[settings]
 requirements-in = requirements.txt
 requirements-out = requirements-mxdev.txt
 constraints-out = constraints-mxdev.txt
@@ -94,4 +91,3 @@ branch = 6.0
 install-mode = skip
 target = extra/documentation
 """
-    )

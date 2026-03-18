@@ -4,7 +4,6 @@ from plone.releaser.manage import constraints2versions
 import pathlib
 import shutil
 
-
 TESTS_DIR = pathlib.Path(__file__).parent
 INPUT_DIR = TESTS_DIR / "input"
 CONSTRAINTS_FILE = INPUT_DIR / "constraints.txt"
@@ -31,9 +30,7 @@ def test_constraints2versions_one_path(tmp_path):
         "package": "1.0",
         "pyspecific": {"": "1.0", 'python_version=="3.12"': "2.0"},
     }
-    assert (
-        versions_file.read_text()
-        == """[buildout]
+    assert versions_file.read_text() == """[buildout]
 extends = https://zopefoundation.github.io/Zope/releases/5.8.3/versions.cfg
 
 [versions]
@@ -49,7 +46,6 @@ UPPERCASE = 1.0
 pyspecific = 2.0
 onepython = 2.1
 """
-    )
 
 
 def test_constraints2versions_all(tmp_path):
@@ -85,9 +81,7 @@ def test_constraints2versions_all(tmp_path):
         "package": "1.0",
         "pyspecific": {"": "1.0", 'python_version=="3.12"': "2.0"},
     }
-    assert (
-        versions_file.read_text()
-        == """[buildout]
+    assert versions_file.read_text() == """[buildout]
 extends = https://zopefoundation.github.io/Zope/releases/5.8.3/versions.cfg
 
 [versions]
@@ -103,16 +97,13 @@ UPPERCASE = 1.0
 pyspecific = 2.0
 onepython = 2.1
 """
-    )
     cf2 = VersionsFile(versions2_file, with_markers=True)
     assert cf2.data == {
         "one": "1.1",
         "three": {'python_version=="3.12"': "3.2"},
         "two": "2.0",
     }
-    assert (
-        versions2_file.read_text()
-        == """[buildout]
+    assert versions2_file.read_text() == """[buildout]
 extends = versions3.cfg
 
 [versions]
@@ -122,15 +113,12 @@ two = 2.0
 [versions:python_version=="3.12"]
 three = 3.2
 """
-    )
     cf3 = VersionsFile(versions3_file, with_markers=True)
     assert cf3.data == {
         "one": "1.0",
         "three": {"": "3.0", 'python_version=="3.12"': "3.1"},
     }
-    assert (
-        versions3_file.read_text()
-        == """[buildout]
+    assert versions3_file.read_text() == """[buildout]
 extends = versions4.cfg
 
 [versions]
@@ -140,15 +128,11 @@ three = 3.0
 [versions:python_version=="3.12"]
 three = 3.1
 """
-    )
     cf4 = VersionsFile(versions4_file, with_markers=True)
     assert cf4.data == {"four": "4.0", "five": {"platform_system == 'Darwin'": "5.0"}}
-    assert (
-        versions4_file.read_text()
-        == """[versions]
+    assert versions4_file.read_text() == """[versions]
 four = 4.0
 
 [versions:platform_system == 'Darwin']
 five = 5.0
 """
-    )

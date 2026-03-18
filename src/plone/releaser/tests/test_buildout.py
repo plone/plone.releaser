@@ -6,7 +6,6 @@ import pathlib
 import pytest
 import shutil
 
-
 TESTS_DIR = pathlib.Path(__file__).parent
 INPUT_DIR = TESTS_DIR / "input"
 CHECKOUTS_FILE = INPUT_DIR / "checkouts.cfg"
@@ -88,15 +87,12 @@ def test_checkouts_file_rewrite(tmp_path):
     assert cf.data == cf2.data
     # Check the entire text.  Note that packages are alphabetically sorted.
     # Currently we get the original case, but we may change this to lowercase.
-    assert (
-        copy_path.read_text()
-        == """[buildout]
+    assert copy_path.read_text() == """[buildout]
 always-checkout = force
 auto-checkout =
     CamelCase
     package
 """
-    )
 
 
 def test_sources_file_data():
@@ -161,9 +157,7 @@ def test_sources_file_rewrite(tmp_path):
     # Some differences compared with the original:
     # - We always specify the branch.
     # - The order of the options may be different.
-    assert (
-        copy_path.read_text()
-        == """[buildout]
+    assert copy_path.read_text() == """[buildout]
 extends =
     https://raw.githubusercontent.com/zopefoundation/Zope/master/sources.cfg
 
@@ -177,7 +171,6 @@ Plone = git ${remotes:plone}/Plone.git pushurl=${remotes:plone_push}/Plone.git b
 plone.alterego = git ${remotes:plone}/plone.alterego.git branch=master
 plone.base = git ${remotes:plone}/plone.base.git branch=main
 """
-    )
 
 
 def test_versions_file_versions():
@@ -403,9 +396,7 @@ def test_versions_file_rewrite(tmp_path):
     # Note that there are differences with the original:
     # - all comments are removed
     # - the duplicate is removed
-    assert (
-        copy_path.read_text()
-        == """[buildout]
+    assert copy_path.read_text() == """[buildout]
 extends = https://zopefoundation.github.io/Zope/releases/5.8.3/versions.cfg
 
 [versions]
@@ -417,7 +408,6 @@ package = 1.0
 pyspecific = 1.0
 UPPERCASE = 1.0
 """
-    )
 
 
 def test_versions_file_rewrite_2(tmp_path):
@@ -430,16 +420,13 @@ def test_versions_file_rewrite_2(tmp_path):
     assert vf.extends == vf2.extends
     assert vf.data == vf2.data
     # Check the entire text.
-    assert (
-        copy_path.read_text()
-        == """[buildout]
+    assert copy_path.read_text() == """[buildout]
 extends = versions3.cfg
 
 [versions]
 one = 1.1
 two = 2.0
 """
-    )
 
 
 def test_versions_file_rewrite_with_markers(tmp_path):
@@ -452,9 +439,7 @@ def test_versions_file_rewrite_with_markers(tmp_path):
     assert vf.extends == vf2.extends
     assert vf.data == vf2.data
     # Check the entire text.
-    assert (
-        copy_path.read_text()
-        == """[buildout]
+    assert copy_path.read_text() == """[buildout]
 extends = versions3.cfg
 
 [versions]
@@ -464,7 +449,6 @@ two = 2.0
 [versions:python312]
 three = 3.2
 """
-    )
 
 
 def test_versions_file_rewrite_read_extends_without_markers(tmp_path):
@@ -482,15 +466,12 @@ def test_versions_file_rewrite_read_extends_without_markers(tmp_path):
     assert not vf2.extends
     assert vf.data == vf2.data
     # Check the entire text.  Note that packages are alphabetically sorted.
-    assert (
-        copy_path.read_text()
-        == """[versions]
+    assert copy_path.read_text() == """[versions]
 four = 4.0
 one = 1.1
 three = 3.0
 two = 2.0
 """
-    )
 
 
 def test_versions_file_rewrite_read_extends_with_markers(tmp_path):
@@ -507,9 +488,7 @@ def test_versions_file_rewrite_read_extends_with_markers(tmp_path):
     assert not vf2.extends
     assert vf.data == vf2.data
     # Check the entire text.  Note that packages are alphabetically sorted.
-    assert (
-        copy_path.read_text()
-        == """[versions]
+    assert copy_path.read_text() == """[versions]
 four = 4.0
 one = 1.1
 three = 3.0
@@ -521,4 +500,3 @@ five = 5.0
 [versions:python312]
 three = 3.2
 """
-    )
