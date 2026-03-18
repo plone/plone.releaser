@@ -204,13 +204,10 @@ def test_constraints_file_rewrite_2(tmp_path):
     assert cf.extends == cf2.extends
     assert cf.data == cf2.data
     # Check the entire text.
-    assert (
-        copy_path.read_text()
-        == """-c constraints3.txt
+    assert copy_path.read_text() == """-c constraints3.txt
 one==1.1
 two==2.0
 """
-    )
 
 
 def test_constraints_file_rewrite_with_markers(tmp_path):
@@ -223,14 +220,11 @@ def test_constraints_file_rewrite_with_markers(tmp_path):
     assert cf.extends == cf2.extends
     assert cf.data == cf2.data
     # Check the entire text.
-    assert (
-        copy_path.read_text()
-        == """-c constraints3.txt
+    assert copy_path.read_text() == """-c constraints3.txt
 one==1.1
 two==2.0
 three==3.2; python_version=="3.12"
 """
-    )
 
 
 def test_constraints_file_rewrite_read_extends_without_markers(tmp_path):
@@ -248,14 +242,11 @@ def test_constraints_file_rewrite_read_extends_without_markers(tmp_path):
     assert not cf2.extends
     assert cf.data == cf2.data
     # Check the entire text.  Note that packages are alphabetically sorted.
-    assert (
-        copy_path.read_text()
-        == """four==4.0
+    assert copy_path.read_text() == """four==4.0
 one==1.1
 three==3.0
 two==2.0
 """
-    )
 
 
 def test_constraints_file_rewrite_read_extends_with_markers(tmp_path):
@@ -272,13 +263,10 @@ def test_constraints_file_rewrite_read_extends_with_markers(tmp_path):
     assert not cf2.extends
     assert cf.data == cf2.data
     # Check the entire text.  Note that packages are alphabetically sorted.
-    assert (
-        copy_path.read_text()
-        == """four==4.0
+    assert copy_path.read_text() == """four==4.0
 five==5.0; platform_system == 'Darwin'
 one==1.1
 three==3.0
 three==3.2; python_version=="3.12"
 two==2.0
 """
-    )

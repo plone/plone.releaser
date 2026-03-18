@@ -103,9 +103,7 @@ def test_mx_checkouts_file_rewrite(tmp_path):
     mf2 = MxCheckoutsFile(copy_path)
     assert mf.data == mf2.data
     # Check the entire text.
-    assert (
-        copy_path.read_text()
-        == """[settings]
+    assert copy_path.read_text() == """[settings]
 default-use = false
 
 [package]
@@ -114,4 +112,3 @@ use = true
 [CamelCase]
 use = true
 """
-    )

@@ -23,23 +23,17 @@ BREAKING_TEXT = """
 Breaking changes:
 
 - {}
-""".format(
-    NOTHING_CHANGED_YET
-)
+""".format(NOTHING_CHANGED_YET)
 FEATURE_TEXT = """
 New features:
 
 - {}
-""".format(
-    NOTHING_CHANGED_YET
-)
+""".format(NOTHING_CHANGED_YET)
 BUGFIXES_TEXT = """
 Bug fixes:
 
 - {}
-""".format(
-    NOTHING_CHANGED_YET
-)
+""".format(NOTHING_CHANGED_YET)
 HEADERS = [BREAKING_TEXT, FEATURE_TEXT, BUGFIXES_TEXT]
 # Used by changelog.py:
 HEADINGS = [
@@ -55,23 +49,17 @@ INCOMPATIBILITIES_TEXT = """
 Incompatibilities:
 
 - {}
-""".format(
-    NOTHING_CHANGED_YET
-)
+""".format(NOTHING_CHANGED_YET)
 NEW_TEXT = """
 New:
 
 - {}
-""".format(
-    NOTHING_CHANGED_YET
-)
+""".format(NOTHING_CHANGED_YET)
 FIXES_TEXT = """
 Fixes:
 
 - {}
-""".format(
-    NOTHING_CHANGED_YET
-)
+""".format(NOTHING_CHANGED_YET)
 OLD_HEADERS = [INCOMPATIBILITIES_TEXT, NEW_TEXT, FIXES_TEXT]
 ALL_HEADERS = copy(HEADERS)
 ALL_HEADERS.extend(OLD_HEADERS)
