@@ -2,7 +2,6 @@ from plone.releaser.utils import update_contents
 
 import pathlib
 
-
 TESTS_DIR = pathlib.Path(__file__).parent
 INPUT_DIR = TESTS_DIR / "input"
 # Sample buildout versions.cfg

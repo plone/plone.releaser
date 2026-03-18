@@ -5,7 +5,6 @@ import pathlib
 import pytest
 import shutil
 
-
 TESTS_DIR = pathlib.Path(__file__).parent
 INPUT_DIR = TESTS_DIR / "input"
 MX_SOURCES_FILE = INPUT_DIR / "mxsources.ini"

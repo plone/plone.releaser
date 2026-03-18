@@ -4,7 +4,6 @@ import pathlib
 import pytest
 import shutil
 
-
 TESTS_DIR = pathlib.Path(__file__).parent
 INPUT_DIR = TESTS_DIR / "input"
 CONSTRAINTS_FILE = INPUT_DIR / "constraints.txt"

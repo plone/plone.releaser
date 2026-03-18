@@ -17,7 +17,6 @@ import pathlib
 import sys
 import textwrap
 
-
 # Define texts to check for during prereleaser or add during postrelease.
 NOTHING_CHANGED_YET = "*add item here*"
 BREAKING_TEXT = """

@@ -4,7 +4,6 @@ from plone.releaser.pip import ConstraintsFile
 import pathlib
 import shutil
 
-
 TESTS_DIR = pathlib.Path(__file__).parent
 INPUT_DIR = TESTS_DIR / "input"
 VERSIONS_FILE = INPUT_DIR / "versions.cfg"
