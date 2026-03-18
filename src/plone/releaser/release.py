@@ -239,6 +239,13 @@ def update_other_core_branches(data):
     CORE_BRANCHES.remove(current_core_branch)
 
     reference_package_branch = _get_package_branch(package_name=package_name)
+    if not reference_package_branch:
+        print(
+            f"WARNING: package {package_name} is not defined in sources.cfg "
+            "of the current coredev branch, so we can't check if other "
+            "coredev branches use the same branch."
+        )
+        return
 
     g = git.Git(root_path)
     for branch_name in CORE_BRANCHES:
