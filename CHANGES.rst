@@ -8,6 +8,22 @@ Changelog
 
 .. towncrier release notes start
 
+3.0.1 (2026-03-23)
+------------------
+
+Bug fixes:
+
+
+- Releaser: do not update other coredev branches if the package branch name is not known.  [maurits] (#93)
+
+
+Internal:
+
+
+- Update configuration files.
+  [plone devs]
+
+
 3.0.0 (2025-11-19)
 ------------------
 

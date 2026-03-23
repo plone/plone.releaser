@@ -1,1 +1,0 @@
-Releaser: do not update other coredev branches if the package branch name is not known.  [maurits]
