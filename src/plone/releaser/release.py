@@ -41,7 +41,7 @@ HEADINGS = [
     "New features:",
     "Bug fixes:",
     "Documentation:",
-    "Tests",
+    "Tests:",
     "Internal:",
 ]
 # For compatibility with previous names of the headers.
@@ -68,6 +68,10 @@ OLD_HEADING_MAPPING = {
     "New:": "New features:",
     "Fixes:": "Bug fixes:",
 }
+# Alternative headings without colon at the end.
+for heading in HEADINGS:
+    if heading.endswith(":"):
+        OLD_HEADING_MAPPING[heading[:-1]] = heading
 KNOWN_HEADINGS = copy(HEADINGS)
 KNOWN_HEADINGS.extend(list(OLD_HEADING_MAPPING.keys()))
 
