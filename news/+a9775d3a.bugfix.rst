@@ -1,3 +1,0 @@
-Fix problem with disorganised changelog headings in ``bin/manage changelog``.
-There could be confusion when the sections of one version of a package had 'Tests' and others had 'Tests:'.
-[maurits]

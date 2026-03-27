@@ -8,6 +8,17 @@ Changelog
 
 .. towncrier release notes start
 
+3.0.2 (2026-03-27)
+------------------
+
+Bug fixes:
+
+
+- Fix problem with disorganised changelog headings in ``bin/manage changelog``.
+  There could be confusion when the sections of one version of a package had 'Tests' and others had 'Tests:'.
+  [maurits]
+
+
 3.0.1 (2026-03-23)
 ------------------
 
