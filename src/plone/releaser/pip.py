@@ -263,6 +263,8 @@ class MxSourcesFile(BaseFile):
 
         # Create empty buildout config for filling.
         buildout_config = ConfigParser()
+        # Preserve the case instead of the default lowercase transform:
+        buildout_config.optionxform = str
 
         # Add the remotes from the settings.
         # We try to ignore other settings.

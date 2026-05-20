@@ -84,7 +84,7 @@ plone_push = git@github.com:plone
 [sources]
 package = git ${remotes:plone}/package.git branch=main
 unused = git ${remotes:plone}/package.git branch=main
-camelcase = git ${remotes:plone}/CamelCase.git branch=main
+CamelCase = git ${remotes:plone}/CamelCase.git branch=main
 docs = git ${remotes:plone}/documentation.git pushurl=${remotes:plone_push}/documentation.git branch=6.0 path=extra/documentation egg=false
 """
     assert checkouts_file.read_text() == """[buildout]
