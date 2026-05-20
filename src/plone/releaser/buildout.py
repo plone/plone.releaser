@@ -139,11 +139,13 @@ class VersionsFile(BaseBuildoutFile):
         self._data = versions
 
     def __setitem__(self, package_name, new_version):
+        changed = False
         contents = self.path.read_text()
         if not contents.endswith("\n"):
             # Make sure the file ends with a newline.
             contents += "\n"
             self.path.write_text(contents)
+            changed = True
 
         if isinstance(new_version, tuple):
             new_version, marker = new_version
@@ -151,6 +153,7 @@ class VersionsFile(BaseBuildoutFile):
             if marker not in self.markers:
                 contents = f"{contents}\n{section}\n"
                 self.path.write_text(contents)
+                changed = True
         else:
             section = "[versions]"
         newline = f"{package_name} = {new_version}"
@@ -181,6 +184,8 @@ class VersionsFile(BaseBuildoutFile):
         )
         if contents != new_contents:
             self.path.write_text(new_contents)
+            changed = True
+        return changed
 
     def rewrite(self):
         """Rewrite the file based on the parsed data.
@@ -411,11 +416,13 @@ class CheckoutsFile(BaseBuildoutFile):
         return mapping
 
     def __setitem__(self, package_name, enabled=True):
+        changed = False
         contents = self.path.read_text()
         if not contents.endswith("\n"):
             # Make sure the file ends with a newline.
             contents += "\n"
             self.path.write_text(contents)
+            changed = True
 
         def line_check(line):
             # Look for the package name on a line of its own,
@@ -429,6 +436,8 @@ class CheckoutsFile(BaseBuildoutFile):
         )
         if contents != new_contents:
             self.path.write_text(new_contents)
+            changed = True
+        return changed
 
     def set(self, package_name, new_version):
         # This method makes no sense for this class.

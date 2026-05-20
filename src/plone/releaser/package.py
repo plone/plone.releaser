@@ -41,8 +41,8 @@ def git_repo(source):
 def buildout_coredev():
     """Context manager for buildout.coredev git repositories.
 
-    It ensures that the git repository is cloned on a temporal folder and that
-    everything is cleaned up after being used.
+    Or actually any git repository in the current working directory.
+    But plone.releaser is targeted at the Plone core development buildout.
     """
     repo = git.Repo(os.getcwd())
     yield repo

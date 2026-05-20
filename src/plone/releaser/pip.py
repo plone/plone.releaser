@@ -89,10 +89,12 @@ class ConstraintsFile(BaseFile):
         return constraints
 
     def __setitem__(self, package_name, new_version):
+        changed = False
         contents = self.path.read_text()
         if not contents.endswith("\n"):
             contents += "\n"
             self.path.write_text(contents)
+            changed = True
 
         newline = f"{package_name}=={new_version}"
         # Look for 'package name==version' on a line of its own,
@@ -108,6 +110,8 @@ class ConstraintsFile(BaseFile):
         )
         if contents != new_contents:
             self.path.write_text(new_contents)
+            changed = True
+        return changed
 
     def rewrite(self):
         """Rewrite the file based on the parsed data.
@@ -382,18 +386,20 @@ class MxCheckoutsFile(BaseFile):
             if not enabled:
                 # The wanted state is the default state, so do nothing.
                 print(f"{self.file_location}: {package_name} not in checkouts.")
-                return
+                return False
             self.append_package(package_name, enabled=enabled)
-            return
+            return True
         package_name = stored_package_name
         use = package_name in self
         if use and enabled:
             print(f"{self.file_location}: {package_name} already in checkouts.")
-            return
+            return False
         if not use and not enabled:
             print(f"{self.file_location}: {package_name} not in checkouts.")
-            return
+            return False
 
+        # So the package is already configured in the checkouts file, but the
+        # value must be updated.
         contents = self.path.read_text()
         if not contents.endswith("\n"):
             contents += "\n"
@@ -437,6 +443,7 @@ class MxCheckoutsFile(BaseFile):
 
         contents = "\n".join(lines)
         self.path.write_text(contents)
+        return True
 
     def rewrite(self):
         """Rewrite the file based on the parsed data.

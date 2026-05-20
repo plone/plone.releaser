@@ -35,6 +35,11 @@ class BaseFile(UserDict):
         return self.data[actual_key]
 
     def __setitem__(self, package_name, value):
+        """Set item to value.
+
+        Sub classes should return True when the value was changed,
+        and False when it stayed the same.
+        """
         raise NotImplementedError
 
     def __delitem__(self, package_name):
