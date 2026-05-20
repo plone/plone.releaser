@@ -7,17 +7,19 @@ import shutil
 
 TESTS_DIR = pathlib.Path(__file__).parent
 INPUT_DIR = TESTS_DIR / "input"
-VERSIONS_FILE = INPUT_DIR / "versions.cfg"
 VERSIONS_FILE2 = INPUT_DIR / "versions2.cfg"
 VERSIONS_FILE3 = INPUT_DIR / "versions3.cfg"
 VERSIONS_FILE4 = INPUT_DIR / "versions4.cfg"
+# The versions.cfg file is bad when you want to translate it to pip constraints.
+# So have one explicitly bad file for testing, and one good file.
 BAD_VERSIONS_FILE = INPUT_DIR / "badversions.cfg"
+GOOD_VERSIONS_FILE = INPUT_DIR / "goodversions.cfg"
 
 
 def test_versions2constraints_one_path(tmp_path):
     copy_path = tmp_path / "versions.cfg"
     constraints_file = tmp_path / "constraints.txt"
-    shutil.copyfile(VERSIONS_FILE, copy_path)
+    shutil.copyfile(GOOD_VERSIONS_FILE, copy_path)
     assert not constraints_file.exists()
     versions2constraints(path=copy_path)
     assert constraints_file.exists()
@@ -30,7 +32,10 @@ def test_versions2constraints_one_path(tmp_path):
         "lowercase": "1.0",
         "onepython": {'python_version == "3.12"': "2.1"},
         "package": "1.0",
-        "pyspecific": {"": "1.0", 'python_version == "3.12"': "2.0"},
+        "pyspecific": {
+            'python_version<"3.12"': "1.0",
+            'python_version == "3.12"': "2.0",
+        },
     }
     assert (
         constraints_file.read_text()
@@ -40,9 +45,9 @@ CamelCase==1.0
 duplicate==1.0
 lowercase==1.0
 package==1.0
-pyspecific==1.0
-pyspecific==2.0; python_version == "3.12"
 UPPERCASE==1.0
+pyspecific==1.0; python_version<"3.12"
+pyspecific==2.0; python_version == "3.12"
 onepython==2.1; python_version == "3.12"
 """
     )
@@ -57,7 +62,7 @@ def test_versions2constraints_all(tmp_path):
     constraints2_file = tmp_path / "constraints2.txt"
     constraints3_file = tmp_path / "constraints3.txt"
     constraints4_file = tmp_path / "constraints4.txt"
-    shutil.copyfile(VERSIONS_FILE, versions_path)
+    shutil.copyfile(GOOD_VERSIONS_FILE, versions_path)
     shutil.copyfile(VERSIONS_FILE2, versions2_path)
     shutil.copyfile(VERSIONS_FILE3, versions3_path)
     shutil.copyfile(VERSIONS_FILE4, versions4_path)
@@ -79,7 +84,10 @@ def test_versions2constraints_all(tmp_path):
         "lowercase": "1.0",
         "onepython": {'python_version == "3.12"': "2.1"},
         "package": "1.0",
-        "pyspecific": {"": "1.0", 'python_version == "3.12"': "2.0"},
+        "pyspecific": {
+            'python_version<"3.12"': "1.0",
+            'python_version == "3.12"': "2.0",
+        },
     }
     assert (
         constraints_file.read_text()
@@ -89,9 +97,9 @@ CamelCase==1.0
 duplicate==1.0
 lowercase==1.0
 package==1.0
-pyspecific==1.0
-pyspecific==2.0; python_version == "3.12"
 UPPERCASE==1.0
+pyspecific==1.0; python_version<"3.12"
+pyspecific==2.0; python_version == "3.12"
 onepython==2.1; python_version == "3.12"
 """
     )
@@ -109,11 +117,11 @@ three==3.2; python_version == "3.12"
     cf3 = ConstraintsFile(constraints3_file, with_markers=True)
     assert cf3.data == {
         "one": "1.0",
-        "three": {"": "3.0", 'python_version == "3.12"': "3.1"},
+        "three": {'python_version<"3.12"': "3.0", 'python_version == "3.12"': "3.1"},
     }
     assert constraints3_file.read_text() == """-c constraints4.txt
 one==1.0
-three==3.0
+three==3.0; python_version<"3.12"
 three==3.1; python_version == "3.12"
 """
     cf4 = ConstraintsFile(constraints4_file, with_markers=True)

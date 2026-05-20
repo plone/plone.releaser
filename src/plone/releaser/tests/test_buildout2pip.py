@@ -6,7 +6,7 @@ import shutil
 
 TESTS_DIR = pathlib.Path(__file__).parent
 INPUT_DIR = TESTS_DIR / "input"
-VERSIONS_FILE = INPUT_DIR / "versions.cfg"
+VERSIONS_FILE = INPUT_DIR / "goodversions.cfg"
 SOURCES_FILE = INPUT_DIR / "sources.cfg"
 CHECKOUTS_FILE = INPUT_DIR / "checkouts.cfg"
 
@@ -27,7 +27,10 @@ def test_buildout2pip_one_path(tmp_path):
         "lowercase": "1.0",
         "onepython": {'python_version == "3.12"': "2.1"},
         "package": "1.0",
-        "pyspecific": {"": "1.0", 'python_version == "3.12"': "2.0"},
+        "pyspecific": {
+            'python_version<"3.12"': "1.0",
+            'python_version == "3.12"': "2.0",
+        },
     }
     assert (
         constraints_file.read_text()
@@ -37,9 +40,9 @@ CamelCase==1.0
 duplicate==1.0
 lowercase==1.0
 package==1.0
-pyspecific==1.0
-pyspecific==2.0; python_version == "3.12"
 UPPERCASE==1.0
+pyspecific==1.0; python_version<"3.12"
+pyspecific==2.0; python_version == "3.12"
 onepython==2.1; python_version == "3.12"
 """
     )
@@ -67,9 +70,9 @@ CamelCase==1.0
 duplicate==1.0
 lowercase==1.0
 package==1.0
-pyspecific==1.0
-pyspecific==2.0; python_version == "3.12"
 UPPERCASE==1.0
+pyspecific==1.0; python_version<"3.12"
+pyspecific==2.0; python_version == "3.12"
 onepython==2.1; python_version == "3.12"
 """
     )

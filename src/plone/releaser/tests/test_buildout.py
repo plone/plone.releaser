@@ -201,7 +201,7 @@ def test_versions_file_extends():
 
 def test_versions_file_read_extends_without_markers():
     vf = VersionsFile(VERSIONS_FILE2, read_extends=True)
-    assert vf.data == {"four": "4.0", "one": "1.1", "three": "3.0", "two": "2.0"}
+    assert vf.data == {"four": "4.0", "one": "1.1", "two": "2.0"}
 
 
 def test_versions_file_read_extends_with_markers():
@@ -210,7 +210,7 @@ def test_versions_file_read_extends_with_markers():
         "five": {"macosx": "5.0"},
         "four": "4.0",
         "one": "1.1",
-        "three": {"": "3.0", "python312": "3.2"},
+        "three": {'python_version<"3.12"': "3.0", "python312": "3.2"},
         "two": "2.0",
     }
 
@@ -469,7 +469,6 @@ def test_versions_file_rewrite_read_extends_without_markers(tmp_path):
     assert copy_path.read_text() == """[versions]
 four = 4.0
 one = 1.1
-three = 3.0
 two = 2.0
 """
 
@@ -491,11 +490,13 @@ def test_versions_file_rewrite_read_extends_with_markers(tmp_path):
     assert copy_path.read_text() == """[versions]
 four = 4.0
 one = 1.1
-three = 3.0
 two = 2.0
 
 [versions:macosx]
 five = 5.0
+
+[versions:python_version<"3.12"]
+three = 3.0
 
 [versions:python312]
 three = 3.2
