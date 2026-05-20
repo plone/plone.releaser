@@ -394,9 +394,10 @@ class SourcesFile(BaseBuildoutFile):
 class CheckoutsFile(BaseBuildoutFile):
     @property
     def always_checkout(self):
-        return self.config.get("buildout", "always-checkout")
+        section = self.config["buildout"]
+        return section.get("always-checkout", None)
 
-    @property
+    @cached_property
     def data(self):
         # I don't think we need to support [buildout:marker].
         checkouts = self.config.get("buildout", "auto-checkout")

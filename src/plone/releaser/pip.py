@@ -246,6 +246,53 @@ class MxSourcesFile(BaseFile):
         new_contents = "\n".join(contents)
         self.path.write_text(new_contents)
 
+    def to_buildout(self, sources_path):
+        """Overwrite sources file with our data.
+
+        The strategy is:
+
+        1. Translate our data to sources data.
+        2. Ask the sources file to rewrite itself.
+        """
+        # Import here to avoid circular imports.
+        from plone.releaser.buildout import SourcesFile
+
+        sources = SourcesFile(sources_path)
+        # Create or empty the sources file.
+        sources.path.write_text("")
+
+        # Create empty buildout config for filling.
+        buildout_config = ConfigParser()
+
+        # Add the remotes from the settings.
+        # We try to ignore other settings.
+        remotes = {}
+        for key, value in self.settings.items():
+            if key.endswith("-in") or key.endswith("-out"):
+                continue
+            remotes[key] = value
+        if remotes:
+            buildout_config.add_section("remotes")
+            buildout_remotes = buildout_config["remotes"]
+            for key, value in remotes.items():
+                buildout_remotes[key] = value
+
+        # Translate our sources pins to Buildout.
+        buildout_config.add_section("sources")
+        buildout_sources = buildout_config["sources"]
+        for package in self:
+            line = str(self[package])
+            # update settings to remotes
+            for remote in remotes:
+                line = line.replace(f"settings:{remote}", f"remotes:{remote}")
+            buildout_sources[package] = line
+
+        # Set the config
+        sources.raw_config = buildout_config
+
+        # Rewrite the file.
+        sources.rewrite()
+
 
 class MxCheckoutsFile(BaseFile):
     """Checkouts file for mxdev.
@@ -406,3 +453,24 @@ class MxCheckoutsFile(BaseFile):
         contents.append("")
         new_contents = "\n".join(contents)
         self.path.write_text(new_contents)
+
+    def to_buildout(self, checkouts_path):
+        """Overwrite checkouts file with our data.
+
+        The strategy is:
+
+        1. Translate our data to checkouts data.
+        2. Ask the checkouts file to rewrite itself.
+        """
+        # Import here to avoid circular imports.
+        from plone.releaser.buildout import CheckoutsFile
+
+        checkouts = CheckoutsFile(checkouts_path)
+        # Create or empty the checkouts file.
+        checkouts.path.write_text("")
+
+        # Use our data for Buildout.
+        checkouts.data = self.data
+
+        # Rewrite the file.
+        checkouts.rewrite()
