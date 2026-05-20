@@ -172,13 +172,13 @@ class ConstraintsFile(BaseFile):
         # Import here to avoid circular imports.
         from plone.releaser.buildout import VersionsFile
 
+        # Create or empty the versions file.
+        versions_path.write_text("")
         versions = VersionsFile(
             versions_path,
             with_markers=self.with_markers,
             read_extends=self.read_extends,
         )
-        # Create or empty the versions file.
-        versions.path.write_text("")
 
         # Translate our extends to Buildout.
         versions.extends = self.extends_to_buildout()
@@ -257,9 +257,9 @@ class MxSourcesFile(BaseFile):
         # Import here to avoid circular imports.
         from plone.releaser.buildout import SourcesFile
 
-        sources = SourcesFile(sources_path)
         # Create or empty the sources file.
-        sources.path.write_text("")
+        sources_path.write_text("")
+        sources = SourcesFile(sources_path)
 
         # Create empty buildout config for filling.
         buildout_config = ConfigParser()
@@ -467,9 +467,9 @@ class MxCheckoutsFile(BaseFile):
         # Import here to avoid circular imports.
         from plone.releaser.buildout import CheckoutsFile
 
-        checkouts = CheckoutsFile(checkouts_path)
         # Create or empty the checkouts file.
-        checkouts.path.write_text("")
+        checkouts_path.write_text("")
+        checkouts = CheckoutsFile(checkouts_path)
 
         # Use our data for Buildout.
         checkouts.data = self.data

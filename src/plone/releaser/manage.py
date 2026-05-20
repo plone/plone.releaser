@@ -353,8 +353,6 @@ def buildout2pip(*, path=None):
         else:
             filename = filename.replace(".cfg", ".txt")
         pip_path = filepath.parent / filename
-        if not pip_path.exists():
-            pip_path.write_text("")
         buildout_file.to_pip(pip_path)
 
 
@@ -386,8 +384,6 @@ def pip2buildout(*, path=None):
         else:
             filename = filename.replace(".txt", ".cfg")
         buildout_path = filepath.parent / filename
-        if not buildout_path.exists():
-            buildout_path.write_text("")
         pip_file.to_buildout(buildout_path)
 
 
