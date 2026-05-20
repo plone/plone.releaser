@@ -290,13 +290,13 @@ class VersionsFile(BaseBuildoutFile):
         # Import here to avoid circular imports.
         from plone.releaser.pip import ConstraintsFile
 
+        # Create or empty the constraints file.
+        constraints_path.write_text("")
         constraints = ConstraintsFile(
             constraints_path,
             with_markers=self.with_markers,
             read_extends=self.read_extends,
         )
-        # Create or empty the constraints file.
-        constraints.path.write_text("")
 
         # Translate our extends to pip.
         constraints.extends = self.extends_to_pip()
@@ -370,9 +370,9 @@ class SourcesFile(BaseBuildoutFile):
         # Import here to avoid circular imports.
         from plone.releaser.pip import MxSourcesFile
 
-        sources = MxSourcesFile(pip_path)
         # Create or empty the sources file.
-        sources.path.write_text("")
+        pip_path.write_text("")
+        sources = MxSourcesFile(pip_path)
 
         # Translate our data to pip.
         sources.data = self.raw_data
@@ -394,9 +394,10 @@ class SourcesFile(BaseBuildoutFile):
 class CheckoutsFile(BaseBuildoutFile):
     @property
     def always_checkout(self):
-        return self.config.get("buildout", "always-checkout")
+        section = self.config["buildout"]
+        return section.get("always-checkout", None)
 
-    @property
+    @cached_property
     def data(self):
         # I don't think we need to support [buildout:marker].
         checkouts = self.config.get("buildout", "auto-checkout")
@@ -459,9 +460,9 @@ class CheckoutsFile(BaseBuildoutFile):
         # Import here to avoid circular imports.
         from plone.releaser.pip import MxCheckoutsFile
 
-        checkouts = MxCheckoutsFile(pip_path)
         # Create or empty the checkouts file.
-        checkouts.path.write_text("")
+        pip_path.write_text("")
+        checkouts = MxCheckoutsFile(pip_path)
 
         # Translate our data to pip.
         # XXX does not do anything

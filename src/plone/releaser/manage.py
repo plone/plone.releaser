@@ -14,6 +14,7 @@ from plone.releaser.buildout import VersionsFile
 from plone.releaser.package import Package
 from plone.releaser.pip import ConstraintsFile
 from plone.releaser.pip import MxCheckoutsFile
+from plone.releaser.pip import MxSourcesFile
 from progress.bar import Bar
 
 import glob
@@ -352,9 +353,38 @@ def buildout2pip(*, path=None):
         else:
             filename = filename.replace(".cfg", ".txt")
         pip_path = filepath.parent / filename
-        if not pip_path.exists():
-            pip_path.write_text("")
         buildout_file.to_pip(pip_path)
+
+
+def pip2buildout(*, path=None):
+    """Take a pip/mxdev files and create a Buildout file out of it.
+
+    If a path is given, we handle only that file, guessing whether it is a file
+    with versions or sources or checkouts.
+    If no path is given, we use constraints*.txt, mxsources*.ini and mxcheckouts*.ini.
+    """
+    paths = _get_paths(path, ["constraints*.txt", "mxsources*.ini", "mxcheckouts*.ini"])
+    for path in paths:
+        if path.name.startswith("constraints"):
+            pip_file = ConstraintsFile(path, with_markers=True)
+        elif path.name.startswith("mxsources"):
+            pip_file = MxSourcesFile(path)
+        elif path.name.startswith("mxcheckouts"):
+            pip_file = MxCheckoutsFile(path)
+        # Create path to  versions*.cfg instead of constraints*.txt, etc.
+        filepath = pip_file.path
+        filename = str(filepath)[len(str(filepath.parent)) + 1 :]
+        filename = filename.replace("constraints", "versions")
+        if "mxcheckouts" in filename or "mxsources" in filename:
+            filename = (
+                filename.replace("mxcheckouts", "checkouts")
+                .replace("mxsources", "sources")
+                .replace(".ini", ".cfg")
+            )
+        else:
+            filename = filename.replace(".txt", ".cfg")
+        buildout_path = filepath.parent / filename
+        pip_file.to_buildout(buildout_path)
 
 
 class Manage:
@@ -376,6 +406,7 @@ class Manage:
                 constraints2versions,
                 versions2constraints,
                 buildout2pip,
+                pip2buildout,
             ]
         )
         parser.dispatch()

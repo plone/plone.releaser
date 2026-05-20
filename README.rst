@@ -42,9 +42,17 @@ Take several Buildout files and create pip/mxdev files out of them::
 
   $ bin/manage buildout2pip
 
-Take a Buildout versions file and create a pip constraints file out of it.
+or the other way around::
+
+  $ bin/manage pip2buildout
+
+Take a Buildout versions file and create a pip constraints file out of it::
 
   $ bin/manage versions2constraints
+
+or the other way around::
+
+  $ bin/manage constraints2versions
 
 Generate a changelog with changes from all packages since a certain Plone release::
 

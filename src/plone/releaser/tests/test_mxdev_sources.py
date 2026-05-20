@@ -56,6 +56,8 @@ def test_mx_sources_file_get():
     assert docs.branch == "6.0"
     assert docs.egg is False
     assert docs.path == "extra/documentation"
+    assert docs.url == "${settings:plone}/documentation.git"
+    assert docs.pushurl == "${settings:plone_push}/documentation.git"
 
 
 def test_mx_sources_file_rewrite(tmp_path):
@@ -72,6 +74,7 @@ requirements-in = requirements.txt
 requirements-out = requirements-mxdev.txt
 constraints-out = constraints-mxdev.txt
 plone = https://github.com/plone
+plone_push = git@github.com:plone
 
 [package]
 url = ${settings:plone}/package.git
@@ -86,7 +89,8 @@ url = ${settings:plone}/CamelCase.git
 branch = main
 
 [docs]
-url = ${setting:plone}/documentation.git
+url = ${settings:plone}/documentation.git
+pushurl = ${settings:plone_push}/documentation.git
 branch = 6.0
 install-mode = skip
 target = extra/documentation
