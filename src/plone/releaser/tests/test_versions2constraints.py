@@ -2,6 +2,7 @@ from plone.releaser.manage import versions2constraints
 from plone.releaser.pip import ConstraintsFile
 
 import pathlib
+import pytest
 import shutil
 
 TESTS_DIR = pathlib.Path(__file__).parent
@@ -10,6 +11,7 @@ VERSIONS_FILE = INPUT_DIR / "versions.cfg"
 VERSIONS_FILE2 = INPUT_DIR / "versions2.cfg"
 VERSIONS_FILE3 = INPUT_DIR / "versions3.cfg"
 VERSIONS_FILE4 = INPUT_DIR / "versions4.cfg"
+BAD_VERSIONS_FILE = INPUT_DIR / "badversions.cfg"
 
 
 def test_versions2constraints_one_path(tmp_path):
@@ -119,3 +121,14 @@ three==3.1; python_version == "3.12"
     assert constraints4_file.read_text() == """four==4.0
 five==5.0; platform_system == "Darwin"
 """
+
+
+def test_versions2constraints_bad_versions(tmp_path, capsys):
+    # Not all valid buildout versions can be translated into valid pip constraints.
+    # We should fail.
+    copy_path = tmp_path / "versions.cfg"
+    shutil.copyfile(BAD_VERSIONS_FILE, copy_path)
+    with pytest.raises(SystemExit):
+        versions2constraints(path=copy_path)
+    captured = capsys.readouterr()
+    assert "Can't translate buildout version pins to pip constraints" in captured.out

@@ -12,6 +12,7 @@ from textwrap import indent
 import os
 import pathlib
 import re
+import sys
 
 
 class BaseBuildoutFile(BaseFile):
@@ -261,6 +262,25 @@ class VersionsFile(BaseBuildoutFile):
         An option would be to always do this for Buildout as well.
         Or have a command to normalize a buildout file, with this and other
         small changes.
+
+        We need to check one corner case to prevent problems.
+        Take this buildout file:
+
+            [versions]
+            tomli = 2.3.0
+
+            [versions:python310]
+            tomli = 2.2.1
+
+        This overrides the version just fine for Buildout.
+        But translated to pip constraints it would be this:
+
+            tomli==2.3.0
+            tomli==2.2.1; python_version == "3.10"
+
+        On Python 3.10 this would mean a version conflict.
+        See https://github.com/plone/plone.releaser/issues/89
+        So we should fail when we see this.
         """
         new_data = {}
         for package, version in self.data.items():
@@ -271,8 +291,32 @@ class VersionsFile(BaseBuildoutFile):
             new_version = {}
             for marker, value in version.items():
                 if not marker:
-                    new_version[marker] = value
-                    continue
+                    print(
+                        "Can't translate buildout version pins to pip constraints "
+                        f"for package '{package}'."
+                    )
+                    print(
+                        f"Please move the {value} pin from [versions] to "
+                        "[versions:some other marker]"
+                    )
+                    print("")
+                    for marker, value in version.items():
+                        if marker:
+                            print(f"  [versions:{marker}]")
+                        else:
+                            print("  [versions]")
+                        print(f"  {package} = {value}")
+                        print("")
+                    if len(version) == 2:
+                        marker_text = "the marker"
+                    else:
+                        marker_text = "one of the markers"
+                    print(
+                        f"Otherwise, if {marker_text} is valid, this results in "
+                        "conflicting dependencies when installing with pip."
+                    )
+                    sys.exit(1)
+
                 # If this is a Buildout-specific marker, we need to translate it.
                 new_marker = buildout_marker_to_pip_marker(marker)
                 new_version[new_marker] = value
