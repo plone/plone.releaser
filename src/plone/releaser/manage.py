@@ -11,12 +11,14 @@ from plone.releaser.buildout import Buildout
 from plone.releaser.buildout import CheckoutsFile
 from plone.releaser.buildout import SourcesFile
 from plone.releaser.buildout import VersionsFile
+from plone.releaser.package import buildout_coredev
 from plone.releaser.package import Package
 from plone.releaser.pip import ConstraintsFile
 from plone.releaser.pip import MxCheckoutsFile
 from plone.releaser.pip import MxSourcesFile
 from progress.bar import Bar
 
+import git
 import glob
 import time
 
@@ -245,7 +247,7 @@ def get_package_version(package_name, *, path=None):
         print(f"{constraints.file_location}: {package_name} {version}.")
 
 
-def set_package_version(package_name, new_version, *, path=None):
+def set_package_version(package_name, new_version, *, path=None, commit=False):
     """Pin package to new version in a versions file.
 
     This can also be a pip constraints file.
@@ -258,6 +260,7 @@ def set_package_version(package_name, new_version, *, path=None):
     If you want to add environment markers, like "python_version >= '3.0'",
     please just edit the files yourself.
     """
+    updated = []
     for constraints in _get_constraints(path=path):
         if package_name not in constraints:
             if path is None:
@@ -267,7 +270,33 @@ def set_package_version(package_name, new_version, *, path=None):
                 f"{constraints.file_location}: {package_name} not pinned yet. "
                 f"Adding pin because you explicitly gave the path."
             )
-        constraints.set(package_name, new_version)
+        # Call the 'set' function.  This will return True if the file has changed.
+        if constraints.set(package_name, new_version):
+            updated.append(constraints)
+    if not commit:
+        return
+    if not updated:
+        print("Nothing to commit.")
+        return
+    # There are updates and we want to commit them.
+    with buildout_coredev() as core_repo:
+        added = []
+        for constraints in updated:
+            try:
+                core_repo.git.add(constraints.path)
+                added.append(constraints.path)
+            except git.GitCommandError:
+                # most likely a file that is ignored by git
+                pass
+        if not added:
+            print("WARNING: no files were added to the commit")
+            return
+        print("Committing changes to these files:")
+        for path in added:
+            print(f"- {path}")
+        message = f"{package_name} {new_version}"
+        core_repo.git.commit(message=message)
+        print(f"Committed changes: {message}")
 
 
 def _get_paths(path, patterns):
