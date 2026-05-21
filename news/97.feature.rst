@@ -1,3 +1,0 @@
-set-package-version: add ``--commit`` option.
-Then the changed files will be committed.
-[maurits]

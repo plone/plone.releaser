@@ -8,6 +8,30 @@ Changelog
 
 .. towncrier release notes start
 
+3.1.0 (2026-05-21)
+------------------
+
+New features:
+
+
+- set-package-version: add ``--commit`` option.
+  Then the changed files will be committed.
+  [maurits] (#97)
+- Add ``manage pip2buildout`` command.  [maurits] (#98)
+
+
+Bug fixes:
+
+
+- ``versions2constraints``: fail when this would lead to conflicts in pip.  [maurits] (#89)
+
+
+Internal:
+
+
+- Update minimum versions of ``zest.releaser`` and ``zestreleaser.towncrier``.  [maurits]
+
+
 3.0.2 (2026-03-27)
 ------------------
 

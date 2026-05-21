@@ -1,1 +1,0 @@
-Add ``manage pip2buildout`` command.  [maurits]
