@@ -1,0 +1,1 @@
+``versions2constraints``: fail when this would lead to conflicts in pip.  [maurits]
