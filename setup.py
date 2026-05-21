@@ -37,8 +37,8 @@ setup(
         "configparser",
         "packaging",
         "progress",
-        "zest.releaser[recommended]>=7.2.0",
-        "zestreleaser.towncrier>=1.3.0",
+        "zest.releaser[recommended]>=9.9.0",
+        "zestreleaser.towncrier>=2.0.1",
         "docutils",
     ],
     extras_require={
