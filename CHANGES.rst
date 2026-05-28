@@ -8,6 +8,15 @@ Changelog
 
 .. towncrier release notes start
 
+3.1.1 (2026-05-28)
+------------------
+
+New features:
+
+
+- Add 6.3 to the coredev branches to check.  [maurits]
+
+
 3.1.0 (2026-05-21)
 ------------------
 
