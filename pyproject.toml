@@ -4,7 +4,76 @@
 [build-system]
 requires = ["setuptools>=68.2,<83", "wheel"]
 
+# START-MARKER-MANUAL-CONFIG
+# Anything from here until END-MARKER-MANUAL-CONFIG
+# will be kept by plone.meta
 
+[project]
+name = "plone.releaser"
+version = "3.1.2.dev0"
+description = "Plone release management utilities"
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Framework :: Plone",
+    "Framework :: Plone :: 6.2",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+]
+license = "GPL-2.0-only"
+dynamic = ["readme"]
+requires-python = ">=3.10"
+authors = [
+    {name = "Eric Steele",email = "eric@esteele.net"},
+]
+maintainers = [
+    {name = "Plone Foundation and contributors",email = "plone-developers@lists.sourceforge.net"},
+]
+dependencies = [
+    "argh",
+    "configparser",
+    "docutils",
+    "gitpython>=3.0.0",
+    "packaging",
+    "progress",
+    "zest.releaser[recommended]>=9.9.0",
+    "zestreleaser.towncrier>=2.0.1",
+]
+keywords = ["plone", "release"]
+
+[project.scripts]
+manage = "plone.releaser.manage:manage"
+
+[project.entry-points."zest.releaser.prereleaser.before"]
+set_nothing_changed_yet = "plone.releaser.release:set_nothing_changed_yet"
+set_required_changelog = "plone.releaser.release:set_required_changelog"
+cleanup_changelog = "plone.releaser.release:cleanup_changelog"
+
+[project.entry-points."zest.releaser.prereleaser.middle"]
+cleanup_changelog = "plone.releaser.release:cleanup_changelog"
+check_pypi = "plone.releaser.release:check_pypi_access"
+
+[project.entry-points."zest.releaser.releaser.after"]
+update_core = "plone.releaser.release:update_core"
+update_other_core_branches = "plone.releaser.release:update_other_core_branches"
+
+[project.entry-points."zest.releaser.postreleaser.before"]
+set_new_changelog = "plone.releaser.release:set_new_changelog"
+
+[project.optional-dependencies]
+test = ["pytest"]
+
+[project.urls]
+Source = "https://github.com/plone/plone.releaser"
+Issues = "https://github.com/plone/Products.CMFPlone/issues"
+Changelog = "https://github.com/plone/plone.releaser/blob/master/CHANGES.rst"
+
+[tool.setuptools.dynamic]
+readme = {file = ["README.rst", "CHANGES.rst"]}
+# END-MARKER-MANUAL-CONFIG
 
 [tool.towncrier]
 directory = "news/"
