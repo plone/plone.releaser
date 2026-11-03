@@ -10,7 +10,7 @@ requires = ["setuptools>=68.2,<83", "wheel"]
 
 [project]
 name = "plone.releaser"
-version = "3.1.2.dev0"
+version = "3.1.2"
 description = "Plone release management utilities"
 classifiers = [
     "Development Status :: 5 - Production/Stable",
