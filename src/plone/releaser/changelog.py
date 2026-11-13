@@ -111,6 +111,32 @@ class Changelog:
     def get(self, version):
         return self.data.get(version)
 
+    def _find_start_version_index(self, versions, start_version):
+        if not versions:
+            return None
+        try:
+            return versions.index(str(start_version))
+        except ValueError:
+            pass
+        # This may be due to a major version bump:
+        # plone.restapi: 8.43.3 → 9.1.2
+        # Here 8.43.3 may only live on an 8.x.x branch, and the main
+        # branch has 8.43.0 as highest 8 number.
+        # Look for the next best start version: older than the requested one.
+        # We assume the versions are properly sorted, most recent last.
+        candidate = None
+        for str_version in versions:
+            try:
+                version = parse(str_version)
+            except InvalidVersion:
+                pass
+            if version < start_version:
+                candidate = version
+                break
+        if candidate is None:
+            return None
+        return versions.index(str(candidate))
+
     def get_changes(self, start_version, end_version=None):
         versions = list(self.data.keys())
 
@@ -122,12 +148,10 @@ class Changelog:
                 raise ValueError(
                     f"End version {end_version} not found in changelog contents."
                 )
-        try:
-            start_version_index = versions.index(str(start_version))
-        except ValueError:
-            raise ValueError(
-                f"Start version {start_version} not found in changelog contents."
-            )
+
+        start_version_index = self._find_start_version_index(versions, start_version)
+        if start_version_index is None:
+            print(f"Start version {start_version} not found in changelog contents.")
 
         newer_releases = versions[end_version_index:start_version_index]
         changes = defaultdict(list)
