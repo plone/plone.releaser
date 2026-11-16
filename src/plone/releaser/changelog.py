@@ -151,7 +151,10 @@ class Changelog:
 
         start_version_index = self._find_start_version_index(versions, start_version)
         if start_version_index is None:
-            print(f"Start version {start_version} not found in changelog contents.")
+            print(
+                f"WARNING: Start version {start_version} not found in changelog contents."
+            )
+            return None
 
         newer_releases = versions[end_version_index:start_version_index]
         changes = defaultdict(list)
@@ -326,6 +329,8 @@ def build_unified_changelog(start_version, end_version, packages=None):
                         except ValueError as e:
                             print(f"ERROR: {e}")
                         else:
+                            if changes is None:
+                                continue
                             bullet = "- "
                             for change in changes:
                                 if change in HEADINGS:
