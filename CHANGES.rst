@@ -8,6 +8,15 @@ Changelog
 
 .. towncrier release notes start
 
+3.1.3 (2026-11-27)
+------------------
+
+Bug fixes:
+
+
+- Changelog: when start version of package is not found, take an older one.  [maurits]
+
+
 3.1.2 (2026-11-03)
 ------------------
 
